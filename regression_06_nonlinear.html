@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>24&nbsp; Modeling nonlinear relationships – Introduction to Statistics and Data Science</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./prediction_01_error.html" rel="next">
+<link href="./regression_05_interactions.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-5ccb035bea26c1e21f80f44cf7c27909.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+<style>
+.Definition {
+  --color1: #F4EAF0;
+  --color2: #7C3F58;
+}
+.TechnicalDetail {
+  --color1: #EEF1F3;
+  --color2: #5B6770;
+}
+.Notation {
+  --color1: #EEF1F3;
+  --color2: #5B6770;
+}
+.Exercise {
+  --color1: #E7F4F5;
+  --color2: #147D85;
+}
+</style>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles/callouts.css">
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./regression_01_intro.html">Linear Regression</a></li><li class="breadcrumb-item"><a href="./regression_06_nonlinear.html"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Modeling nonlinear relationships</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Introduction to Statistics and Data Science</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Visualizing and summarizing a single variable</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_01_visualizing-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Visualizing a Single Quantitative Variable</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_02_describing-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Describing Distributions of Quantitative Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_03_location-and-spread.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Measuring Location and Spread</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_04_transformations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Transforming Quantitative Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_05_categorical.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Categorical Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Visualizing and summarizing 2+ variables</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./twovar_01_categorical-categorical.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Two Categorical Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./twovar_02_quantitative-quantitative.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Two Quantitative Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./twovar_03_categorical-quantitative.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">A Quantitative Variable Across Groups</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./twovar_04_multivariate.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">More Than Two Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Probability and Sampling</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_01_intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Introduction to Probability and Sampling</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_02_probability-basics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Probability Basics</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_03_distribution-parameters.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Measures of Location and Spread (and Other Parameters of Probability Distributions)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_04_normal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">The Normal Distribution</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_05_multivariate-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Probability Distributions for Multiple Random Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_07_combining-random-variables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Combining Random Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Statistical Inference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./inference_01_sampling-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Sampling Distributions and Confidence Intervals</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./inference_02_hypothesis-tests.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Hypothesis Tests and p-values</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./inference_03_limits.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">The Limits of Statistical Inference</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Linear Regression</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_01_intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Introduction to Linear Regression</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_02_prediction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Measuring Prediction Error</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_03_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">The Linear Regression Model</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_04_categorical.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Categorical predictors</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_05_interactions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Interactions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_06_nonlinear.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Modeling nonlinear relationships</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Building Prediction Models and Algorithms</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prediction_01_error.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Measuring prediction error on new data</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendix_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Datasets</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Data downloads</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./sap_sampling_app.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Sampling Distribution Explorer — SAP Customer ROE</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./sap_bootstrap_app.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Bootstrap Explorer — SAP Customer ROE</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bagging_app.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">E</span>&nbsp; <span class="chapter-title">Bagging Explorer — Averaging Regression Trees</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#log-transformations-in-regression" id="toc-log-transformations-in-regression" class="nav-link active" data-scroll-target="#log-transformations-in-regression"><span class="header-section-number">24.1</span> Log transformations in regression</a>
+  <ul class="collapse">
+  <li><a href="#checking-nonlinearity-and-equal-variance-assumptions" id="toc-checking-nonlinearity-and-equal-variance-assumptions" class="nav-link" data-scroll-target="#checking-nonlinearity-and-equal-variance-assumptions"><span class="header-section-number">24.1.1</span> Checking nonlinearity and equal variance assumptions</a></li>
+  <li><a href="#interpreting-the-coefficients" id="toc-interpreting-the-coefficients" class="nav-link" data-scroll-target="#interpreting-the-coefficients"><span class="header-section-number">24.1.2</span> Interpreting the coefficients</a></li>
+  </ul></li>
+  <li><a href="#sec-polynomial-regression" id="toc-sec-polynomial-regression" class="nav-link" data-scroll-target="#sec-polynomial-regression"><span class="header-section-number">24.2</span> Polynomial regression</a>
+  <ul class="collapse">
+  <li><a href="#electricity-load-and-temperature" id="toc-electricity-load-and-temperature" class="nav-link" data-scroll-target="#electricity-load-and-temperature"><span class="header-section-number">24.2.1</span> Electricity load and temperature</a></li>
+  <li><a href="#overfitting-and-extrapolation" id="toc-overfitting-and-extrapolation" class="nav-link" data-scroll-target="#overfitting-and-extrapolation"><span class="header-section-number">24.2.2</span> Overfitting and extrapolation</a></li>
+  </ul></li>
+  <li><a href="#appendix-logarithms-and-exponentials" id="toc-appendix-logarithms-and-exponentials" class="nav-link" data-scroll-target="#appendix-logarithms-and-exponentials">Appendix: Logarithms and exponentials</a></li>
+  <li><a href="#data-used-in-this-section" id="toc-data-used-in-this-section" class="nav-link" data-scroll-target="#data-used-in-this-section">Data used in this section</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./regression_01_intro.html">Linear Regression</a></li><li class="breadcrumb-item"><a href="./regression_06_nonlinear.html"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Modeling nonlinear relationships</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Modeling nonlinear relationships</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Linear regression models can fit certain <em>nonlinear</em> relationships too. Interaction terms already made fitted relationships nonlinear in the predictors by including their products. Transforming covariates, responses, or both lets us represent other nonlinear relationships.</p>
+<section id="log-transformations-in-regression" class="level2" data-number="24.1">
+<h2 data-number="24.1" class="anchored" data-anchor-id="log-transformations-in-regression"><span class="header-section-number">24.1</span> Log transformations in regression</h2>
+<p>When we checked diagnostics for the Austin housing data, the spread in our prediction errors grew with the fitted value. That pattern suggests trying a logarithmic scale for price. As we saw in <a href="singlevar_04_transformations.html#sec-logarithms" class="quarto-xref"><span>Section 4.4</span></a>, equal vertical distances on a log scale represent equal ratios rather than equal dollar differences.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-austin-scales" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-austin-scales-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="regression_06_nonlinear_files/figure-html/fig-austin-scales-1.png" class="img-fluid figure-img" width="960">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-austin-scales-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;24.1: Austin sale price against living area. Left: price in dollars. Right: log price compresses the larger dollar gaps among higher-priced homes.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Even without a fitted line, we can already see that the spread <em>around</em> the line of best fit will be more uniform on the right.</p>
+<!-- The raw-price model is
+
+TODO: I DON"T WANT EXTRA GREEK COEFS. ALWAYS BETAS.
+
+$$
+\widehat{\text{price}}
+=\widehat\beta_0+\widehat\beta_1(\text{area})
++\widehat\beta_2D_{78721}+\widehat\beta_3D_{78723}.
+$$
+
+This model assigns a fixed dollar difference to each additional square foot and to each ZIP comparison. If we take a logarithm of price isntead,  -->
+<p>To get some practice with a multiple regression model, we again predict sale price from living area and ZIP code, with 78731 as the reference category:</p>
+<p><span class="math display">\[
+\widehat{\log(\text{price})}
+=\widehat\beta_0+\widehat\beta_1(\text{area})
++\widehat\beta_2D_{78721}+\widehat\beta_3D_{78723}.
+\]</span></p>
+<p>Exponentiating the entire fitted equation returns the prediction to dollars and turns the additive components into multipliers:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\widehat{\text{price}}
+&amp;=\exp\!\left[
+\widehat\beta_0+\widehat\beta_1(\text{area})
++\widehat\beta_2D_{78721}+\widehat\beta_3D_{78723}
+\right] \\
+&amp;=\exp(\widehat\beta_0)
+\exp\!\left[\widehat\beta_1(\text{area})\right]
+\exp(\widehat\beta_2D_{78721})
+\exp(\widehat\beta_3D_{78723}).
+\end{aligned}
+\]</span></p>
+<p>A linear regression model makes a prediction by summing up contributions from each term in the model. If we take a logarithm of <span class="math inline">\(Y\)</span> before we fit the linear model, we get a model that makes a prediction by <em>multiplying</em> the contributions from each term.</p>
+<p>Under normal log-scale errors — or, more generally, errors symmetric around zero — this exponentiated fitted value is the conditional median price.</p>
+<section id="checking-nonlinearity-and-equal-variance-assumptions" class="level3" data-number="24.1.1">
+<h3 data-number="24.1.1" class="anchored" data-anchor-id="checking-nonlinearity-and-equal-variance-assumptions"><span class="header-section-number">24.1.1</span> Checking nonlinearity and equal variance assumptions</h3>
+<p>Before interpreting the coefficients, we check what the transformation does to the diagnostics. The linear model in <a href="#fig-austin-log-diagnostics" class="quarto-xref">Figure&nbsp;<span>24.2</span></a> (left panel) again shows a pronounced increase in residual spread as fitted price rises. After taking logs, the spread is much more consistent, although a hint of nonlinearity remains (it’s also visible in the log-price versus area scatterplot above as a leveling-off at higher prices).</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-austin-log-diagnostics" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-austin-log-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="regression_06_nonlinear_files/figure-html/fig-austin-log-diagnostics-1.png" class="img-fluid figure-img" width="960">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-austin-log-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;24.2: Residuals versus fitted values for the Austin models. Logging price substantially stabilizes the spread, although the smoother retains a modest bend at high predicted log prices.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<!-- 
+None of this is relevant to the pedagogy. 
+
+Adding age, bathrooms, lot size, view, bedrooms, garage spaces, and stories did not flatten the remaining bend during model development. It moved [adjusted $R^2$](regression_02_prediction.qmd#sec-r-squared) only from 0.606 to 0.616. We therefore keep the smaller model, since the extra variables do little to address the diagnostic pattern they were meant to repair.
+
+That comparison used the same data to suggest and assess the richer specification. Its small improvement is descriptive, not an independent test of future performance. Adding predictors and transforming the response solve different problems. Extra predictors account for systematic comparisons the model omitted, while logging price changes the form of the outcome and its errors. -->
+<p>The log transformation addresses the equal variance violation by changing what “equal variance” means. In the original model, equal variance asks for a similar distribution of errors <em>in dollars</em> for any combination of area and ZIP. In the <code>log(latest_price)</code> model, it asks for roughly constant <strong>multiplicative</strong> errors across fitted prices. For example, a $20K error is a 10% miss on a $200K house, the same percentage miss as $40K on a $400K house. In this model, we <em>expect</em> larger errors (in dollars) when we predict higher prices.</p>
+</section>
+<section id="interpreting-the-coefficients" class="level3" data-number="24.1.2">
+<h3 data-number="24.1.2" class="anchored" data-anchor-id="interpreting-the-coefficients"><span class="header-section-number">24.1.2</span> Interpreting the coefficients</h3>
+<p>The estimated coefficients are below:</p>
+<p><span class="math display">\[
+\widehat{\log(\text{price})}
+=12.66
++0.00034(\text{area})
+-0.38D_{78721}
+-0.32D_{78723}.
+\]</span></p>
+<p><a href="#tbl-austin-log-model" class="quarto-xref">Table&nbsp;<span>24.1</span></a> gives the complete regression table.</p>
+<div class="cell">
+<div id="tbl-austin-log-model" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-austin-log-model-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;24.1: Predicting log sale price from living area and ZIP code, with 78731 as the reference category.
+</figcaption>
+<div aria-describedby="tbl-austin-log-model-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="table cell caption-top table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Estimate</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Std. error</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">95% CI</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">t</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">p-value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Intercept (78731, area = 0)</td>
+<td style="text-align: right;">12.65541</td>
+<td style="text-align: right;">0.04522</td>
+<td style="text-align: right;">[12.56668, 12.74413]</td>
+<td style="text-align: right;">279.87</td>
+<td style="text-align: right;">&lt;0.001</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Living area (sq ft)</td>
+<td style="text-align: right;">0.00034</td>
+<td style="text-align: right;">0.00002</td>
+<td style="text-align: right;">[0.00031, 0.00038]</td>
+<td style="text-align: right;">20.72</td>
+<td style="text-align: right;">&lt;0.001</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">78721 vs. 78731</td>
+<td style="text-align: right;">−0.37593</td>
+<td style="text-align: right;">0.03343</td>
+<td style="text-align: right;">[−0.44152, −0.31033]</td>
+<td style="text-align: right;">−11.25</td>
+<td style="text-align: right;">&lt;0.001</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; border-bottom: 1px solid #9b9d9e;">78723 vs. 78731</td>
+<td style="text-align: right; border-bottom: 1px solid #9b9d9e;">−0.32155</td>
+<td style="text-align: right; border-bottom: 1px solid #9b9d9e;">0.02566</td>
+<td style="text-align: right; border-bottom: 1px solid #9b9d9e;">[−0.37190, −0.27120]</td>
+<td style="text-align: right; border-bottom: 1px solid #9b9d9e;">−12.53</td>
+<td style="text-align: right; border-bottom: 1px solid #9b9d9e;">&lt;0.001</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Residual standard error</td>
+<td style="text-align: right;">0.30986</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">R² / Adjusted R²</td>
+<td style="text-align: right;">0.607 / 0.606</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">n</td>
+<td style="text-align: right;">1,103</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>The RSE of 0.31 is measured in log-price units. A positive residual of one RSE corresponds to a price multiplier of 1.36. The observed price is about 36% above its fitted value. A negative residual of the same size corresponds to a multiplier of 0.73. The observed price is then about 27% below its fitted value. The percentages differ because equal positive and negative changes on the log scale become reciprocal multipliers in dollars.</p>
+<p>The table’s <span class="math inline">\(R^2\)</span> describes variation in log price. It is not directly comparable with an <span class="math inline">\(R^2\)</span> from a model of price in dollars because the two models measure squared errors on different response scales.</p>
+<p>To see how we can interpret these coefficients, consider two homes in ZIP code 78731 with 2,000 and 2,100 square feet. Their predicted log prices are</p>
+<p><span class="math display">\[
+\begin{aligned}
+\widehat{\log(\text{price})}_{2000}
+&amp;=\widehat\beta_0+2000\widehat\beta_1
+=13.34, \\
+\widehat{\log(\text{price})}_{2100}
+&amp;=\widehat\beta_0+2100\widehat\beta_1
+=13.38.
+\end{aligned}
+\]</span></p>
+<p>Subtracting the first prediction from the second isolates the change associated with 100 additional square feet:</p>
+<p><span class="math display">\[
+\widehat{\log(\text{price})}_{2100}
+-\widehat{\log(\text{price})}_{2000}
+=100\widehat\beta_1
+=0.0343.
+\]</span></p>
+<p>Exponentiating that difference gives the <em>ratio</em> of the fitted dollar prices:</p>
+<p><span class="math display">\[
+\frac{\widehat{\text{price}}_{2100}}
+{\widehat{\text{price}}_{2000}}
+=\exp(0.0343)
+=1.035.
+\]</span></p>
+<p>The 2,100-square-foot home therefore has a fitted price about 3.49% higher than the 2,000-square-foot home in the same ZIP code. There was nothing special about 2,000/2,100 square feet or choosing 78731; we’d see the same change in prediction for any houses in the same ZIP. You can get to the same interpretation more directly by using the exponentiated regression equation to compute the ratio of fitted prices; anything unchanging between the two predictions cancels out. <!-- todo, redo w/ dummies retained.
+$$
+\frac{\widehat{\text{price}}_{2100}}
+{\widehat{\text{price}}_{2000}}
+=\frac{\exp(\widehat\beta_0+2100\widehat\beta_1)}
+{\exp(\widehat\beta_0+2000\widehat\beta_1)}
+=\exp(100\widehat\beta_1).
+$$
+---></p>
+<p>Now compare two 2,000-square-foot homes, one in 78731 and one in 78723. Their predicted log prices are</p>
+<p><span class="math display">\[
+\begin{aligned}
+\widehat{\log(\text{price})}_{78731}
+&amp;=\widehat\beta_0+2000\widehat\beta_1
+=13.34, \\
+\widehat{\log(\text{price})}_{78723}
+&amp;=\widehat\beta_0+2000\widehat\beta_1+\widehat\beta_3
+=13.02.
+\end{aligned}
+\]</span></p>
+<p>The fitted log-price difference and corresponding dollar-price ratio are</p>
+<p><span class="math display">\[
+\begin{aligned}
+\widehat{\log(\text{price})}_{78723}
+-\widehat{\log(\text{price})}_{78731}
+&amp;=\widehat\beta_3
+=-0.3216, \\
+\frac{\widehat{\text{price}}_{78723}}
+{\widehat{\text{price}}_{78731}}
+&amp;=\exp(\widehat\beta_3)
+=0.725.
+\end{aligned}
+\]</span></p>
+<p>Comparing two houses of the same size, one in 78723 and the other in 78731, the fitted price in 78723 is therefore about 27.5% lower than in 78731.</p>
+<p>The four coefficients now have distinct interpretations:</p>
+<ul>
+<li>The intercept, <span class="math inline">\(\widehat\beta_0=12.66\)</span>, is the predicted log price of a zero-square-foot home in 78731. It’s not useful on its own here.</li>
+<li>The area coefficient, <span class="math inline">\(\widehat\beta_1=0.00034\)</span>, is the fitted log-price difference per additional square foot among homes in the same ZIP code. A 100-square-foot increase corresponds to a 3.49% higher fitted price. The 100-square-foot increment is simply to produce a more digestible percentage. It’s easy to verify by a similar calculation that a <span class="math inline">\(d\)</span>-square-foot increase in area would correspond to a multiplier of <span class="math inline">\(\exp(d\widehat\beta_1)\)</span> on the fitted price.</li>
+<li>The 78721 coefficient, <span class="math inline">\(\widehat\beta_2=-0.38\)</span>, compares equally sized homes in 78721 with homes in the reference ZIP code, 78731. Exponentiating it gives a fitted price about 31.3% lower in 78721.</li>
+<li>The 78723 coefficient, <span class="math inline">\(\widehat\beta_3=-0.32\)</span>, compares equally sized homes in 78723 with homes in 78731. Exponentiating it gives a fitted price about 27.5% lower in 78723.</li>
+</ul>
+<!-- 
+TOO MANY WORDS NO ONE WILL FOLLOW THIS
+
+The exact conversion follows from comparing two fitted values whose log predictions differ by $b$. Exponentiating their difference gives a fitted-price ratio of $\exp(b)$. Subtracting one turns that ratio into a decimal change, and multiplying by 100 expresses it as a percentage. -->
+<!-- 
+For living area, a one-square-foot comparison is too small to be useful. Holding ZIP code constant, 100 additional square feet corresponds to 3.49% higher predicted sale price. We calculate that as $100[\exp(100\widehat\alpha_1)-1]\%$ because the coefficient applies once for every added square foot.
+
+The ZIP coefficients compare equally sized homes. Holding area constant, predicted sale price in 78721 is 31.3% lower than in 78731; in 78723 it is 27.5% lower. The first coefficient is -0.376, but exponentiation produces a 31.3% decrease. Positive and negative log changes are not symmetric after we return to dollars.
+
+The reference direction matters as well. Saying that 78721 is 31.3% lower than 78731 does not mean that 78731 is 31.3% higher than 78721. Reversing the comparison uses the reciprocal ratio, $\exp(-\widehat\alpha_2)$, because each percentage uses a different starting value.
+
+The model is additive in log price and multiplicative in dollar price. At any fixed area, moving from 78731 to 78721 multiplies the fitted price by $\exp(-0.3759)$. The dollar gap therefore grows with the predicted price rather than remaining fixed. -->
+<!--
+Technical note for a later treatment: least squares estimates the conditional
+mean of log price. Exponentiating that fitted value gives the conditional
+geometric mean of price. It also gives the conditional median when the
+log-scale errors have median zero, as they do under a symmetric error model.
+It does not generally give the conditional arithmetic mean because
+exponentiation is nonlinear. Predicting mean dollar price requires a
+retransformation correction, such as a model-based correction or a smearing
+estimate.
+-->
+<!--
+TODO: ADD BACK WHEN I HAVE TIME TO EDIT THIS MESS
+
+Residuals also take a multiplicative interpretation. For a log-scale residual
+
+$$
+e=\log(y)-\widehat{\log(y)},
+\qquad
+\exp(e)=\frac{y}{\widehat y}.
+$$
+
+The exponential of a residual is the ratio of actual price to its dollar-scale fitted value. The Austin model's residual standard deviation is 0.31, so one residual standard deviation corresponds to a ratio of about 1.36. An error this size is roughly 36% upward on the dollar scale, not a fixed dollar miss.
+
+A negative residual uses the reciprocal direction. A residual of -0.31 corresponds to a ratio near 0.73, meaning the observed price is about 27% below its fitted value. The upward and downward percentage readings differ even though the two residuals are equally far from zero on the log scale.
+
+### Four model forms
+
+Logging the response, the predictor, or both produces four related coefficient interpretations. For a slope $b_1$ and a one-unit increase in $X$, the comparison is:
+
+| Model form | Interpretation |
+|:---|:---|
+| $Y=b_0+b_1X$ | Predicted $Y$ changes by $b_1$ units. |
+| $\log(Y)=b_0+b_1X$ | Predicted $Y$ changes by exactly $100[\exp(b_1)-1]\%$, or approximately $100b_1\%$ when $b_1$ is small. |
+| $Y=b_0+b_1\log(X)$ | A 1% increase in $X$ corresponds approximately to a $b_1/100$-unit change in predicted $Y$. |
+| $\log(Y)=b_0+b_1\log(X)$ | A 1% increase in $X$ corresponds approximately to a $b_1\%$ change in predicted $Y$; $b_1$ is an elasticity. |
+
+: Slope interpretations for linear and logged regression models. {#tbl-log-model-forms}
+
+The last two rows describe small or local changes. For a finite change from $x_1$ to $x_2$, the predictor changes by $\log(x_2/x_1)$, and the response comparison follows from that exact log ratio.
+
+The approximation behaves best when the percentage change is close to zero. If $X$ rises by 1%, then $\log(1.01)=0.00995$, which is close to 0.01. If $X$ rises by 50%, then $\log(1.50)=0.405$ rather than 0.50. An exact finite-change calculation carries useful information here.
+
+--->
+<!--PRIORITY ADD BACK NEXT DRAFT!
+
+## Price elasticity {#sec-price-elasticity}
+
+The Kroger data record 706 weekly observations of packaged sliced-American-cheese sales across 11 U.S. cities [@kroger-cheese]. Each row gives sales volume in packages, `vol`, and retail price in dollars per package, `price`. The data also record city and whether the product had an in-store display.
+
+A linear model that predicts `log(vol)` from `log(price)` fits a *demand curve* with a familiar form (if you've taken some economics):
+
+
+
+
+allows the predicted change in sales volume associated with a price change to vary with the starting price and volume. Its slope is **price elasticity of demand**: the approximate percentage change in predicted quantity associated with a 1% increase in price.
+
+Elasticity is unit-free because both parts of the comparison are percentages. Measuring price in dollars or cents gives the same slope after the intercept adjusts. The same holds for packages or thousands of packages.
+
+Prices were not randomized, and the fitted model does not account for city or display status. We therefore use its elasticity to describe the fitted price-volume relationship rather than a causal effect of changing price.
+
+@fig-kroger-demand shows both fits on the original axes in the left panel and the straight log-log relationship on logarithmic axes in the right panel.
+
+
+::: {.cell}
+::: {.cell-output-display}
+![Weekly Kroger cheese sales against price. Left: raw linear and log-log fits on the original axes. Right: the log-log relationship is a line on logarithmic axes.](regression_06_nonlinear_files/figure-html/fig-kroger-demand-1.png){#fig-kroger-demand width=960}
+:::
+:::
+
+
+The fitted log-log equation is
+
+$$
+\widehat{\log(\text{vol})}
+=9.2435
+-0.9286\log(\text{price}).
+$$
+
+The equation makes log volume linear in log price. The fitted slope is the elasticity defined above.
+
+Exponentiating both sides gives the fitted relationship on the original scale:
+
+$$
+\widehat{\text{vol}}
+=\exp(\widehat\beta_0)\text{price}^{\widehat\beta_1}.
+$$
+
+The intercept sets the curve's overall level, while the exponent determines how predicted volume changes with price. A negative exponent produces the downward curve in @fig-kroger-demand.
+
+Here the fitted elasticity is -0.93. In this model, a 1% higher price corresponds to about a 0.93% lower predicted sales volume.
+
+The model gives exact fitted comparisons for larger changes. If price moves from $p_1$ to $p_2$, then
+
+$$
+\frac{\widehat{\text{vol}}_2}{\widehat{\text{vol}}_1}
+=\left(\frac{p_2}{p_1}\right)^{\widehat\beta_1}.
+$$
+
+The fitted volume ratio depends on the price ratio raised to the elasticity. Raising price from \$2.00 to \$2.50 multiplies price by 1.25 and gives a fitted volume ratio of 0.813, or a 18.7% decrease. The 1%-change interpretation would be a poor shortcut for a 25% price increase.
+
+The residual plots in @fig-kroger-diagnostics compare the two scales. Logging price and volume changes the residual structure, but the cloud is still messy. Cities, displays, and other omitted factors leave substantial variation.
+
+
+::: {.cell}
+::: {.cell-output-display}
+![Residuals versus fitted values for weekly Kroger cheese sales. The log-log model changes the residual structure but leaves substantial unexplained variation.](regression_06_nonlinear_files/figure-html/fig-kroger-diagnostics-1.png){#fig-kroger-diagnostics width=960}
+:::
+:::
+
+
+The log-log model has $R^2=0.054$. Price alone therefore leaves most week-to-week and city-to-city variation unexplained, even though the fitted center of log volume has a consistent downward association with log price. Including city and display status would answer a different adjusted-comparison question.
+
+
+--->
+</section>
+</section>
+<section id="sec-polynomial-regression" class="level2" data-number="24.2">
+<h2 data-number="24.2" class="anchored" data-anchor-id="sec-polynomial-regression"><span class="header-section-number">24.2</span> Polynomial regression</h2>
+<p><strong>Polynomial regression</strong> allows for nonlinearity by adding additional powers of <span class="math inline">\(X\)</span> to the model. A <em>degree</em>-<span class="math inline">\(k\)</span> polynomial regression model has the form</p>
+<p><span class="math display">\[
+\widehat Y
+=\widehat\beta_0+\widehat\beta_1X+\widehat\beta_2X^2+\cdots+\widehat\beta_kX^k.
+\]</span></p>
+<p>We treat <span class="math inline">\(X,X^2,\ldots,X^k\)</span> just like any other predictors when we fit the model. A degree-2 polynomial is a quadratic function that can capture <span class="math inline">\(U\)</span>-shapes (or nonlinearly increasing or decreasing relationships, depending on where the <span class="math inline">\(X\)</span> values lie). A degree-3 polynomial is a cubic function; it can change direction twice and take more complex forms than a degree-2 polynomial. A degree-<span class="math inline">\(k\)</span> model also includes every lower power, preserving the model’s hierarchy.</p>
+<p>When we’re using polynomials in regression, we usually don’t care about the individual coefficients. Instead, we focus on the overall shape of the fitted curve and how well it captures the relationship between <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>.</p>
+<section id="electricity-load-and-temperature" class="level3" data-number="24.2.1">
+<h3 data-number="24.2.1" class="anchored" data-anchor-id="electricity-load-and-temperature"><span class="header-section-number">24.2.1</span> Electricity load and temperature</h3>
+<p>We revisit our running nonlinear example, predicting daily electricity load in North Central Texas from the average daily temperature. Adding a quadratic term captures most of the <span class="math inline">\(U\)</span>-shaped relationship that a straight line misses.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ercot-linear-quadratic" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ercot-linear-quadratic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="regression_06_nonlinear_files/figure-html/fig-ercot-linear-quadratic-1.png" class="img-fluid figure-img" width="960">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ercot-linear-quadratic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;24.3: Daily mean electricity load against temperature in DFW during 2018. The quadratic fit captures the dominant U-shaped pattern that the straight line misses.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The fitted curve overlaid on the data suggests that we might be done — we wanted a <span class="math inline">\(U\)</span> and we got it — but the residual-versus-fitted plot below shows we still have a violation of the linearity assumption:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ercot-polynomial-diagnostics" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ercot-polynomial-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="regression_06_nonlinear_files/figure-html/fig-ercot-polynomial-diagnostics-1.png" class="img-fluid figure-img" width="960">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ercot-polynomial-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;24.4: Residuals versus fitted values for degree-1 (left) and degree-2 (right) ERCOT models. The quadratic removes the dominant curved pattern.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The quadratic captures most of the relationship that the line missed, but some structure remains in the residuals. In particular, for very hot or very cold days (when the fitted values are largest) we are overpredicting demand. You can actually see that in the plot of the model fit over the original data if you look closely. But you can’t miss it in the residual versus fitted plot.</p>
+<p><a href="#fig-ercot-degree3-check" class="quarto-xref">Figure&nbsp;<span>24.5</span></a> shows the cubic fit and its residual plot.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ercot-degree3-check" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ercot-degree3-check-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="regression_06_nonlinear_files/figure-html/fig-ercot-degree3-check-1.png" class="img-fluid figure-img" width="960">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ercot-degree3-check-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;24.5: The degree-3 ERCOT fit (left) and its residual-versus-fitted plot (right). The cubic makes a smaller adjustment after the quadratic captures the dominant U-shape.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The cubic changes the fitted curve only modestly, and the residual smoother still curves downward. Adding a couple more polynomial terms gets us closer to a good fit, as shown in <a href="#fig-ercot-degree5-check" class="quarto-xref">Figure&nbsp;<span>24.6</span></a>.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ercot-degree5-check" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ercot-degree5-check-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="regression_06_nonlinear_files/figure-html/fig-ercot-degree5-check-1.png" class="img-fluid figure-img" width="960">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ercot-degree5-check-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;24.6: The degree-5 ERCOT fit (left) and its residual-versus-fitted plot (right). Most remaining departures are small relative to the original nonlinear pattern.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<!-- 
+
+
+::: {#tbl-ercot-poly-fit .cell tbl-cap='Fit measures for polynomial models of 2018 DFW daily mean load on temperature.'}
+::: {.cell-output-display}
+
+
+| Degree| $R^2$| Adjusted $R^2$| Residual SD (MW)|
+|------:|-----:|--------------:|----------------:|
+|      1| 0.225|          0.222|            2,585|
+|      2| 0.910|          0.909|              884|
+|      3| 0.911|          0.910|              879|
+|      5| 0.936|          0.935|              746|
+|      9| 0.940|          0.939|              726|
+
+
+:::
+:::
+
+ -->
+</section>
+<section id="overfitting-and-extrapolation" class="level3" data-number="24.2.2">
+<h3 data-number="24.2.2" class="anchored" data-anchor-id="overfitting-and-extrapolation"><span class="header-section-number">24.2.2</span> Overfitting and extrapolation</h3>
+<p><a href="#fig-ercot-poly-curves" class="quarto-xref">Figure&nbsp;<span>24.7</span></a> places the degree-1, degree-2, degree-3, degree-5, and degree-9 polynomials on the same figure. The quadratic captures the main U-shape, with smaller refinements from the other terms. The ninth-degree curve starts producing extra wiggles and behaves erratically at the extremes. This is characteristic of <em>overfitting</em>: a model that is so flexible that it can start to chase noise instead of signal.</p>
+<!-- 
+From degree 1 to degree 2, $R^2$ rises from 0.225 to 0.910. Residual SD falls from 2,585 MW to 884 MW. Moving to degree 3 lowers residual SD by only about 5 MW. -->
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ercot-poly-curves" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ercot-poly-curves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="regression_06_nonlinear_files/figure-html/fig-ercot-poly-curves-1.png" class="img-fluid figure-img" width="816">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ercot-poly-curves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;24.7: Degree-1, degree-2, degree-3, degree-5, and degree-9 polynomial fits for 2018 DFW daily load. The quadratic captures the dominant U-shape; higher degrees add smaller bends.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>High-degree polynomials are especially risky for <em>extrapolation</em>. At the low-temperature end of <a href="#fig-ercot-poly-curves" class="quarto-xref">Figure&nbsp;<span>24.7</span></a>, the degree-9 curve already bends back down. <a href="#fig-ercot-poly-extrapolation" class="quarto-xref">Figure&nbsp;<span>24.8</span></a> extends the temperature range by only eight degrees in each direction and marks the observed boundaries.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ercot-poly-extrapolation" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ercot-poly-extrapolation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="regression_06_nonlinear_files/figure-html/fig-ercot-poly-extrapolation-1.png" class="img-fluid figure-img" width="816">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ercot-poly-extrapolation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;24.8: ERCOT polynomial fits extended eight degrees beyond the observed temperature range. Dashed lines mark the data boundaries; the fitted curves separate quickly outside them.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The curved models make broadly similar predictions through most of the observed range but diverge rapidly outside it. The extra flexibility that helps a high-degree model follow small in-sample bends also leaves its extrapolations controlled by the highest powers of temperature.</p>
+<p>The “Goldilocks” degree is the one that predicts well without chasing noise. Finding it requires checking predictions on new data, which we’ll do in the next chapter.</p>
+<!---
+
+### Overfitting and extrapolation
+
+The Austin polynomial example uses the full housing file, restricted to ZIP 78744 [@housing-kaggle]. After removing the top 1% of prices within that ZIP code, the sample contains 432 homes with sale price and age at sale.
+
+The fitted curves in @fig-austin-poly-curves use degrees 1, 2, 3, and 9. The ninth-degree model achieves the highest in-sample $R^2$, but it also develops bends in parts of the age range with relatively few observations.
+
+
+::: {.cell}
+::: {.cell-output-display}
+![Sale price versus house age in Austin ZIP 78744, with polynomial fits of degrees 1, 2, 3, and 9. The ninth-degree curve bends sharply near sparse portions of the observed range.](regression_06_nonlinear_files/figure-html/fig-austin-poly-curves-1.png){#fig-austin-poly-curves width=816}
+:::
+:::
+
+
+@tbl-austin-poly-fit records the corresponding measures of in-sample fit.
+
+
+::: {#tbl-austin-poly-fit .cell tbl-cap='Fit measures for polynomial models of sale price on age in Austin ZIP 78744.'}
+::: {.cell-output-display}
+
+
+| Degree| $R^2$| Adjusted $R^2$| Residual SD|
+|------:|-----:|--------------:|-----------:|
+|      1| 0.284|          0.283|     $58,269|
+|      2| 0.406|          0.403|     $53,166|
+|      3| 0.432|          0.428|     $52,041|
+|      5| 0.434|          0.427|     $52,086|
+|      9| 0.458|          0.446|     $51,211|
+
+
+:::
+:::
+
+
+**Overfitting** occurs when a model follows sample-specific variation that need not repeat in new observations. Increasing polynomial degree cannot lower in-sample $R^2$, because the larger model can always reproduce the smaller model by setting its new coefficients to zero. Better in-sample fit therefore does not guarantee better prediction.
+
+@tbl-austin-poly-fit illustrates the mechanical increase. $R^2$ rises from 0.284 for the line to 0.458 for degree 9. Adjusted $R^2$ also rises here. The fitted curve reveals what those summaries omit: extra terms partly improve fit by chasing local rises and dips near sparse ages.
+
+We would need new observations or a validation scheme to measure whether those bends repeat. Without that evidence, the degree-9 model's extra in-sample fit is a possible gain rather than proof of improved prediction. The low-degree curves impose more structure, which can miss a real bend but also makes them less responsive to sample noise.
+
+Those are competing costs. Choosing too little flexibility leaves systematic curvature in the residuals, while choosing too much flexibility can make fitted values unstable and future predictions worse. A low-degree starting point, a residual check, and an honest comparison of the incremental fit keep the choice tied to the relationship at hand.
+
+Polynomial extrapolation creates a sharper danger. @fig-austin-poly-extrapolation extends the degree-2 and degree-9 fits only eight years beyond the largest observed age. The vertical line marks the data boundary; beyond it, the degree-9 curve quickly leaves the range of plausible prices.
+
+
+::: {.cell}
+::: {.cell-output-display}
+![Degree-2 and degree-9 Austin fits extended eight years beyond the observed age range. The dashed line marks the oldest observed home; the high-degree curve quickly leaves the plotted price range.](regression_06_nonlinear_files/figure-html/fig-austin-poly-extrapolation-1.png){#fig-austin-poly-extrapolation width=816}
+:::
+:::
+
+
+By age 68, the degree-9 model predicts -$2,605,200, an impossible negative price. The line drops outside the plotted window. The quadratic remains visually restrained, but its extrapolation still depends on an untested continuation of the fitted curve.
+
+Every polynomial eventually follows its highest power, so even a smooth low-degree fit can behave poorly outside the observed range. High degrees can make that instability arrive faster. In this introductory setting, start with a low degree when it materially repairs a missed curve. Residuals then show whether the repair worked. High-degree wiggles require stronger justification, and extrapolation remains risky at every degree.
+
+The extrapolation problem differs from ordinary uncertainty inside the data range. Within the observed ages, nearby homes constrain the curve. Beyond age 64, no observations oppose the rapidly growing ninth-power term, so its direction comes from algebra rather than nearby evidence.
+
+Log transformations and polynomial terms address different problems. Logging changes the scale of the response or predictor and turns coefficients into multiplicative comparisons. Polynomial terms bend the fitted relationship while leaving the response in its original units.
+
+--->
+</section>
+</section>
+<section id="appendix-logarithms-and-exponentials" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="appendix-logarithms-and-exponentials">Appendix: Logarithms and exponentials</h2>
+<p>The natural logarithm <span class="math inline">\(\log(x)\)</span> is defined only for <span class="math inline">\(x&gt;0\)</span>. It is the inverse of the exponential function <span class="math inline">\(\exp(x)=e^x\)</span>, so</p>
+<p><span class="math display">\[
+\log(1)=0,\qquad \exp(0)=1,\qquad
+\log(\exp a)=a,\qquad \exp(\log x)=x.
+\]</span></p>
+<p>The log and exponential functions undo one another. The last identity requires <span class="math inline">\(x&gt;0\)</span>.</p>
+<p>Logs turn products into sums, ratios into differences, and powers into multiplication:</p>
+<p><span class="math display">\[
+\log(ab)=\log a+\log b,
+\qquad
+\log(a/b)=\log a-\log b,
+\qquad
+\log(a^k)=k\log a.
+\]</span></p>
+<p>Each rule converts a multiplicative operation on the original scale into an additive operation on the log scale. Exponentials reverse the same move, with <span class="math inline">\(\exp(a+b)=\exp(a)\exp(b)\)</span>.</p>
+<p>A difference between two logged values is the log of their ratio:</p>
+<p><span class="math display">\[
+\log(y_2)-\log(y_1)=\log(y_2/y_1).
+\]</span></p>
+<p>A log difference <span class="math inline">\(d\)</span> therefore corresponds to the exact ratio <span class="math inline">\(\exp(d)\)</span> and the exact percentage change <span class="math inline">\(100[\exp(d)-1]\%\)</span>. For small decimal changes, <span class="math inline">\(\log(1+r)\approx r\)</span> and <span class="math inline">\(\exp(d)-1\approx d\)</span>. A 2% increase has <span class="math inline">\(\log(1.02)=0.0198\)</span>, so the approximation differs by only 0.0002. A 50% increase has <span class="math inline">\(\log(1.50)=0.4055\)</span>, so the same shortcut is much rougher.</p>
+<p>The sign carries the direction. Positive log differences produce ratios above one, zero produces a ratio of one, and negative log differences produce ratios between zero and one. Equal positive and negative log differences correspond to reciprocal ratios: <span class="math inline">\(\exp(0.2)=1.22\)</span> and <span class="math inline">\(\exp(-0.2)=0.82\)</span>.</p>
+<p>Natural logs use base <span class="math inline">\(e\approx2.718\)</span>, but the base does not change the substantive pattern once coefficients are interpreted consistently. We use natural logs because their derivatives give the percentage-change approximations above and because statistical software commonly treats <code>log</code> as the natural logarithm.</p>
+<p>Zero and negative values cannot be logged. Adding an arbitrary constant changes ratios and therefore changes the scientific meaning of the analysis, so it is not a generic fix for nonpositive observations.</p>
+</section>
+<section id="data-used-in-this-section" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="data-used-in-this-section">Data used in this section</h2>
+<ul>
+<li><a href="./appendix_data.html#sec-data-housing-kaggle">Austin House Listings</a></li>
+<li><a href="./appendix_data.html#sec-data-ercot-shaffer">ERCOT Hourly Load and Temperature Panel</a></li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./regression_05_interactions.html" class="pagination-link" aria-label="Interactions">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Interactions</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./prediction_01_error.html" class="pagination-link" aria-label="Measuring prediction error on new data">
+        <span class="nav-page-text"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Measuring prediction error on new data</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

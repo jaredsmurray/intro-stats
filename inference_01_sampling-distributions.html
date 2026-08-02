@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>16&nbsp; Sampling Distributions and Confidence Intervals – Introduction to Statistics and Data Science</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./inference_02_hypothesis-tests.html" rel="next">
+<link href="./prob_07_combining-random-variables.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-5ccb035bea26c1e21f80f44cf7c27909.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>
+.TechnicalDetail {
+  --color1: #EEF1F3;
+  --color2: #5B6770;
+}
+.Exercise {
+  --color1: #E7F4F5;
+  --color2: #147D85;
+}
+.Notation {
+  --color1: #EEF1F3;
+  --color2: #5B6770;
+}
+.Definition {
+  --color1: #F4EAF0;
+  --color2: #7C3F58;
+}
+</style>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles/callouts.css">
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./inference_01_sampling-distributions.html">Statistical Inference</a></li><li class="breadcrumb-item"><a href="./inference_01_sampling-distributions.html"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Sampling Distributions and Confidence Intervals</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Introduction to Statistics and Data Science</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Visualizing and summarizing a single variable</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_01_visualizing-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Visualizing a Single Quantitative Variable</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_02_describing-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Describing Distributions of Quantitative Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_03_location-and-spread.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Measuring Location and Spread</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_04_transformations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Transforming Quantitative Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_05_categorical.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Categorical Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Visualizing and summarizing 2+ variables</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./twovar_01_categorical-categorical.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Two Categorical Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./twovar_02_quantitative-quantitative.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Two Quantitative Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./twovar_03_categorical-quantitative.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">A Quantitative Variable Across Groups</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./twovar_04_multivariate.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">More Than Two Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Probability and Sampling</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_01_intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Introduction to Probability and Sampling</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_02_probability-basics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Probability Basics</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_03_distribution-parameters.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Measures of Location and Spread (and Other Parameters of Probability Distributions)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_04_normal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">The Normal Distribution</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_05_multivariate-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Probability Distributions for Multiple Random Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_07_combining-random-variables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Combining Random Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Statistical Inference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./inference_01_sampling-distributions.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Sampling Distributions and Confidence Intervals</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./inference_02_hypothesis-tests.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Hypothesis Tests and p-values</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./inference_03_limits.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">The Limits of Statistical Inference</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Linear Regression</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_01_intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Introduction to Linear Regression</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_02_prediction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Measuring Prediction Error</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_03_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">The Linear Regression Model</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_04_categorical.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Categorical predictors</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_05_interactions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Interactions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_06_nonlinear.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Modeling nonlinear relationships</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Building Prediction Models and Algorithms</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prediction_01_error.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Measuring prediction error on new data</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendix_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Datasets</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Data downloads</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./sap_sampling_app.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Sampling Distribution Explorer — SAP Customer ROE</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./sap_bootstrap_app.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Bootstrap Explorer — SAP Customer ROE</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bagging_app.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">E</span>&nbsp; <span class="chapter-title">Bagging Explorer — Averaging Regression Trees</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#sec-sap-dispute" id="toc-sec-sap-dispute" class="nav-link active" data-scroll-target="#sec-sap-dispute"><span class="header-section-number">16.1</span> The SAP dispute</a>
+  <ul class="collapse">
+  <li><a href="#connecting-sampling-from-a-population-to-sampling-from-a-probability-distribution-again" id="toc-connecting-sampling-from-a-population-to-sampling-from-a-probability-distribution-again" class="nav-link" data-scroll-target="#connecting-sampling-from-a-population-to-sampling-from-a-probability-distribution-again"><span class="header-section-number">16.1.1</span> Connecting sampling from a population to sampling from a probability distribution, again</a></li>
+  </ul></li>
+  <li><a href="#sec-sampling-ci" id="toc-sec-sampling-ci" class="nav-link" data-scroll-target="#sec-sampling-ci"><span class="header-section-number">16.2</span> Sampling distributions and confidence intervals</a>
+  <ul class="collapse">
+  <li><a href="#sec-app-walkthrough" id="toc-sec-app-walkthrough" class="nav-link" data-scroll-target="#sec-app-walkthrough"><span class="header-section-number">16.2.1</span> Simulating the sampling distribution</a></li>
+  <li><a href="#sec-ci" id="toc-sec-ci" class="nav-link" data-scroll-target="#sec-ci"><span class="header-section-number">16.2.2</span> From the sampling distribution to an interval</a></li>
+  </ul></li>
+  <li><a href="#sec-bootstrap" id="toc-sec-bootstrap" class="nav-link" data-scroll-target="#sec-bootstrap"><span class="header-section-number">16.3</span> The bootstrap</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./inference_01_sampling-distributions.html">Statistical Inference</a></li><li class="breadcrumb-item"><a href="./inference_01_sampling-distributions.html"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Sampling Distributions and Confidence Intervals</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Sampling Distributions and Confidence Intervals</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="sec-sap-dispute" class="level2" data-number="16.1">
+<h2 data-number="16.1" class="anchored" data-anchor-id="sec-sap-dispute"><span class="header-section-number">16.1</span> The SAP dispute</h2>
+<p>In 2005 SAP, the world’s largest maker of enterprise software, ran advertisements claiming that companies running SAP are 32% more profitable than companies that don’t. The figure came from a study SAP commissioned and never released for public scrutiny <span class="citation" data-cites="carr-sap-lies carr-sap-ads">(<a href="appendix_data.html#ref-carr-sap-lies" role="doc-biblioref">Carr 2005</a>, <a href="appendix_data.html#ref-carr-sap-ads" role="doc-biblioref">2006</a>)</span>. In March 2006 the analyst firm Nucleus Research published a rebuttal <span class="citation" data-cites="sap-nucleus">(<a href="appendix_data.html#ref-sap-nucleus" role="doc-biblioref">Nucleus Research 2006</a>)</span>. Nucleus built its own dataset: it collected the 81 publicly traded companies listed as customers on SAP’s web site and looked up each one’s <strong>return on equity</strong> (ROE) — annual profit as a percentage of shareholder equity, a standard measure of how profitably a company uses its capital — along with the average ROE of each company’s industry. The numbers ran the other way. The 81 SAP customers averaged an ROE of 12.6% against industry benchmarks averaging 15.7%, and Nucleus titled the report “SAP customers are 20 percent less profitable than their peers” (12.6 is about 20% below 15.7).</p>
+<p>SAP dismissed the report as “junk science.” Its argument was about sample size: 81 companies out of SAP’s roughly 30,000 customers is about a quarter of one percent, far too few — SAP claimed — to say anything about the customer base as a whole. Who is right? Both sides are arguing about the same unknown quantity, the average ROE among all 30,000 customers. The next few chapters build the tools to say what 81 companies can and cannot tell us about it.</p>
+<p>The <code>sap_roe</code> data contain the 81 companies from the Nucleus report, one row per company: its name (<code>company</code>), its industry (<code>industry</code>), its ROE in percent (<code>roe</code>), and the average ROE of its industry (<code>industry_roe</code>). The companies are household names. BMW, Caterpillar, Unilever, and Xerox all appear, spread across about 30 industries. <a href="#fig-sap-roe" class="quarto-xref">Figure&nbsp;<span>16.1</span></a> shows the 81 ROE values along with the two averages in dispute.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-sap-roe" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-sap-roe-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="inference_01_sampling-distributions_files/figure-html/fig-sap-roe-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sap-roe-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;16.1: ROE for the 81 publicly traded SAP customers in the Nucleus report. The sample mean of 12.6% sits about 3 percentage points below the 15.7% average of the companies’ industry benchmarks, and the spread around both lines dwarfs the gap between them.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The spread is the first thing to take from the figure. Company ROEs run from -91.8% up to 116.4%, with a standard deviation of 25.7 percentage points. Profitability is wildly variable, and it is natural to wonder whether the chance inclusion or exclusion of one or more of these companies could materially change our estimate of average profitability among the entire population of firms. After all, we know that the sample mean is quite sensitive to outliers.</p>
+<p>Here is the frame we will use for the next few chapters. Among all of SAP’s customers there is some true average ROE: call it <span class="math inline">\(\mu\)</span>. We can’t compute <span class="math inline">\(\mu\)</span> — that would require the ROE of every customer — so we estimate it with the sample mean of the 81 companies we do observe, <span class="math inline">\(\bar{x} = 12.6\%\)</span>. That 12.6% is our observed estimate. We use capital <span class="math inline">\(\bar{X}\)</span> for the estimator: the sample mean before we know which random sample we will get. Across possible random samples, its <strong>estimation error</strong> is <span class="math inline">\(\bar{X} - \mu\)</span>. For the sample we observed, the realized error is <span class="math inline">\(\bar{x} - \mu\)</span>: how far our answer sits from the true one. <em>We can never calculate that realized error directly</em>, because doing so would require knowing <span class="math inline">\(\mu\)</span>. SAP’s objection, restated in these terms, is that with <span class="math inline">\(n = 81\)</span> the estimation error is probably enormous. Nucleus clearly takes the other side, and (taken literally) their headline implies that the estimation error is irrelevant.</p>
+<p>To reason about an error we can’t observe, we need a model for how the sample arose. For now, consider the 81 companies as a <strong>simple random sample</strong> of SAP customers: a lottery draw in which every customer was equally likely to appear. Since the population is so large, we can equivalently model the observed ROEs as realizations of iid random variables <span class="math inline">\(X_1, \dots, X_{81}\)</span>, drawn from a discrete distribution placing probability 1/N on each of the <span class="math inline">\(N\)</span> companies in the population. The mean and standard deviation of that distribution are <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span>, respectively. We made the same move in the introductory chapter, when we treated 1,000 survey responses as 1,000 draws from a probability distribution over optimists and pessimists. Here the outcome is a company’s ROE instead of a yes-or-no answer.</p>
+<section id="connecting-sampling-from-a-population-to-sampling-from-a-probability-distribution-again" class="level3" data-number="16.1.1">
+<h3 data-number="16.1.1" class="anchored" data-anchor-id="connecting-sampling-from-a-population-to-sampling-from-a-probability-distribution-again"><span class="header-section-number">16.1.1</span> Connecting sampling from a population to sampling from a probability distribution, again</h3>
+<p>If you’re still wondering why we can treat each firm in our sample as an independent draw from a probability distribution, this section is for you. We’ll begin by drawing a single firm — <span class="math inline">\(X\)</span> — completely at random from the population, with each company in the population equally likely to be selected. We have a single draw from the discrete probability distribution over <em>all</em> values of ROE in the <em>population</em>, given by the (large) table below.</p>
+<div class="cell">
+<div id="tbl-population-dist" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-population-dist-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;16.1: The probability distribution of a single random draw from the population. Each of the 30,000 companies is equally likely, so each has probability 1/30,000. The ROE values shown are from the simulated population used in the sampling app later in this chapter.
+</figcaption>
+<div aria-describedby="tbl-population-dist-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="cell caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">Company</th>
+<th style="text-align: right;">ROE (<span class="math inline">\(x\)</span>)</th>
+<th style="text-align: right;"><span class="math inline">\(\Pr(X = x)\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">44.3%</td>
+<td style="text-align: right;">1/30,000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">6.3%</td>
+<td style="text-align: right;">1/30,000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">5.1%</td>
+<td style="text-align: right;">1/30,000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">0.9%</td>
+<td style="text-align: right;">1/30,000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4.5%</td>
+<td style="text-align: right;">1/30,000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;"><span class="math inline">\(\vdots\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(\vdots\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(\vdots\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">30,000</td>
+<td style="text-align: right;">-1.0%</td>
+<td style="text-align: right;">1/30,000</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>Using our <a href="./prob_03_distribution-parameters.html#sec-rv-mean">rules for random variables</a>, the mean of this distribution <span class="math inline">\(\mu\)</span> is just the average of all the possible outcomes:</p>
+<p><span class="math display">\[
+\mu = \sum_{i=1}^{30{,}000} x_i \cdot \Pr(X = x_i) = \frac{x_1 + x_2 + \cdots + x_{30{,}000}}{30{,}000} = \frac{44.3 + 6.3 + \cdots + -1.0}{30{,}000}.
+\]</span></p>
+<p>So our 81 firms are just 81 independent draws from this distribution. This ignores the fact that we usually wouldn’t allow sampling the same company twice when we designed a survey like this, but the population size is so large relative to the sample size that the chance of drawing the same company twice is negligible.</p>
+<p><!---
+The expected value for $X_1$ is just $\mu$: That's a basic calculation from TODO:REF. Similarly its standard deviation will be $\sigma$. 
+To get the second row in our sample -- $X_2$ -- we take another random sample from the same distribution, which has mean $\mu$ and standard deviaition $\sigma$. This is the same as flipping a coin to get a sample from a binary distribution where a 1 or 0 is equally likely, or rolling a die to get a sample from a distribution over 1 - 6 where each outcome is equally likely. Our die just happens to have 30,000 faces.
+
+ Repeated application of our basic probability rules tells us that the probability we get a firm with ROE in any given interval, say 5% - 15%, is:
+
+$$
+\frac{\text{Number of companies with ROE between 5\% and 15\%}}{Number of companies in the population}
+$$
+
+That is, 
+---></p>
+</section>
+</section>
+<section id="sec-sampling-ci" class="level2" data-number="16.2">
+<h2 data-number="16.2" class="anchored" data-anchor-id="sec-sampling-ci"><span class="header-section-number">16.2</span> Sampling distributions and confidence intervals</h2>
+<p>SAP’s sample size objection is really a claim about repetition: had Nucleus drawn a different 81 companies at random, the average would have come out differently, and SAP is betting it would have come out very differently — so differently, in fact, that we can’t learn anything meaningful from a sample of size <span class="math inline">\(n=81\)</span>. There is a certain appeal to the argument: you probably wouldn’t trust a sample of three firms to learn about the whole population. On the other hand, it would be bad luck indeed if a random sample of 810 companies produced an average far from the true population average. Larger samples depend less on which firms happen to be included. How can we quantify this?</p>
+<p>Ask the question directly. Suppose we could redraw the sample — hand thousands of analysts their own random 81 customers and have each one compute a sample mean. No two analysts would produce exactly the same estimate. Since there is no bias in the random sampling process, we’d expect that their estimates are scattered more or less randomly around the true population value. The spread of their answers tells us how reliable any single analyst’s estimate is: if the variation across random samples is small, then any single analyst’s estimate is probably close to the truth. If the variation is large, then any single analyst’s estimate could be far from the truth. The distribution of the analysts’ estimates across random samples is called the <strong>sampling distribution</strong> of the statistic:</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Definition: Sampling distribution
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The <strong>sampling distribution</strong> of a statistic (like the sample mean) is the probability distribution of that statistic across random samples of a given size <span class="math inline">\(n\)</span>, where each sample is drawn from the population or from the true probability distribution.</p>
+</div>
+</div>
+<p>In real life we get one sample, so we never see the sampling distribution directly. But if each of our hypothetical analysts got approximately the same number, we could feel confident in the results of any single one of them.</p>
+<p>We already know two things about this distribution exactly. The <a href="./prob_07_combining-random-variables.html#sec-sums-averages">rules for sums and averages of iid random variables</a> give <span class="math inline">\(E[\bar X] = \mu\)</span> and <span class="math inline">\(SD(\bar X) = \sigma/\sqrt{n}\)</span>. The <a href="./prob_07_combining-random-variables.html#sec-clt">Central Limit Theorem (CLT)</a> adds the shape: the sampling distribution of the sample mean is approximately normal, regardless of the shape of the population distribution, as long as the sample size is large enough:</p>
+<p><span class="math display">\[
+\bar{X} \;\approx\; N\!\left(\mu,\; \sigma^2/n\right).
+\]</span></p>
+<p>In words: across random samples, the sample mean is right on average, and its typical distance from the truth shrinks as the sample grows.</p>
+<p>Using our rules for <a href="./prob_03_distribution-parameters.html#sec-shift-scale">shifting and scaling random variables</a>, which apply to <a href="./prob_04_normal.html">normal distributions</a> too, we can get the distribution of the estimation <em>error</em> <span class="math inline">\(\bar{X} - \mu\)</span> over many random samples by shifting the mean to zero:</p>
+<p><span class="math display">\[
+\bar{X} - \mu \;\approx\; N\!\left(0,\; \sigma^2/n\right).
+\]</span></p>
+<p>In words: On average across many random samples, the estimation error is zero — there is no bias introduced by random sampling. Further, the typical size of our estimation error is the standard deviation of this distribution, <span class="math inline">\(\sigma/\sqrt{n}\)</span> — also known as the <strong>standard error</strong> (of the sample mean).</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Definition: Standard error
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The <strong>standard error</strong> of a statistic is the standard deviation of its sampling distribution. For a statistic that is right on average, like the sample mean, it is the typical size of the estimation error:</p>
+<p><span class="math display">\[
+SE(\bar{X}) = \frac{\sigma}{\sqrt{n}} \approx \frac{s}{\sqrt{n}},
+\]</span></p>
+<p>estimated by plugging in the sample standard deviation <span class="math inline">\(s\)</span> for the unknown <span class="math inline">\(\sigma\)</span>.</p>
+</div>
+</div>
+<p>These formulas quantify two observations that were already intuitive to you: The random sampling means that there is no systematic bias in our estimates, and the typical size of our estimation error shrinks as the sample grows.</p>
+<p>For the SAP sample the ingredients are <span class="math inline">\(s = 25.7\)</span> and <span class="math inline">\(n = 81\)</span>, so</p>
+<p><span class="math display">\[
+SE(\bar{X}) \approx \frac{25.7}{\sqrt{81}} = \frac{25.7}{9} \approx 2.85.
+\]</span></p>
+<p>In words: when we estimate the average ROE of all SAP customers from 81 of them, our estimate typically misses by about 2.9 percentage points. The gap Nucleus built its headline on is 3.1 points — almost exactly the size of a typical error induced by using a random sample of size 81 instead of the entire population.</p>
+<section id="sec-app-walkthrough" class="level3" data-number="16.2.1">
+<h3 data-number="16.2.1" class="anchored" data-anchor-id="sec-app-walkthrough"><span class="header-section-number">16.2.1</span> Simulating the sampling distribution</h3>
+<p>The sampling distribution is easiest to understand by building one yourself. In reality we get one sample and never see the distribution behind it, so what follows is a demonstration. The app simulates a population of 30,000 ROE values built to resemble the SAP customer base — so you can redraw the sample at will, the one thing Nucleus could not do.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Try it yourself
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Open the <a href="./sap_sampling_app.html" target="_blank">sampling distribution explorer</a> in a new browser window beside this page. Work through the steps below as you read.</p>
+</div>
+</div>
+<p>The app shows three stacked panels. The top panel is the population: a histogram of all 30,000 simulated ROE values, with the population size <span class="math inline">\(N\)</span>, the population mean <span class="math inline">\(\mu\)</span>, and the population standard deviation <span class="math inline">\(\sigma\)</span> printed on the plot. This is the complete population, which Nucleus never had.</p>
+<p>Set the sample size to 81, matching the Nucleus study, and hit the “Take 1 sample” button. The middle panel shows the 81 values the app just drew, with <span class="math inline">\(n\)</span>, <span class="math inline">\(\bar{x}\)</span>, and <span class="math inline">\(s\)</span> printed beside them. A red line marks the sample mean. The bottom panel repeats that mean as a red X, beside a dashed line at the population mean <span class="math inline">\(\mu\)</span>.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-app-1sample" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-app-1sample-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="inference_01_sampling-distributions_files/figure-html/fig-app-1sample-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-app-1sample-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;16.2: The app after one sample of n = 81. Top: the simulated population. Middle: the 81 sampled values, with the sample mean marked by the red line. Bottom: that same mean as a red X, beside the dashed line at the population mean.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Compare the red X to the dashed line. The sample mean landed close to <span class="math inline">\(\mu\)</span>, but not on it — and your app will show a different random sample than the one printed here, so your <span class="math inline">\(\bar{x}\)</span> will differ from ours. That sample-to-sample variation is exactly what we set out to measure.</p>
+<p>Hit “Take 1 sample” again. The middle panel now shows a fresh set of 81 companies with a new mean, the red X jumps to the new value, and the bottom panel keeps the previous mean in its history. Two samples, two estimates, neither equal to <span class="math inline">\(\mu\)</span>.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-app-2samples" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-app-2samples-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="inference_01_sampling-distributions_files/figure-html/fig-app-2samples-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-app-2samples-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;16.3: The bottom panel after a second sample. The red X sits at the newest sample mean; the first sample’s mean stays in the histogram.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Keep going. Each press adds one more sample mean to the bottom panel, the “Samples taken” counter tracks how many you’ve drawn, and the “Take many samples” button adds them in batches of 50. After a few dozen samples the histogram is ragged. After a few thousand it is smooth.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-app-50samples" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-app-50samples-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="inference_01_sampling-distributions_files/figure-html/fig-app-50samples-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-app-50samples-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;16.4: After 50 samples the histogram of sample means is taking shape but still ragged. The x-axis here and in the next figures is zoomed in relative to the app’s.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-app-5000samples" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-app-5000samples-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="inference_01_sampling-distributions_files/figure-html/fig-app-5000samples-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-app-5000samples-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;16.5: After 5,000 samples the histogram is smooth and bell-shaped, centered at the population mean.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>You’ll notice two things about the histogram you just built:</p>
+<ol type="1">
+<li>It is centered at the population mean: about half the samples over-estimate <span class="math inline">\(\mu\)</span>, and about half under-estimate it.</li>
+<li>It is bell-shaped, even though the population in the top panel is skewed.</li>
+</ol>
+<p>This isn’t a coincidence; this is the Central Limit Theorem at work. Tick the “Show normal approximation” box and the app overlays the curve <span class="math inline">\(N(\mu, \sigma^2/n)\)</span> in purple — computed from the simulated population’s mean and standard deviation and the sample size. Our 2.85 was an estimate of exactly this kind of quantity from one sample, with <span class="math inline">\(s\)</span> standing in for the <span class="math inline">\(\sigma\)</span> we don’t know; here the app knows its population’s <span class="math inline">\(\sigma\)</span>, so its standard error comes out different.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-app-normal" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-app-normal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="inference_01_sampling-distributions_files/figure-html/fig-app-normal-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-app-normal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;16.6: The same 5,000 sample means with the normal approximation overlaid in purple: the curve N(mu, sigma^2/n) computed from the population mean, the population standard deviation, and n = 81, for a standard error of 2.35 percentage points.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Nucleus, of course, could not press “Take 1 sample” a second time; it had one draw and one mean. But the theory that predicted your purple curve applies equally to the one sample we actually hold. That is enough to say how far a single <span class="math inline">\(\bar{X}\)</span> typically lands from <span class="math inline">\(\mu\)</span>.</p>
+</section>
+<section id="sec-ci" class="level3" data-number="16.2.2">
+<h3 data-number="16.2.2" class="anchored" data-anchor-id="sec-ci"><span class="header-section-number">16.2.2</span> From the sampling distribution to an interval</h3>
+<p>The sampling distribution of <span class="math inline">\(\bar{X}\)</span> is approximately normal, so the <a href="./prob_04_normal.html">68/95/99.7 rule</a> applies: in about 95% of random samples, <span class="math inline">\(\bar{X}\)</span> lands within 2 standard errors of <span class="math inline">\(\mu\)</span>. Equivalently, <span class="math inline">\(\bar X - \mu\)</span> lands within 2 standard errors of zero in 95% of samples. Now flip that statement around: if <span class="math inline">\(\bar{X}\)</span> is within 2 SE of <span class="math inline">\(\mu\)</span> in 95% of samples, then <span class="math inline">\(\mu\)</span> is within 2 SE of <span class="math inline">\(\bar{X}\)</span> in 95% of samples. That flip turns a fact about the estimator into a recipe for a range of values the truth could plausibly take. Therefore,</p>
+<p><span class="math display">\[
+\bar X \pm 2 \cdot SE(\bar X) \text{ contains } \mu \text{ in 95\% of random samples.}
+\]</span></p>
+<p>This is a <em>confidence interval</em>. The way to think of a confidence interval is as a set of plausible values. We take <span class="math inline">\(\bar x\)</span>, our best guess for <span class="math inline">\(\mu\)</span>, then add and subtract a multiple of the standard error to account for the likely size of our estimation error, at a given level of confidence (in this case 95%).</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Definition: Confidence interval
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A <strong>95% confidence interval</strong> for a parameter is a range of values, computed from the sample, that contains the true parameter value in 95% of random samples. For statistics with approximately normal sampling distributions, the recipe is</p>
+<p><span class="math display">\[
+\text{estimate} \pm 2 \times \text{(standard error)}.
+\]</span></p>
+</div>
+</div>
+<p>The interval collects the <strong>plausible values</strong> of the parameter — the potential values of the population mean <span class="math inline">\(\mu\)</span> that are consistent with the data we saw at a given level of confidence. For the SAP sample,</p>
+<p><span class="math display">\[
+12.6 \pm 2(2.85) = 12.6 \pm 5.7 = [6.9\%,\ 18.3\%].
+\]</span></p>
+<p>In words: the true average ROE among all SAP customers is plausibly anywhere from about 6.9% to about 18.3%. The industry benchmark of 15.7% sits inside that range. Parity with peers is a plausible value — the 3.1-point gap Nucleus led with could easily be ordinary sampling variation. So, for that matter, is an average ROE of 7%, which would be far worse than Nucleus claimed. The data can’t establish Nucleus’s headline, and can’t rule it out either. In this sense SAP is at least partially right. But note that SAP’s advertised 32% advantage would imply a true population average ROE of about 20.7%, which sits far outside the confidence interval.</p>
+<p>So far we’ve read the interval as a range of plausible values. The 95% itself describes the procedure rather than this particular interval, and the app will show you the difference. Tick “Show 95% confidence interval” and every sample now draws its interval along the bottom of the sampling distribution, colored green when it covers the dashed line at <span class="math inline">\(\mu\)</span> and red when it misses. The app builds its intervals from the population <span class="math inline">\(\sigma\)</span> it knows, so they all have the same width and only the center moves.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-app-ci" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-app-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="inference_01_sampling-distributions_files/figure-html/fig-app-ci-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-app-ci-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;16.7: The bottom panel after one sample of n = 81 with the interval shown. The sample mean of 11.65% plus or minus 2 standard errors (4.71 points) gives the interval [6.9%, 16.4%], drawn in green because it covers the dashed line at mu.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Keep sampling and the footer keeps a running tally of how often the interval covered <span class="math inline">\(\mu\)</span>. The tally bounces around early on — after 50 samples ours read 90.0% — and settles near 95% as the samples pile up. <a href="#fig-app-coverage" class="quarto-xref">Figure&nbsp;<span>16.8</span></a> draws the first 100 intervals separately instead of one at a time, so you can see each miss the tracker counted.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-app-coverage" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-app-coverage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="inference_01_sampling-distributions_files/figure-html/fig-app-coverage-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-app-coverage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;16.8: The first 100 samples, one interval each, in the order they were drawn. The 6 red intervals miss the population mean; the other 94 cover it. Across all 5,000 samples the coverage is 95.6%.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Our SAP interval is one draw from a process like this one, and we cannot tell which kind we got. No probability statement about this particular interval is available: <span class="math inline">\(\mu\)</span> is a fixed number, and <span class="math inline">\([6.9\%, 18.3\%]\)</span> either contains it or it doesn’t. What we can say is that the interval came from a method that captures the truth 95% of the time. That’s the best we can hope for.</p>
+</section>
+</section>
+<section id="sec-bootstrap" class="level2" data-number="16.3">
+<h2 data-number="16.3" class="anchored" data-anchor-id="sec-bootstrap"><span class="header-section-number">16.3</span> The bootstrap</h2>
+<p>Many of the ideas above generalize to other statistics — proportions are just means, and we can work out the standard errors for differences in means or proportions. The same goes for the intercept and slope in the <a href="./twovar_02_quantitative-quantitative.html#sec-best-fit-line">line of best fit</a> we saw earlier.</p>
+<p>However, not every interesting statistic has a nice sampling distribution. And we are relying on an approximation that works in large samples, but it’s not always clear how large those samples need to be before the sampling distribution is close to normal.</p>
+<p>The bootstrap is a powerful and general technique for dealing with these situations. It allows us to estimate the sampling distribution of a statistic without assuming a particular probability model or deriving a formula for the standard error. It still needs a representative sample, and a reasonably large one — the sample is only a good proxy for the population when <span class="math inline">\(n\)</span> is big enough. It is a simulation-based method that uses the sample itself as a stand-in for the population. The idea is quite simple: in the simulation exercise above, we drew many random samples from a known population to see how the sample mean varied. We could approximate this process if we had a good proxy for the population distribution. If our sample is <em>representative</em>, it should be a good proxy for the true population distribution — good enough, at least, to estimate the sampling distribution of a statistic. That’s what the bootstrap does.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Definition: The bootstrap
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>To bootstrap a statistic computed from a sample of size <span class="math inline">\(n\)</span>: draw <span class="math inline">\(n\)</span> observations from the sample <strong>with replacement</strong>, compute the statistic on this <em>bootstrap sample</em>, and repeat many times (say <span class="math inline">\(B = 10{,}000\)</span>). The shape of the <span class="math inline">\(B\)</span> bootstrap statistics approximates the statistic’s sampling distribution, and their standard deviation is the <strong>bootstrap standard error</strong>.</p>
+</div>
+</div>
+<p>In words: treat your sample as if it were the population, redraw from it thousands of times, and use the resulting distribution to estimate the standard error of the statistic and/or compute a confidence interval. A few points here bear emphasis:</p>
+<section id="why-sample-n81-firms" class="level4 unnumbered">
+<h4 class="unnumbered anchored" data-anchor-id="why-sample-n81-firms">Why sample n=81 firms?</h4>
+<p>If we want the bootstrapped distribution to be a good approximation of the true sampling distribution, we need to mimic the original sampling process as closely as possible. The size of our original sample is an important determinant of the sampling distribution; if we take fewer than 81 firms, the bootstrap will overestimate the variability of the sample mean. If we take more than 81 firms, the bootstrap will underestimate the variability of the sample mean. So we draw 81 firms from our sample of 81 firms.</p>
+</section>
+<section id="why-sample-with-replacement" class="level4 unnumbered">
+<h4 class="unnumbered anchored" data-anchor-id="why-sample-with-replacement">Why sample with replacement?</h4>
+<p>Each bootstrap iteration draws 81 firms from a sample of exactly 81 firms. Without replacement there is only one possible draw: every resampled dataset would be the original sample, just shuffled, and the mean wouldn’t vary across bootstrap resamples at all. Sampling with replacement is what lets the resamples differ.</p>
+</section>
+<section id="why-not-bootstrap-everything" class="level4 unnumbered">
+<h4 class="unnumbered anchored" data-anchor-id="why-not-bootstrap-everything">Why not bootstrap everything?</h4>
+<p>Why bother with the large-sample theory and mathematical derivations of the standard error if we can just do the bootstrap instead? There are a few reasons:</p>
+<ol type="1">
+<li>The bootstrap can be slow to compute, especially for large datasets or complex statistics. The CLT and standard error formulas are simple.</li>
+<li>The bootstrap can be overkill. We’ve already seen that even with a relatively small sample, the CLT gives a good approximation to the sampling distribution of the mean.</li>
+<li>The standard error formulas expose which factors drive estimation error higher and lower, and they are often useful for planning studies. The bootstrap is more of a black box.</li>
+</ol>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Try it yourself
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Open the <a href="./sap_bootstrap_app.html" target="_blank">bootstrap explorer</a> in a new browser window. It resamples the 81 firms of the Nucleus study one draw at a time, so you can watch which firms repeat, which sit out, and how the resample means accumulate.</p>
+</div>
+</div>
+<p><a href="#fig-sap-bootstrap" class="quarto-xref">Figure&nbsp;<span>16.9</span></a> shows the result of bootstrapping the SAP mean, with the normal sampling distribution the CLT predicts drawn over it for comparison.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-sap-bootstrap" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-sap-bootstrap-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="inference_01_sampling-distributions_files/figure-html/fig-sap-bootstrap-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sap-bootstrap-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;16.9: 10,000 bootstrap sample means of the 81 SAP customer ROEs, with the CLT’s normal approximation for the sampling distribution of the mean overlaid. The two agree: the bootstrap standard error of 2.84 sits within 0.01 of the formula value of 2.85, without using the formula.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The bootstrap standard error comes out to 2.84, compared to our direct calculation of <span class="math inline">\(s/\sqrt{n} = 2.85\)</span>. The confidence interval barely moves: <span class="math inline">\(12.6 \pm 2(2.84)\)</span> gives the same plausible range for <span class="math inline">\(\mu\)</span>, to the first decimal, as the formula did. For the sample mean the two routes agree; the bootstrap matters when there is no formula to check against.</p>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-carr-sap-lies" class="csl-entry" role="listitem">
+Carr, Nicholas. 2005. <em>Lies, Damned Lies and <span>IT</span> Statistics</em>. Rough Type (blog), November 8. <a href="https://www.roughtype.com/?p=150">https://www.roughtype.com/?p=150</a>.
+</div>
+<div id="ref-carr-sap-ads" class="csl-entry" role="listitem">
+Carr, Nicholas. 2006. <em><span>SAP</span>’s Truth-Stretching Ads</em>. Rough Type (blog), January 18. <a href="https://www.roughtype.com/?p=225">https://www.roughtype.com/?p=225</a>.
+</div>
+<div id="ref-sap-nucleus" class="csl-entry" role="listitem">
+Nucleus Research. 2006. <em><span>SAP</span> Customers Are 20 Percent Less Profitable Than Their Peers</em>. Research Note G12, Nucleus Research Inc., Wellesley, MA. <a href="https://www.oracle.com/us/corporate/analystreports/industries/059823.pdf">https://www.oracle.com/us/corporate/analystreports/industries/059823.pdf</a>.
+</div>
+</div>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./prob_07_combining-random-variables.html" class="pagination-link" aria-label="Combining Random Variables">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Combining Random Variables</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./inference_02_hypothesis-tests.html" class="pagination-link" aria-label="Hypothesis Tests and p-values">
+        <span class="nav-page-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Hypothesis Tests and p-values</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

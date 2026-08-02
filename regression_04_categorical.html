@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>22&nbsp; Categorical predictors – Introduction to Statistics and Data Science</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./regression_05_interactions.html" rel="next">
+<link href="./regression_03_model.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-5ccb035bea26c1e21f80f44cf7c27909.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+<style>
+.Notation {
+  --color1: #EEF1F3;
+  --color2: #5B6770;
+}
+.Definition {
+  --color1: #F4EAF0;
+  --color2: #7C3F58;
+}
+.TechnicalDetail {
+  --color1: #EEF1F3;
+  --color2: #5B6770;
+}
+.Exercise {
+  --color1: #E7F4F5;
+  --color2: #147D85;
+}
+</style>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles/callouts.css">
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./regression_01_intro.html">Linear Regression</a></li><li class="breadcrumb-item"><a href="./regression_04_categorical.html"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Categorical predictors</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Introduction to Statistics and Data Science</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Visualizing and summarizing a single variable</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_01_visualizing-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Visualizing a Single Quantitative Variable</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_02_describing-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Describing Distributions of Quantitative Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_03_location-and-spread.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Measuring Location and Spread</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_04_transformations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Transforming Quantitative Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_05_categorical.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Categorical Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Visualizing and summarizing 2+ variables</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./twovar_01_categorical-categorical.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Two Categorical Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./twovar_02_quantitative-quantitative.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Two Quantitative Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./twovar_03_categorical-quantitative.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">A Quantitative Variable Across Groups</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./twovar_04_multivariate.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">More Than Two Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Probability and Sampling</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_01_intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Introduction to Probability and Sampling</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_02_probability-basics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Probability Basics</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_03_distribution-parameters.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Measures of Location and Spread (and Other Parameters of Probability Distributions)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_04_normal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">The Normal Distribution</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_05_multivariate-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Probability Distributions for Multiple Random Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_07_combining-random-variables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Combining Random Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Statistical Inference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./inference_01_sampling-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Sampling Distributions and Confidence Intervals</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./inference_02_hypothesis-tests.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Hypothesis Tests and p-values</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./inference_03_limits.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">The Limits of Statistical Inference</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Linear Regression</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_01_intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Introduction to Linear Regression</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_02_prediction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Measuring Prediction Error</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_03_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">The Linear Regression Model</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_04_categorical.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Categorical predictors</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_05_interactions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Interactions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_06_nonlinear.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Modeling nonlinear relationships</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Building Prediction Models and Algorithms</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prediction_01_error.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Measuring prediction error on new data</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendix_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Datasets</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Data downloads</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./sap_sampling_app.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Sampling Distribution Explorer — SAP Customer ROE</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./sap_bootstrap_app.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Bootstrap Explorer — SAP Customer ROE</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bagging_app.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">E</span>&nbsp; <span class="chapter-title">Bagging Explorer — Averaging Regression Trees</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#sec-two-category-predictor" id="toc-sec-two-category-predictor" class="nav-link active" data-scroll-target="#sec-two-category-predictor"><span class="header-section-number">22.1</span> Two categories</a></li>
+  <li><a href="#sec-categorical-multiple-regression" id="toc-sec-categorical-multiple-regression" class="nav-link" data-scroll-target="#sec-categorical-multiple-regression"><span class="header-section-number">22.2</span> Categorical predictors in multiple regression</a></li>
+  <li><a href="#sec-zip-predictor" id="toc-sec-zip-predictor" class="nav-link" data-scroll-target="#sec-zip-predictor"><span class="header-section-number">22.3</span> Three or more categories</a>
+  <ul class="collapse">
+  <li><a href="#accounting-for-living-area" id="toc-accounting-for-living-area" class="nav-link" data-scroll-target="#accounting-for-living-area"><span class="header-section-number">22.3.1</span> Accounting for living area</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./regression_01_intro.html">Linear Regression</a></li><li class="breadcrumb-item"><a href="./regression_04_categorical.html"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Categorical predictors</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Categorical predictors</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>To incorporate categorical predictors into a regression model, we need to convert the categories into numerical values. We do this with <strong>dummy variables</strong>, the 0/1 variables from <a href="singlevar_05_categorical.html#sec-dummy-variables" class="quarto-xref"><span>Section 5.3</span></a>. The category represented by zero is called the <strong>reference category</strong>. We begin with the simple case of a two-level categorical predictor, then move to three or more levels.</p>
+<section id="sec-two-category-predictor" class="level2" data-number="22.1">
+<h2 data-number="22.1" class="anchored" data-anchor-id="sec-two-category-predictor"><span class="header-section-number">22.1</span> Two categories</h2>
+<p>Recall the <a href="./regression_01_intro.html#another-example-beauty-and-course-evaluations">course-evaluation example</a> from the beginning of our regression discussion. The ultimate goal was to understand the relationship, if any, between an instructor’s appearance and their average course evaluations. This is complicated by the fact that many variables are plausibly related to both appearance and evaluations. Multiple regression gives us one tool to try and adjust for these other variables. One such variable is gender. <a href="#fig-eval-gender" class="quarto-xref">Figure&nbsp;<span>22.1</span></a> shows the distributions of course evaluations by gender. Male instructors have a mean evaluation of 4.07, compared with 3.90 for female instructors.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-eval-gender" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-eval-gender-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="regression_04_categorical_files/figure-html/fig-eval-gender-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-eval-gender-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;22.1: Student evaluations by recorded gender. Each box shows one group’s median, quartiles, and outliers on a common scale.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Evaluations vary within both groups, but their centers also differ. A regression model needs a numerical representation of <code>gender</code> to express this comparison as an intercept and a coefficient. We can define <code>male = 1</code> for male instructors and <code>male = 0</code> for female instructors. The choice is arbitrary — it changes what the coefficients refer to, but not, as we’ll see, the model’s fit.</p>
+<p>The model uses this coding to turn the comparison between categories into an intercept and a coefficient. We get the fitted equation</p>
+<p><span class="math display">\[
+\widehat{\text{eval}} =
+3.90 +
+0.17\text{male}.
+\]</span></p>
+<p>Let’s see what that means. For a female instructor, <code>male = 0</code>, so</p>
+<p><span class="math display">\[
+\widehat{\text{eval}}_{
+\text{female}} =
+3.90 +
+0.17(0)
+= 3.90.
+\]</span></p>
+<p>For a male instructor, <code>male = 1</code>, so</p>
+<p><span class="math display">\[
+\widehat{\text{eval}}_{
+\text{male}} =
+3.90 +
+0.17(1)
+= 4.07.
+\]</span></p>
+<p>These are exactly the two group means we started with at the beginning of this section. Remember, the regression prediction is our best guess at the average outcome for a given value of the <span class="math inline">\(X\)</span> variables. Since <span class="math inline">\(X\)</span> takes two levels here, the linear model exactly reproduces the two group means.</p>
+<p>The “slope” 0.17 is the difference in predicted evaluations for male versus female instructors. We get “male minus female” because we coded female as the zero or <em>reference</em> category — we understand the coefficient <em>in reference to</em> the average evaluations for female instructors, given simply by the intercept (which is always the predicted value when all <span class="math inline">\(X\)</span> variables are set to zero).</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Definition: Reference category
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The <strong>reference category</strong> is the category for which all dummy variables representing a categorical predictor equal zero. Other category coefficients describe differences relative to that category.</p>
+</div>
+</div>
+<p>Changing the reference category changes the signs and interpretations of the category coefficients. It does not change the fitted values, residuals, or overall model fit. If we choose male as the reference instead, the intercept describes male instructors and the dummy coefficient becomes the female-minus-male difference.</p>
+<p>The 95% confidence interval for the male-minus-female difference runs from 0.07 to 0.27 evaluation points, the interval reported for the dummy coefficient in <a href="#tbl-eval-gender" class="quarto-xref">Table&nbsp;<span>22.1</span></a>. These are plausible values for the <em>population</em> difference; zero is not a plausible value here, so we have evidence that the population means differ by gender. We have not established that female instructors get lower evaluations on average <em>because</em> they are female, however!</p>
+<div class="cell">
+<div id="tbl-eval-gender" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-eval-gender-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;22.1: Predicting average course evaluations from the instructor’s recorded gender, with female as the reference category.
+</figcaption>
+<div aria-describedby="tbl-eval-gender-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="table cell caption-top table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Estimate</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Std. error</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">95% CI</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">t</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">p-value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Intercept (female)</td>
+<td style="text-align: right;">3.90</td>
+<td style="text-align: right;">0.04</td>
+<td style="text-align: right;">[3.82, 3.98]</td>
+<td style="text-align: right;">99.19</td>
+<td style="text-align: right;">&lt;0.001</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; border-bottom: 1px solid #9b9d9e;">Male vs. female</td>
+<td style="text-align: right; border-bottom: 1px solid #9b9d9e;">0.17</td>
+<td style="text-align: right; border-bottom: 1px solid #9b9d9e;">0.05</td>
+<td style="text-align: right; border-bottom: 1px solid #9b9d9e;">[0.07, 0.27]</td>
+<td style="text-align: right; border-bottom: 1px solid #9b9d9e;">3.25</td>
+<td style="text-align: right; border-bottom: 1px solid #9b9d9e;">0.001</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Residual standard error</td>
+<td style="text-align: right;">0.55</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">R² / Adjusted R²</td>
+<td style="text-align: right;">0.022 / 0.020</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">n</td>
+<td style="text-align: right;">463</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+</section>
+<section id="sec-categorical-multiple-regression" class="level2" data-number="22.2">
+<h2 data-number="22.2" class="anchored" data-anchor-id="sec-categorical-multiple-regression"><span class="header-section-number">22.2</span> Categorical predictors in multiple regression</h2>
+<p>The same coding works when a model contains other predictors, which gives us the ability to control for other variables when we make a comparison between groups. We add <code>beauty</code>, the instructor’s standardized panel rating, to compare instructors who have the same beauty score. Female remains the reference category.</p>
+<p>The fitted model is</p>
+<p><span class="math display">\[
+\widehat{\text{eval}} =
+3.88 +
+0.15\text{beauty} +
+0.20\text{male}.
+\]</span></p>
+<p>Interpreting the coefficients in a multiple regression model is similar to the simple case, but we now adjust for the other predictors:</p>
+<ul>
+<li>Among instructors with the same beauty score, male instructors have predicted evaluations 0.20 points higher than female instructors.</li>
+<li>Among instructors of the same recorded gender, a one-unit increase in beauty corresponds to a predicted evaluation increase of 0.15 points. Because beauty is standardized, one unit is one standard deviation in the panel rating. You can read both comparisons while holding the other predictor constant, as in <a href="./regression_01_intro.html#multiple-regression-coefficients-are-adjusted-comparisons">our earlier multiple-regression discussion</a>.</li>
+</ul>
+<p>This model draws one fitted line for each gender in <a href="#fig-eval-gender-beauty" class="quarto-xref">Figure&nbsp;<span>22.2</span></a>. Plugging in <code>male = 0</code> gives the female line, and <code>male = 1</code> gives the male line:</p>
+<ul>
+<li>Female line: <span class="math inline">\(\widehat{\text{eval}} = 3.88 + 0.15\text{beauty}\)</span></li>
+<li>Male line: <span class="math inline">\(\widehat{\text{eval}} = 3.88 + 0.15\text{beauty} + 0.20\)</span></li>
+</ul>
+<p>These are plotted below.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-eval-gender-beauty" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-eval-gender-beauty-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="regression_04_categorical_files/figure-html/fig-eval-gender-beauty-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-eval-gender-beauty-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;22.2: Student evaluations and beauty scores by recorded gender. The additive regression model estimates parallel fitted lines separated by the gender coefficient.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Notice the intercept is no longer the female mean of 3.90: 3.88 is the predicted evaluation for a female instructor with a beauty rating of exactly 0. Both lines have a slope of 0.15; they are <em>forced</em> to be parallel by this model specification. The male dummy shifts that line vertically by 0.20 points, so the two lines stay the same distance apart. <a href="#tbl-gender-beauty-intervals" class="quarto-xref">Table&nbsp;<span>22.2</span></a> sets this model beside the gender-only model from the last section; its confidence intervals quantify the uncertainty in these two conditional comparisons.</p>
+<div class="cell">
+<div id="tbl-gender-beauty-intervals" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-gender-beauty-intervals-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;22.2: The gender comparison before and after adjusting for beauty. Each estimate is followed by its 95% confidence interval; a blank cell means the predictor is not in that model.
+</figcaption>
+<div aria-describedby="tbl-gender-beauty-intervals-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="table cell caption-top table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">Gender</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">Gender + beauty</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Intercept (female)</td>
+<td style="text-align: center;">3.90</td>
+<td style="text-align: center;">3.88</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">[3.82, 3.98]</td>
+<td style="text-align: center;">[3.81, 3.96]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Male vs. female</td>
+<td style="text-align: center;">0.17</td>
+<td style="text-align: center;">0.20</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">[0.07, 0.27]</td>
+<td style="text-align: center;">[0.10, 0.30]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Beauty rating</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">0.15</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; box-shadow: 0px 1.5px;"></td>
+<td style="text-align: center; box-shadow: 0px 1.5px;"></td>
+<td style="text-align: center; box-shadow: 0px 1.5px;">[0.09, 0.21]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Residual standard error</td>
+<td style="text-align: center;">0.55</td>
+<td style="text-align: center;">0.54</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">R²</td>
+<td style="text-align: center;">0.022</td>
+<td style="text-align: center;">0.066</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Adjusted R²</td>
+<td style="text-align: center;">0.020</td>
+<td style="text-align: center;">0.062</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">n</td>
+<td style="text-align: center;">463</td>
+<td style="text-align: center;">463</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>The plausible range for the male-minus-female difference is 0.10 to 0.30 points among instructors with the same beauty score. For a one-standard-deviation increase in beauty, the plausible range is 0.09 to 0.21 points among instructors of the same recorded gender. If the gender gap were driven by beauty ratings, comparing instructors with the same beauty score should shrink it. Instead the estimated gap grows slightly, from 0.17 to 0.20 points — female instructors in these data average slightly higher beauty ratings — so we can’t attribute the difference in average evaluations to a correlation between gender and the beauty score.</p>
+</section>
+<section id="sec-zip-predictor" class="level2" data-number="22.3">
+<h2 data-number="22.3" class="anchored" data-anchor-id="sec-zip-predictor"><span class="header-section-number">22.3</span> Three or more categories</h2>
+<p>The Austin housing data contain sale prices from ZIP codes 78731, 78721, and 78723 (recorded in the column <code>zipcode</code>). <a href="#fig-price-zip" class="quarto-xref">Figure&nbsp;<span>22.3</span></a> compares <code>latest_price</code>, the sale price in dollars, across the three categories.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-price-zip" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-price-zip-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="regression_04_categorical_files/figure-html/fig-price-zip-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-price-zip-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;22.3: Sale price in three Austin ZIP codes, with the reference category 78731 first. Each box shows one group’s median, quartiles, and outliers on a common scale.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>There is one natural dummy variable for each ZIP code. Each dummy marks whether a home is in that ZIP code, so exactly one of the three dummies equals 1 for every home.</p>
+<div id="tbl-zip-all-dummies" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-zip-all-dummies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;22.3: The three dummy variables for Austin ZIP code. Each row has one 1 and two 0s.
+</figcaption>
+<div aria-describedby="tbl-zip-all-dummies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>ZIP code</th>
+<th style="text-align: right;"><span class="math inline">\(D_{78731}\)</span></th>
+<th style="text-align: right;"><span class="math inline">\(D_{78721}\)</span></th>
+<th style="text-align: right;"><span class="math inline">\(D_{78723}\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>78731</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td>78721</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td>78723</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>A regression model with an intercept cannot use all three dummies at once. For every home, <span class="math inline">\(D_{78731}+D_{78721}+D_{78723}=1\)</span>, which is also the value of the intercept’s constant term. Including all three dummies would give the model two ways to represent the same information. We therefore omit <span class="math inline">\(D_{78731}\)</span> and use 78731 as the reference category, leaving the coding in <a href="#tbl-zip-coding" class="quarto-xref">Table&nbsp;<span>22.4</span></a>.</p>
+<div id="tbl-zip-coding" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-zip-coding-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;22.4: Dummy-variable coding with 78731 as the reference category.
+</figcaption>
+<div aria-describedby="tbl-zip-coding-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>ZIP code</th>
+<th style="text-align: right;"><span class="math inline">\(D_{78721}\)</span></th>
+<th style="text-align: right;"><span class="math inline">\(D_{78723}\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>78731</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td>78721</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td>78723</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Measuring price in thousands of dollars, the fitted regression equation is</p>
+<p><span class="math display">\[
+\widehat{\text{price}}_{(\$1{,}000s)} =
+796.98
+- 435.55D_{78721}
+- 365.82D_{78723}.
+\]</span></p>
+<p>The intercept gives the mean sale price in 78731. Each dummy coefficient then compares its ZIP code with 78731. Plugging in the two dummies gives the three predicted prices:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\widehat{\text{price}}_{78731}
+  &amp;= 796.98 \\
+\widehat{\text{price}}_{78721}
+  &amp;= 796.98
+     - 435.55
+   = 361.43 \\
+\widehat{\text{price}}_{78723}
+  &amp;= 796.98
+     - 365.82
+   = 431.16.
+\end{aligned}
+\]</span></p>
+<p>These are the three group means, measured in thousands of dollars.</p>
+<p>Now suppose that we want to compare the other ZIP codes with 78721 instead. We omit <span class="math inline">\(D_{78721}\)</span>, making 78721 the reference category, and fit the model with <span class="math inline">\(D_{78731}\)</span> and <span class="math inline">\(D_{78723}\)</span>:</p>
+<p><span class="math display">\[
+\widehat{\text{price}}_{(\$1{,}000s)} =
+361.43
++ 435.55D_{78731}
++ 69.73D_{78723}.
+\]</span></p>
+<p>The coefficients have changed because the comparisons have changed. The intercept is now the mean sale price in 78721. The two dummy coefficients tell us that homes in 78731 sold for 435.55 thousand dollars more on average than homes in 78721, while homes in 78723 sold for 69.73 thousand dollars more on average than homes in 78721.</p>
+<p>The fitted values have not changed. Setting both dummies to zero gives the 78721 mean, while setting each dummy to 1 in turn recovers the same 78731 and 78723 means as the first model. Changing the reference category changes the coefficient comparisons, not the model’s predictions, residuals, or overall fit.</p>
+<p>The same construction works for any categorical predictor. A predictor with <span class="math inline">\(K\)</span> categories gives us <span class="math inline">\(K\)</span> possible dummy variables. With an intercept in the model, we omit the dummy for the reference category and include the remaining <span class="math inline">\(K-1\)</span>.</p>
+<p>The 95% confidence interval for the 78721-minus-78731 mean-price difference runs from -$469,139 to -$401,964. For 78723 minus 78731, the plausible range runs from -$392,652 to -$338,982. Both intervals describe unadjusted differences in mean sale price, and both appear in <a href="#tbl-price-zip-model" class="quarto-xref">Table&nbsp;<span>22.5</span></a>.</p>
+<div class="cell">
+<div id="tbl-price-zip-model" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-price-zip-model-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;22.5: Predicting Austin sale prices from ZIP code, with 78731 as the reference category.
+</figcaption>
+<div aria-describedby="tbl-price-zip-model-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="table cell caption-top table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Estimate</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Std. error</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">95% CI</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">t</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">p-value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Intercept (78731)</td>
+<td style="text-align: right;">$796,980</td>
+<td style="text-align: right;">$10,243</td>
+<td style="text-align: right;">[$776,881, $817,078]</td>
+<td style="text-align: right;">77.80</td>
+<td style="text-align: right;">&lt;0.001</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">78721 vs. 78731</td>
+<td style="text-align: right;">−$435,551</td>
+<td style="text-align: right;">$17,118</td>
+<td style="text-align: right;">[−$469,139, −$401,964]</td>
+<td style="text-align: right;">−25.44</td>
+<td style="text-align: right;">&lt;0.001</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left; border-bottom: 1px solid #9b9d9e;">78723 vs. 78731</td>
+<td style="text-align: right; border-bottom: 1px solid #9b9d9e;">−$365,817</td>
+<td style="text-align: right; border-bottom: 1px solid #9b9d9e;">$13,677</td>
+<td style="text-align: right; border-bottom: 1px solid #9b9d9e;">[−$392,652, −$338,982]</td>
+<td style="text-align: right; border-bottom: 1px solid #9b9d9e;">−26.75</td>
+<td style="text-align: right; border-bottom: 1px solid #9b9d9e;">&lt;0.001</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Residual standard error</td>
+<td style="text-align: right;">$202,030</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">R² / Adjusted R²</td>
+<td style="text-align: right;">0.461 / 0.460</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">n</td>
+<td style="text-align: right;">1,103</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<section id="accounting-for-living-area" class="level3" data-number="22.3.1">
+<h3 data-number="22.3.1" class="anchored" data-anchor-id="accounting-for-living-area"><span class="header-section-number">22.3.1</span> Accounting for living area</h3>
+<p>The estimates above are raw, overall means and comparisons. Houses in 78731 sell for more on average than those in the other two ZIP codes. Does this represent a premium associated with living in 78731, or are the homes there different on other factors associated with price?</p>
+<p><a href="#fig-price-area-zip-raw" class="quarto-xref">Figure&nbsp;<span>22.4</span></a> plots sale price against living area, with the homes colored by ZIP code.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-price-area-zip-raw" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-price-area-zip-raw-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="regression_04_categorical_files/figure-html/fig-price-area-zip-raw-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-price-area-zip-raw-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;22.4: Sale price against living area for homes in three Austin ZIP codes. Homes in 78731 tend to be larger than homes in 78721 and 78723.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Homes in 78731 are larger on average than those in the other two ZIP codes. How much of the difference in average sale prices is associated with these differences in living area? We can answer this question with a multiple regression model that includes both ZIP code and living area as predictors.</p>
+<p>We add <code>living_area_sq_ft</code>, the home’s living area in square feet, so the ZIP coefficients compare homes of the same size. <a href="#tbl-zip-model-comparison" class="quarto-xref">Table&nbsp;<span>22.6</span></a> compares the ZIP coefficients before and after we account for living area.</p>
+<div class="cell">
+<div id="tbl-zip-model-comparison" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-zip-model-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;22.6: ZIP-code coefficients before and after accounting for living area. Each estimate is followed by its 95% confidence interval; a blank cell means the predictor is not in that model.
+</figcaption>
+<div aria-describedby="tbl-zip-model-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="table cell caption-top table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">ZIP code only</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">ZIP code + living area</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Intercept (78731)</td>
+<td style="text-align: center;">$796,980</td>
+<td style="text-align: center;">$262,855</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">[$776,881, $817,078]</td>
+<td style="text-align: center;">[$215,812, $309,899]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">78721 vs. 78731</td>
+<td style="text-align: center;">−$435,551</td>
+<td style="text-align: center;">−$174,898</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">[−$469,139, −$401,964]</td>
+<td style="text-align: center;">[−$209,675, −$140,122]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">78723 vs. 78731</td>
+<td style="text-align: center;">−$365,817</td>
+<td style="text-align: center;">−$179,643</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">[−$392,652, −$338,982]</td>
+<td style="text-align: center;">[−$206,338, −$152,948]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Living area (sq ft)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">$209</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; box-shadow: 0px 1.5px;"></td>
+<td style="text-align: center; box-shadow: 0px 1.5px;"></td>
+<td style="text-align: center; box-shadow: 0px 1.5px;">[$191, $226]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Residual standard error</td>
+<td style="text-align: center;">$202,030</td>
+<td style="text-align: center;">$164,290</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">R²</td>
+<td style="text-align: center;">0.461</td>
+<td style="text-align: center;">0.644</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Adjusted R²</td>
+<td style="text-align: center;">0.460</td>
+<td style="text-align: center;">0.643</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">n</td>
+<td style="text-align: center;">1,103</td>
+<td style="text-align: center;">1,103</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>The raw price gaps of $435,551 and $365,817 shrink to adjusted gaps of $174,898 and $179,643. Living area accounts for part of each raw gap. The intercept also needs re-interpreting once living area enters the model: it is no longer the 78731 mean, but the predicted price of a 78731 home with zero square feet — an extrapolation, since no such home exists.</p>
+<p>Among homes with the same living area, the predicted price in 78721 is $174,898 lower than in 78731. For 78723, the adjusted difference is $179,643 lower. The plausible ranges are -$209,675 to -$140,122 and -$206,338 to -$152,948, respectively. Both exclude zero. The adjusted model still estimates lower sale prices in 78721 and 78723 than in 78731 for homes of the same size.</p>
+<p>The model assigns the three ZIP codes a common living-area slope of $209 per square foot. Its plausible range is $191 to $226 per square foot. <a href="#fig-price-area-zip" class="quarto-xref">Figure&nbsp;<span>22.5</span></a> shows the observations and the three fitted lines. The ZIP dummies shift the lines vertically while the area slope remains fixed.</p>
+<p>At any fixed living area, the vertical gap between two of the fitted lines is the adjusted ZIP difference: how much the predicted price differs between those two ZIP codes for a house of that size.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-price-area-zip" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-price-area-zip-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="regression_04_categorical_files/figure-html/fig-price-area-zip-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-price-area-zip-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;22.5: Sale price and living area in three Austin ZIP codes. The model estimates one shared area slope and three parallel fitted lines.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>This comparison remains descriptive rather than causal. We could add other predictors to compare more similar homes, but this model stops after accounting for living area.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./regression_03_model.html" class="pagination-link" aria-label="The Linear Regression Model">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">The Linear Regression Model</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./regression_05_interactions.html" class="pagination-link" aria-label="Interactions">
+        <span class="nav-page-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Interactions</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

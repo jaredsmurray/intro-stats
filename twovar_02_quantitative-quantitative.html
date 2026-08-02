@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>7&nbsp; Two Quantitative Variables – Introduction to Statistics and Data Science</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./twovar_03_categorical-quantitative.html" rel="next">
+<link href="./twovar_01_categorical-categorical.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-5ccb035bea26c1e21f80f44cf7c27909.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>
+.Definition {
+  --color1: #F4EAF0;
+  --color2: #7C3F58;
+}
+.TechnicalDetail {
+  --color1: #EEF1F3;
+  --color2: #5B6770;
+}
+.Notation {
+  --color1: #EEF1F3;
+  --color2: #5B6770;
+}
+.Exercise {
+  --color1: #E7F4F5;
+  --color2: #147D85;
+}
+</style>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles/callouts.css">
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./twovar_01_categorical-categorical.html">Visualizing and summarizing 2+ variables</a></li><li class="breadcrumb-item"><a href="./twovar_02_quantitative-quantitative.html"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Two Quantitative Variables</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Introduction to Statistics and Data Science</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Visualizing and summarizing a single variable</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_01_visualizing-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Visualizing a Single Quantitative Variable</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_02_describing-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Describing Distributions of Quantitative Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_03_location-and-spread.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Measuring Location and Spread</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_04_transformations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Transforming Quantitative Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./singlevar_05_categorical.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Categorical Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Visualizing and summarizing 2+ variables</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./twovar_01_categorical-categorical.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Two Categorical Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./twovar_02_quantitative-quantitative.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Two Quantitative Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./twovar_03_categorical-quantitative.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">A Quantitative Variable Across Groups</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./twovar_04_multivariate.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">More Than Two Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Probability and Sampling</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_01_intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Introduction to Probability and Sampling</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_02_probability-basics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Probability Basics</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_03_distribution-parameters.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Measures of Location and Spread (and Other Parameters of Probability Distributions)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_04_normal.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">The Normal Distribution</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_05_multivariate-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">Probability Distributions for Multiple Random Variables</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prob_07_combining-random-variables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">15</span>&nbsp; <span class="chapter-title">Combining Random Variables</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Statistical Inference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./inference_01_sampling-distributions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">16</span>&nbsp; <span class="chapter-title">Sampling Distributions and Confidence Intervals</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./inference_02_hypothesis-tests.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">17</span>&nbsp; <span class="chapter-title">Hypothesis Tests and p-values</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./inference_03_limits.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">18</span>&nbsp; <span class="chapter-title">The Limits of Statistical Inference</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Linear Regression</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_01_intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">19</span>&nbsp; <span class="chapter-title">Introduction to Linear Regression</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_02_prediction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">20</span>&nbsp; <span class="chapter-title">Measuring Prediction Error</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_03_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">21</span>&nbsp; <span class="chapter-title">The Linear Regression Model</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_04_categorical.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">22</span>&nbsp; <span class="chapter-title">Categorical predictors</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_05_interactions.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">23</span>&nbsp; <span class="chapter-title">Interactions</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regression_06_nonlinear.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">24</span>&nbsp; <span class="chapter-title">Modeling nonlinear relationships</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Building Prediction Models and Algorithms</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prediction_01_error.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">25</span>&nbsp; <span class="chapter-title">Measuring prediction error on new data</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendix_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Datasets</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Data downloads</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./sap_sampling_app.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Sampling Distribution Explorer — SAP Customer ROE</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./sap_bootstrap_app.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Bootstrap Explorer — SAP Customer ROE</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bagging_app.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">E</span>&nbsp; <span class="chapter-title">Bagging Explorer — Averaging Regression Trees</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#sec-scatterplots" id="toc-sec-scatterplots" class="nav-link active" data-scroll-target="#sec-scatterplots"><span class="header-section-number">7.1</span> Scatterplots</a></li>
+  <li><a href="#sec-cov-cor" id="toc-sec-cov-cor" class="nav-link" data-scroll-target="#sec-cov-cor"><span class="header-section-number">7.2</span> Covariance and correlation</a></li>
+  <li><a href="#sec-corr-limits" id="toc-sec-corr-limits" class="nav-link" data-scroll-target="#sec-corr-limits"><span class="header-section-number">7.3</span> Take care with correlation</a>
+  <ul class="collapse">
+  <li><a href="#sec-corr-strength" id="toc-sec-corr-strength" class="nav-link" data-scroll-target="#sec-corr-strength"><span class="header-section-number">7.3.1</span> Correlation only measures linear relationships</a></li>
+  <li><a href="#sec-anscombe" id="toc-sec-anscombe" class="nav-link" data-scroll-target="#sec-anscombe"><span class="header-section-number">7.3.2</span> Correlation is sensitive to extreme observations</a></li>
+  <li><a href="#sec-corr-linear-only" id="toc-sec-corr-linear-only" class="nav-link" data-scroll-target="#sec-corr-linear-only"><span class="header-section-number">7.3.3</span> Correlation is not the slope</a></li>
+  </ul></li>
+  <li><a href="#sec-best-fit-line" id="toc-sec-best-fit-line" class="nav-link" data-scroll-target="#sec-best-fit-line"><span class="header-section-number">7.4</span> The line of best fit</a></li>
+  <li><a href="#sec-nonlinear" id="toc-sec-nonlinear" class="nav-link" data-scroll-target="#sec-nonlinear"><span class="header-section-number">7.5</span> Visualizing nonlinear trends</a></li>
+  <li><a href="#data-used-in-this-section" id="toc-data-used-in-this-section" class="nav-link" data-scroll-target="#data-used-in-this-section">Data used in this section</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./twovar_01_categorical-categorical.html">Visualizing and summarizing 2+ variables</a></li><li class="breadcrumb-item"><a href="./twovar_02_quantitative-quantitative.html"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Two Quantitative Variables</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Two Quantitative Variables</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>For pairs of quantitative variables, our first step is usually to visualize them in a <em>scatterplot</em>, possibly adding a visual guide like a line or curve that describes how the two variables tend to move together. Relationships that are linear, or at least close to linear, invite additional numeric summaries of their data. We’ll see some of these here, and again later on when we build linear <em>models</em> from data like this.</p>
+<section id="sec-scatterplots" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="sec-scatterplots"><span class="header-section-number">7.1</span> Scatterplots</h2>
+<p>A <strong>scatterplot</strong> puts one variable on each axis and draws a point for every observation. <a href="#fig-austin-price-sqft" class="quarto-xref">Figure&nbsp;<span>7.1</span></a> plots 1,103 Austin home sales from three ZIP codes (78721, 78723, and 78731), the same homes whose ages we plotted in <a href="singlevar_02_describing-distributions.html#fig-austin-bimodal" class="quarto-xref">Figure&nbsp;<span>2.4</span></a>, with living area on the x-axis and sale price on the y-axis.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-austin-price-sqft" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-austin-price-sqft-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="twovar_02_quantitative-quantitative_files/figure-html/fig-austin-price-sqft-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-austin-price-sqft-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.1: Sale price versus living area for Austin homes in three ZIP codes. Each point is one home. Prices tend to rise with size, but homes of the same size sell for a wide range of prices.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>A scatterplot gives us a quick visual description of how the two variables tend to move <em>together</em>. We see here a positive relationship — larger houses tend to sell for more — that is close to <em>linear</em> (well-described by a straight line, rather than a U or some other shape) and strong. We see some evidence that the variability in prices is larger for bigger houses — the range of prices for houses around 1,000 sqft is narrower than the range of prices for houses around 3,000 sqft, for example.</p>
+<p>When the sample size is large a scatterplot can turn into an unreadable blob. Even when the sample size is small, if one or both variables have many ties it can be difficult to read the scatterplot. For example, the CPS data from <a href="singlevar_02_describing-distributions.html#sec-symmetric-skewed" class="quarto-xref"><span>Section 2.1</span></a> has both problems. The sample size is large (44,690 workers) and one of the key variables — years of education, <code>educ_years</code> — takes only a handful of distinct values. A naive scatterplot (<a href="#fig-mincer-wage-educ" class="quarto-xref">Figure&nbsp;<span>7.2</span></a>, left panel) piles tens of thousands of workers onto a few vertical lines. To fix the ties we can apply <strong>jitter</strong>, which adds a little random horizontal shake to the reported years of education so identical x-values spread apart (<a href="#fig-mincer-wage-educ" class="quarto-xref">Figure&nbsp;<span>7.2</span></a>, middle panel). Even then we see wider but mostly dark strips. The right panel of <a href="#fig-mincer-wage-educ" class="quarto-xref">Figure&nbsp;<span>7.2</span></a> adds <strong>transparency (<code>alpha</code>)</strong>, so densely-packed areas appear darker than less-dense areas. (<a href="#fig-austin-price-sqft" class="quarto-xref">Figure&nbsp;<span>7.1</span></a> also uses a little transparency if you look closely.) Another viable option is to treat years of education as an ordinal categorical variable when we create our plots. Either approach works; the best option depends on the purpose of the visualization and the audience.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-mincer-wage-educ" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mincer-wage-educ-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="twovar_02_quantitative-quantitative_files/figure-html/fig-mincer-wage-educ-1.png" class="img-fluid figure-img" width="960">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mincer-wage-educ-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.2: Hourly wage versus years of education for full-time U.S. workers (2023 CPS; wages under $150/hr shown). Left: the raw scatterplot stacks thousands of workers onto a few vertical lines. Middle: jitter spreads the ties apart, but the strips stay solid. Right: adding transparency, so that darker regions hold more workers, makes the plot readable.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Here we see wages that tend to increase with years of education, but following a more complicated trend (flat at low levels, increasing rapidly in the middle, and flattening out again at the top). The spread of wages seems to increase with education as well.</p>
+</section>
+<section id="sec-cov-cor" class="level2" data-number="7.2">
+<h2 data-number="7.2" class="anchored" data-anchor-id="sec-cov-cor"><span class="header-section-number">7.2</span> Covariance and correlation</h2>
+<p>The scatterplot is an excellent start, but numeric summaries are also very useful for understanding and communicating our analyses (when they don’t obscure important features of the data). We’ll start by building measures of <strong>linear</strong> relationships. Loosely, two variables have a linear relationship if we can draw a straight line through the points on a scatterplot. (We’ll make this more precise later.)</p>
+<p>Our first measure is the <strong>covariance</strong>. For paired observations <span class="math inline">\((x_i, y_i)\)</span> it is given by</p>
+<p><span class="math display">\[
+s_{xy} = \frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y}),
+\]</span></p>
+<p>the average product of the two variables’ deviations from their means. In words: for each observation, ask whether <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> are on the same side of their respective averages, and how far. When a bigger-than-average house also has a bigger-than-average price, both deviations are positive and the product is positive; when both are below average, two negatives again multiply to a positive. Points that are above average on one variable and below on the other contribute negative products.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-cov-quadrants" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-cov-quadrants-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="twovar_02_quantitative-quantitative_files/figure-html/fig-cov-quadrants-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cov-quadrants-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.3: The price–size scatterplot divided into quadrants at the mean point.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The figure below gives the covariance a more nuanced geometric interpretation, detailed in the caption.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-cov-rectangles" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-cov-rectangles-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="twovar_02_quantitative-quantitative_files/figure-html/fig-cov-rectangles-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cov-rectangles-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.4: The covariance as signed areas, drawn for two homes. Each rectangle runs from the mean point to one observation; its area is the size of that observation’s product of deviations. The green rectangle counts positively (above average on both size and price), the red one negatively (smaller than average but pricier than average).
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The covariance has unhelpful units, unfortunately. For the Austin data it comes to 158,246,850 “square-foot-dollars,” a number whose size depends entirely on the units we happened to measure in. This complicates matters if we want to compare the strength of the linear relationship between price and size to the strength of the relationship between wages and education, for example.</p>
+<p>The <strong>correlation</strong> solves that problem by computing the covariance <em>of z-scored variables</em>:</p>
+<p><span class="math display">\[
+r = \frac{s_{xy}}{s_x \, s_y}
+\]</span></p>
+<p>Dividing by <span class="math inline">\(s_x s_y\)</span> does the same job as z-scoring both variables before taking the covariance: each deviation gets measured in standard deviations rather than raw units, so the units cancel.</p>
+<p>The correlation is always between <span class="math inline">\(-1\)</span> and <span class="math inline">\(+1\)</span>, and it doesn’t change if you re-measure size in square meters or price in pesos. Its magnitude has a consistent meaning across datasets. A correlation of <span class="math inline">\(+1\)</span> means the points fall exactly on an upward-sloping line, <span class="math inline">\(-1\)</span> exactly on a downward-sloping one, and 0 means no <em>linear</em> association at all.</p>
+<p>For the Austin home sales, <span class="math inline">\(r = 0.77\)</span> — a strong positive relationship. For wages and education, <span class="math inline">\(r = 0.42\)</span>: the same direction, much weaker, which matches the fanned-out cloud we saw.</p>
+<p>Here are some synthetic datasets to illustrate what various levels of correlation may look like when relationships are truly linear:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-corr-panels" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-corr-panels-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="twovar_02_quantitative-quantitative_files/figure-html/fig-corr-panels-1.png" class="img-fluid figure-img" width="960">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-corr-panels-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.5: Simulated datasets illustrating correlations from +1 to -1. At the extremes the points fall exactly on a line; in between, the cloud loosens gradually.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="sec-corr-limits" class="level2" data-number="7.3">
+<h2 data-number="7.3" class="anchored" data-anchor-id="sec-corr-limits"><span class="header-section-number">7.3</span> Take care with correlation</h2>
+<p>Correlation is a useful measure, but like any one-number summary of a dataset it can obscure important features of the data. We need to ensure it’s an appropriate choice for any given problem.</p>
+<section id="sec-corr-strength" class="level3" data-number="7.3.1">
+<h3 data-number="7.3.1" class="anchored" data-anchor-id="sec-corr-strength"><span class="header-section-number">7.3.1</span> Correlation only measures linear relationships</h3>
+<p>Take a look at the two scatterplots below. On the left, weekly returns on Tesla stock — from the <code>returns</code> data we met in <a href="singlevar_02_describing-distributions.html#sec-symmetric-skewed" class="quarto-xref"><span>Section 2.1</span></a> — are plotted against weekly returns on the S&amp;P 500 index. On the right is a scatterplot of daily average load on the Dallas-Fort Worth-area power grid, from ERCOT, the Texas grid operator, versus that day’s average temperature. Would you say there’s a stronger relationship between Tesla and S&amp;P 500 returns, or between load on the grid and temperature?</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-corr-linear-only" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-corr-linear-only-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="twovar_02_quantitative-quantitative_files/figure-html/fig-corr-linear-only-1.png" class="img-fluid figure-img" width="864">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-corr-linear-only-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.6: Two relationships with nearly identical correlations. Left: Tesla versus S&amp;P 500 weekly returns. Right: daily average electricity demand versus daily average temperature in the DFW region.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>You almost surely picked the load-temperature relationship: load moves more predictably with temperature than Tesla does with the S&amp;P 500. However, the two correlations are nearly identical: 0.48 for Tesla and S&amp;P 500 and 0.51 for load and temperature.</p>
+<p>Correlation only measures linear relationships, but the load-temperature relationship is highly nonlinear. Electricity demand is highest when it’s very hot or very cold, producing the U-shaped cloud in the right panel of <a href="#fig-corr-linear-only" class="quarto-xref">Figure&nbsp;<span>7.6</span></a>.</p>
+</section>
+<section id="sec-anscombe" class="level3" data-number="7.3.2">
+<h3 data-number="7.3.2" class="anchored" data-anchor-id="sec-anscombe"><span class="header-section-number">7.3.2</span> Correlation is sensitive to extreme observations</h3>
+<p>Like the standard deviation and variance, correlation and covariance can be sensitive to outliers and extreme observations. A single extreme point can drag the correlation down, or manufacture a large correlation out of nothing. <a href="https://en.wikipedia.org/wiki/Anscombe%27s_quartet">Anscombe’s quartet</a>, four small synthetic datasets that share the correlation <span class="math inline">\(r = 0.82\)</span>, shows both failures in its bottom two panels:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-anscombe" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-anscombe-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="twovar_02_quantitative-quantitative_files/figure-html/fig-anscombe-1.png" class="img-fluid figure-img" width="576">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-anscombe-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.7: Anscombe’s quartet: four datasets with identical correlation but very different relationships.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The top left panel shows a nice, tidy dataset where a linear relationship seems like a good approximation. In the top right panel is an extreme version of what we saw for the ERCOT data: correlation is misleading when the true relationship is nonlinear. In the bottom left panel, a single extreme observation obscures a perfectly linear trend among the other data points. In the bottom right panel, a single extreme observation creates the illusion of a linear trend where none exists.</p>
+</section>
+<section id="sec-corr-linear-only" class="level3" data-number="7.3.3">
+<h3 data-number="7.3.3" class="anchored" data-anchor-id="sec-corr-linear-only"><span class="header-section-number">7.3.3</span> Correlation is not the slope</h3>
+<p>Correlation measures the <em>strength</em> and <em>direction</em> of a linear relationship, but not its <em>nature</em>. That is, it measures how close the points are to a straight line, and whether that line slopes up or down, but not the actual <em>value</em> of the slope or the intercept. Two datasets can have identical correlations but exhibit rather different linear relationships between the <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> variables on their natural scale.</p>
+<p>Let’s see a real-data example. A common problem in finance is assessing how the returns on an individual stock move with the market as a whole. Correlation is one natural measure here, as the relationships tend to be close to linear and it answers the question “how tightly do these two assets move together?” in a way that is independent of the individual volatility (standard deviation) of the stock returns or the market index.</p>
+<p>The <code>returns</code> data cover 104 weeks of returns on a couple dozen individual assets alongside the S&amp;P 500. <a href="#fig-returns-f-vs-market" class="quarto-xref">Figure&nbsp;<span>7.8</span></a> plots Ford and Tesla returns against the market returns, as measured by the S&amp;P 500.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-returns-f-vs-market" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-returns-f-vs-market-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="twovar_02_quantitative-quantitative_files/figure-html/fig-returns-f-vs-market-1.png" class="img-fluid figure-img" width="864">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-returns-f-vs-market-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.8: Weekly returns on Ford (left) and Tesla (right) against the S&amp;P 500, October 2023 to September 2025, drawn on identical axes. The two stocks are about equally coupled to the market — the correlations are nearly the same — but Tesla’s cloud stretches much further in every direction.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Since the relationships are apparently close to linear, correlation gives us a way to measure how tightly each stock’s returns are coupled to the market, irrespective of each stock’s own volatility. In this case, the two correlations are nearly identical: 0.46 for Ford and S&amp;P 500 and 0.48 for Tesla and S&amp;P 500. That is, the <em>strength</em> of the linear relationship between each stock’s returns and the S&amp;P 500 is essentially identical.</p>
+<p>The correlation doesn’t tell us whether each stock’s returns tend to be more or less extreme than the market return in any given week. That is radically different between the two stocks: the dotted diagonal line is the line <span class="math inline">\(y=x\)</span>; a stock whose returns exactly tracked the market would have a scatterplot concentrated on this line. A stock whose returns were <em>usually</em> about the same as market returns would have a scatterplot concentrated around this line with some variability above and below. That’s essentially what we see for Ford. Tesla, by contrast, tends to have returns that are very high when the market is high, and very low when the market is low — not perfectly, not deterministically, but on average.</p>
+<p>We will see later on that Tesla’s returns are much more volatile than Ford’s, even though market returns account for a similar share of the week-to-week variation in each stock’s returns. Correlation told us how tightly each stock tracks the market. If we want to know how big each stock’s moves tend to be for a given market move, we need to look at the line of best fit.</p>
+</section>
+</section>
+<section id="sec-best-fit-line" class="level2" data-number="7.4">
+<h2 data-number="7.4" class="anchored" data-anchor-id="sec-best-fit-line"><span class="header-section-number">7.4</span> The line of best fit</h2>
+<p>An apparent linear relationship invites an obvious summary: draw the line. There is a standard recipe for choosing it — the <strong>line of best fit</strong>, also called the least-squares line because it makes the average squared vertical distance from the points to the line as small as possible. We’ll work with that criterion directly when we <a href="./regression_01_intro.html#sec-least-squares">build regression models later in these notes</a>; here we simply note some of its properties. The best-fit line for predicting <span class="math inline">\(y\)</span> from <span class="math inline">\(x\)</span> has slope</p>
+<p><span class="math display">\[
+b = r \, \frac{s_y}{s_x}.
+\]</span></p>
+<p>In words, the slope is given by the correlation — the strength of the linear relationship — times an adjustment factor that accounts for the individual spread (and units) of the two variables. You’ll remember from algebra that a slope is “rise over run”: how much the <em>line</em> rises or falls for every one-unit increase in <span class="math inline">\(x\)</span>.</p>
+<p>The line of best fit also predicts the average <span class="math inline">\(y\)</span> value at the average <span class="math inline">\(x\)</span> value, so it passes through the point <span class="math inline">\((\bar{x}, \bar{y})\)</span>. That pins down the intercept as</p>
+<p><span class="math display">\[
+a = \bar{y} - b\,\bar{x}.
+\]</span></p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-austin-price-sqft-lm" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-austin-price-sqft-lm-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="twovar_02_quantitative-quantitative_files/figure-html/fig-austin-price-sqft-lm-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-austin-price-sqft-lm-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.9: The Austin price–size scatterplot with its line of best fit. The dashed lines mark the two sample means, and the fitted line passes exactly through their crossing point: at the average size, the line predicts the average price.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>When the relationship is close to linear, the points will appear randomly scattered above and below the line in about equal measure, and we can think about each point on the line as approximating the average sale price of all houses <em>of that size</em>. For example, the line predicts that a 1,700-square-foot house will sell for about $486,734. There are only so many houses of that exact size in the data — perhaps none in fact — but if we take the average sale price of houses that are close to 1,700 sqft, say between 1675 and 1725, we get $469,620 — within about 4% of the prediction, and well inside the house-to-house variation among those 29 homes.</p>
+<p>Now let’s return to the Ford and Tesla example. Here are the data again, this time with the line of best fit overlaid and annotated:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-returns-f-vs-market-line" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-returns-f-vs-market-line-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="twovar_02_quantitative-quantitative_files/figure-html/fig-returns-f-vs-market-line-1.png" class="img-fluid figure-img" width="864">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-returns-f-vs-market-line-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.10: The Ford and Tesla panels again, now with each stock’s line of best fit (solid orange) alongside the dotted y = x line. Both intercepts sit near zero, but the slopes differ sharply: Ford’s fitted line hugs y = x while Tesla’s is nearly twice as steep.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Both fitted lines have near-zero intercepts: on average, when the market is flat (0% return), so are Ford and Tesla. The slopes are very different, however: Ford’s slope is very close to one, meaning on average we should expect its return to be about the market return. Tesla’s slope is much steeper, meaning that on average we should expect its return to be nearly twice the market return. Tesla has high <em>market risk</em> — it tends to exaggerate the overall market’s movements. It also has much higher overall risk (volatility) than Ford (the standard deviation of Ford’s weekly returns is 4.5%, while Tesla’s is 8.2%). If you have a background in finance, the slope of this line is (more or less) the “beta” (<span class="math inline">\(\beta\)</span>) you already know (and “alpha” (<span class="math inline">\(\alpha\)</span>) is — roughly — the intercept).</p>
+<p>What’s going on? We’ll see later that correlation tells us what share of the week-to-week variation in a stock’s returns is accounted for by its linear relationship with the market. Tesla has both higher market risk (slope, <span class="math inline">\(b\)</span>, or <span class="math inline">\(\beta\)</span>) and greater overall volatility than Ford, but that share is about the same for the two stocks.</p>
+</section>
+<section id="sec-nonlinear" class="level2" data-number="7.5">
+<h2 data-number="7.5" class="anchored" data-anchor-id="sec-nonlinear"><span class="header-section-number">7.5</span> Visualizing nonlinear trends</h2>
+<p>When the relationship between the two variables is close to linear, the line of best fit is useful both as a numeric summary and as a visual guide. We’ll see some examples of ways to construct numeric summaries of some special nonlinear relationships later, but for now we’ll introduce a visual tool that can help us see the shape of a relationship without committing to any particular formula: a <strong>smoother</strong>. Here’s an example using the ERCOT data:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ercot-load-temp" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ercot-load-temp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="twovar_02_quantitative-quantitative_files/figure-html/fig-ercot-load-temp-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ercot-load-temp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.11: Daily average electricity demand versus daily average temperature in the DFW region, 2016–2020, with a smooth curve. At every temperature the curve passes through the middle of the nearby data; it is built by fitting straight lines to narrow temperature windows and stitching the results together.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Here we see a smooth <em>curve</em> constructed such that it passes through the “middle” of the data — the data points are roughly evenly scattered above and below the curve. There are many ways to construct such a curve, but a simple one is to fit lines or simple polynomials to small sections of data and then stitch them together. The mathematics aren’t important here — the animation below shows the process of constructing the smooth curve above:</p>
+<div id="fig-loess-anim" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-loess-anim-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/loess_construction.gif" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-loess-anim-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.12: Constructing the smooth curve. The shaded window slides across the temperature range; at each stop a straight line is fit to only the data inside the window (orange), and the height of that line at the window’s center becomes one point on the curve. Stitching those points together traces out the smooth curve.
+</figcaption>
+</figure>
+</div>
+<p>It can be useful to overlay a smooth curve on a scatterplot even when the relationship is close to linear, because it can reveal subtle nonlinearities that the line of best fit misses. But we must be careful, particularly in small samples, to avoid over-reading apparent “wiggles” in the smooth curve. Here’s the housing data again, with a smooth fit alongside the line of best fit:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-austin-price-sqft-lm-smooth" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-austin-price-sqft-lm-smooth-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="twovar_02_quantitative-quantitative_files/figure-html/fig-austin-price-sqft-lm-smooth-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-austin-price-sqft-lm-smooth-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7.13: The Austin price–size scatterplot again, with the line of best fit (orange) and a smooth curve (green).
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The smoother more or less traces the line of best fit, with deviations at either end where the data are a little sparser. These small deviations aren’t necessarily evidence against a truly linear relationship; we’ll cover diagnostics for nonlinearities later in these notes. For now: 1) the smooth curve can help your reader see the nature of the relationship between the two variables without making any particularly strong assumptions about what the relationship is, and 2) the smooth curve will generally not be a straight line, even for truly linear relationships — it’s best thought of as a visual aid.</p>
+<!---
+## Time as the x-variable: time series {#sec-time-series}
+
+One scatterplot is so common it has its own name and conventions: put time on the horizontal axis and you have a **time series plot**. Because the observations arrive in order --- hour after hour, week after week --- we connect consecutive points with a line, and the line is the point. @fig-ercot-load-daily shows daily average demand on the DFW grid over five years.
+
+
+::: {.cell}
+::: {.cell-output-display}
+![Daily average electricity demand, DFW region, 2016--2020. The annual rhythm --- summer peaks, mild-season troughs, and a secondary winter bump --- is invisible in a histogram of the same values.](twovar_02_quantitative-quantitative_files/figure-html/fig-ercot-load-daily-1.png){#fig-ercot-load-daily width=768}
+:::
+:::
+
+
+This is the same variable whose histogram we drew in @sec-symmetric-skewed, and the comparison is instructive. The histogram showed right skew --- most days moderate, some days extreme --- but said nothing about *when* the extremes happen. The time series shows they aren't scattered at random at all: demand peaks every summer like clockwork, bottoms out in spring and fall, and bumps up again each winter. Ordering the observations in time reveals structure that summarizing their distribution destroys. Whenever data come with timestamps, plot them in time order at least once.
+
+Time series also come with a transformation question we've been circling since @sec-returns: should you plot the *level* of a series or its *changes*? The weekly returns we've used all along are percent changes of an underlying price. Going the other direction, we can rebuild the price path from the returns --- start an index at 100 and compound it week by week --- and compare the two views of the same history. @fig-sp500-level-vs-returns stacks them.
+
+
+::: {.cell}
+::: {.cell-output-display}
+![Two views of the same two years of the S&P 500. Top: the price level (indexed to 100 at the start), showing the trend and cumulative outcome. Bottom: weekly returns, showing volatility --- including the sharp drawdown and rebound in spring 2025 that the level plot compresses into a dip.](twovar_02_quantitative-quantitative_files/figure-html/fig-sp500-level-vs-returns-1.png){#fig-sp500-level-vs-returns width=720}
+:::
+:::
+
+
+Each panel makes something easy that the other makes hard. The level plot answers the investor's bottom-line questions at a glance: the index ends near 159, so a dollar invested at the start grew about 59% over the two years, and you can see when the growth came. But it compresses the drama --- the spring 2025 drawdown reads as a modest dip. The returns plot stretches that dip into what it was: the worst week in the sample, a drop of -9.1%, surrounded by weeks of unusually violent swings in both directions. The returns view also makes different eras comparable. A 50-point move means something entirely different at index level 100 than at 150, but a 3% week is a 3% week anywhere in the series, which is why statistical analysis of financial data almost always works with returns rather than prices. Levels for the trend and the destination; changes for the volatility and the comparisons.
+
+-->
+</section>
+<section id="data-used-in-this-section" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="data-used-in-this-section">Data used in this section</h2>
+<ul>
+<li><a href="./appendix_data.html#sec-data-housing-kaggle">Austin House Listings</a></li>
+<li><a href="./appendix_data.html#sec-data-earnings-cps">CPS ASEC Earnings</a></li>
+<li><a href="./appendix_data.html#sec-data-returns-2025">Weekly Asset Returns (2023–2025)</a></li>
+<li><a href="./appendix_data.html#sec-data-ercot-shaffer">ERCOT Hourly Load and Temperature Panel</a></li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./twovar_01_categorical-categorical.html" class="pagination-link" aria-label="Two Categorical Variables">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Two Categorical Variables</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./twovar_03_categorical-quantitative.html" class="pagination-link" aria-label="A Quantitative Variable Across Groups">
+        <span class="nav-page-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">A Quantitative Variable Across Groups</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
