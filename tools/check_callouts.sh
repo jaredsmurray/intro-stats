@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# The checks below use ripgrep; on a machine without it (fresh clone, CI),
+# fall back to grep -E, which handles every pattern this script uses.
+if ! command -v rg >/dev/null 2>&1; then
+  rg() {
+    if [ "$1" = -q ]; then shift; grep -qE "$@"; else grep -E "$@"; fi
+  }
+fi
+
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 fixture_source="$repo_root/tests/fixtures/callouts"
 check_root="$(mktemp -d "${TMPDIR:-/tmp}/callout-check.XXXXXX")"
