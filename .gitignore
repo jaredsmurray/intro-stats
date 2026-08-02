@@ -21,3 +21,9 @@ working/
 
 # Site clone junk
 .DS_Store
+
+/.quarto/
+**/*.quarto_ipynb
+
+# Render leftovers
+._htmlbook_xref.json
