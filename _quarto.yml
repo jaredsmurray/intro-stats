@@ -44,7 +44,7 @@ extensions:
         appearance: practice
 
 book:
-  title: "STA 380 2026 Notes"
+  title: "Introduction to Statistics and Data Science"
   author: ""
   chapters:
     - index.qmd
