@@ -2,6 +2,8 @@
 title: "Bagging Explorer — Averaging Regression Trees"
 ---
 
-This app accompanies the material on bagging and random forests. The data are 100 simulated points from a curved relationship between one predictor $x$ and a response $y$; each resample draws 100 points from those 100 with replacement, fits a deep regression tree to the resample, and adds that tree to the ensemble, whose average is the bagged fit. Watching the trees pile up shows where the wiggles that vary from tree to tree cancel and the shared structure does not, and the out-of-bag error curve shows how quickly the gain from extra trees flattens out. The app runs in your browser and takes a few moments to start.
+This app shows bagging — averaging many regression trees — in action. The data are 100 simulated points from a curved relationship between one predictor $x$ and a response $y$. Each press draws a resample of the 100 points with replacement, fits a regression tree to it, and adds that tree to the ensemble average. One tree wiggles; the average of many settles toward the shared structure. An out-of-bag error curve tracks prediction error on the points each tree never saw, and it flattens quickly as trees accumulate.
+
+The app runs in your browser. It loads a full R runtime plus the rpart package, so give it up to half a minute to start.
 
 [Open the bagging explorer](https://jaredsmurray.github.io/stats-webapps/bagging.html){target="_blank"}

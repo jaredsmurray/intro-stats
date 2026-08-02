@@ -3,18 +3,19 @@ name: book-style
 description: >
   Book-specific writing conventions for the "Introduction to Statistics and Data Science"
   textbook. Apply whenever drafting or editing natural-language chapter prose, including a new
-  section, worked example, dataset write-up, or revision to a root chapter .qmd. Enforces five
+  section, worked example, dataset write-up, or revision to a root chapter .qmd. Enforces six
   rules: introduce datasets fully once and remind briefly later; make structural moves without
   telegraphing them; use an accessible academic teaching voice; do not invent frameworks or broad
-  claims without checking with Jared; and weigh competing methods as tradeoffs rather than selling
-  one. Triggers include "write a section," "draft a worked example," "revise this chapter," "add
+  claims without checking with Jared; weigh competing methods as tradeoffs rather than selling
+  one; and follow the house terminology (machine-checked via style_terms.tsv). Triggers include
+  "write a section," "draft a worked example," "revise this chapter," "add
   an example," "keep my voice," or any edit to chapter prose. Layers on Jared's voice pack. Does
   not apply to code chunks, data files, or YAML frontmatter.
 ---
 
 # Book Style
 
-Five book-specific writing rules for the statistics textbook, layered on top of Jared's general voice pack (loaded via the book's `AGENTS.md`). These five are the ones most often gotten wrong when drafting or editing a chapter. Apply all five to every piece of chapter prose; the voice pack covers everything else.
+Six book-specific rules for the statistics textbook, layered on top of Jared's general voice pack (loaded via the book's `AGENTS.md`). The first five are the writing moves most often gotten wrong when drafting or editing a chapter; the sixth is the house terminology, which is machine-checked. Apply all six to every piece of chapter prose; the voice pack covers everything else.
 
 ---
 
@@ -117,6 +118,26 @@ When the book puts two tools side by side --- histogram and density plot, box an
 > Small bandwidths act like many small bins, and large bandwidths act like a few [large] bins. The default bandwidth is chosen by some more involved statistical calculations. It's often quite good, particularly in large samples, but again it's a good idea to vary it a little and see how the picture changes.
 
 The bad version scores the density plot against the histogram ("the gain over the histogram") and frames its tuning parameter as a feature — after the histogram's bin choice had been framed as a flaw. The good version gives the bandwidth exactly the treatment the bins got two paragraphs earlier: mechanism, sensible default, vary-and-check, no verdict. Note that even a well-formed judgment ("to my eye the default reads best here") was cut, because the judgment served the sales frame rather than the reader's choice.
+
+## 6. House terminology
+
+The book fixes canonical spellings for recurring terms. **Do not carry the list in your head.** The mechanically-decidable ones live in `style_terms.tsv` at the repo root and are enforced two ways: a `PostToolUse` hook runs `tools/check_terms.sh` after every edit, and `./tools/check_terms.sh --all` sweeps the whole book. If you drift on ZIP code, box plot, z-score, the `small-business` compound modifier, the em dash (`---`, never `--`), S&P 500, LendingClub, or CME FedWatch, the hook tells you in the same turn. Add a new canonical term by adding a row there, not by memorizing it — but only if a regex can decide it. The checker deliberately ignores code, `` `inline code` ``, `$math$`, HTML comments, and chunk-option lines other than `fig-cap`/`tbl-cap`, so those contexts are safe.
+
+Three conventions a regex *can't* decide, so hold them yourself:
+
+- **Samples in Latin, populations in Greek.** Latin letters for quantities
+  computed from data — $\bar{x}$, $s$, $s^2$, $s_e$, $r$; operator and Greek
+  notation — $\text{Var}(\cdot)$, $\text{SD}(\cdot)$, $\sigma^2$, $\epsilon$ —
+  reserved for random variables and population/model parameters. Never write
+  $\text{Var}(Y)$ for the variance of a data column. Corollary: students never
+  fret about degrees of freedom. Divisor bookkeeping ($n$ vs $n-1$ vs
+  $n-p-1$) gets at most one brief honesty pass where a quantity is defined
+  (the standing examples live in singlevar_03 and regression_02); everywhere
+  else, software counts the degrees of freedom and the difference never
+  matters in any case we care about.
+
+- **Dollar signs.** Escape as `\$` in body prose. But inside a YAML caption string (`fig-cap:`, `tbl-cap:`), write a raw `$` — a backslash there breaks the parse. So the same amount is `\$300{,}000` in a sentence and `$300,000` in a caption.
+- **Probabilities on the [0,1] scale.** When the word "probability" carries the number, express it on [0,1] (`a probability of 0.05`), not as a percentage — in figure labels and axes too. Percentages are fine when the sentence is about a rate or share rather than a probability.
 
 ---
 

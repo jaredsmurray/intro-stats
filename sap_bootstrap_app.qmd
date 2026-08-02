@@ -2,6 +2,8 @@
 title: "Bootstrap Explorer — SAP Customer ROE"
 ---
 
-This app accompanies the [section on the bootstrap](inference_01_sampling-distributions.qmd#sec-bootstrap). It shows the actual sample from the Nucleus study — 81 firms, each with its ROE — and resamples those 81 firms with replacement one draw at a time, so you can see which firms repeat, which sit out, and how much the resample mean moves. The resample means accumulate into the bootstrap approximation to the sampling distribution of the sample mean, which you can compare against the normal curve. The app runs in your browser and takes a few moments to start.
+This app accompanies the [section on the bootstrap](inference_01_sampling-distributions.qmd#sec-bootstrap). It shows the 81 firms of the Nucleus sample and resamples them with replacement, one resample at a time. Repeated firms light up and omitted firms grey out, so each press shows exactly what resampling with replacement does to a real sample. The resample means accumulate into the bootstrap approximation to the sampling distribution of the sample mean, with the CLT normal approximation available for comparison.
+
+The app runs in your browser and takes a few moments to start.
 
 [Open the bootstrap explorer](https://jaredsmurray.github.io/stats-webapps/sap_bootstrap.html){target="_blank"}

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Build Chapter Brief"
-  short_description: "Turn source artifacts into a writer brief"
-  default_prompt: "Use $build-chapter-brief to turn these slides, notes, and scripts into an authoritative chapter brief."

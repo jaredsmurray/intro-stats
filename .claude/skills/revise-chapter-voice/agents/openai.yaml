@@ -1,4 +1,0 @@
-interface:
-  display_name: "Revise Chapter Voice"
-  short_description: "Tighten old drafts into Jared teaching voice"
-  default_prompt: "Use $revise-chapter-voice to make this older chapter concise, clear, and consistent with Jared teaching voice."
