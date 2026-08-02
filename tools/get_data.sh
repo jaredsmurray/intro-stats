@@ -12,4 +12,17 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TAG="$(tr -d '[:space:]' < "$ROOT/data_pin")"
 [ -n "$TAG" ] || { echo "error: data_pin is empty" >&2; exit 1; }
 
-exec "$ROOT/tools/fetch_data.sh" "$TAG" "$ROOT/data"
+# fetch_data.sh delivers <dest>/data/<name>/..., <dest>/cards/, and
+# <dest>/manifest.yml. The book reads datasets at data/<name>/ and the data
+# appendix includes cards at data/cards/, so fetch into a staging dir and
+# place each piece.
+STAGE="$ROOT/.data_fetch"
+rm -rf "$STAGE"
+"$ROOT/tools/fetch_data.sh" "$TAG" "$STAGE"
+
+rm -rf "$ROOT/data"
+mv "$STAGE/data" "$ROOT/data"
+mv "$STAGE/cards" "$ROOT/data/cards"
+mv "$STAGE/manifest.yml" "$ROOT/data/manifest.yml"
+rm -rf "$STAGE"
+echo ">> data/ ready at pin $TAG (datasets, cards/, manifest.yml)"
