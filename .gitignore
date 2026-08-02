@@ -27,3 +27,4 @@ working/
 
 # Render leftovers
 ._htmlbook_xref.json
+site.conf
