@@ -1,0 +1,23 @@
+# Fetched datasets: populated by tools/get_data.sh at the pin in data_pin.
+# (data_derived/ is tracked -- it holds derived analysis artifacts, not data.)
+data/
+
+# Render output and caches
+_book/
+_output/
+.quarto/
+_freeze/
+*_files/
+*_cache/
+
+# Scratch
+working/
+
+# Editor / R session state
+/.Rproj.user
+.Rhistory
+.RData
+.Rproj.user/
+
+# Site clone junk
+.DS_Store

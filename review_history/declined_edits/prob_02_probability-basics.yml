@@ -1,0 +1,34 @@
+schema_version: 1
+chapter_source: prob_02_probability-basics.qmd
+declined_edits:
+  - id: probability-zero-and-exact-continuous-values
+    location: probability zero and continuous outcomes
+    declined_proposal: Add a measure-theoretic qualification to reconcile probability-zero events with a continuous random variable realizing an exact value.
+    author_rationale: Both statements are correct at the chapter's probabilistic resolution; do not turn the passage into a measure-theory qualification.
+    scope: Keep the current intuitive treatment.
+    reopen_if: The chapter begins making claims about impossibility rather than almost-sure absence, or later formal measure language is introduced here.
+    decided_at: 2026-07-31
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch11_initial_20260730/decisions.yml
+    tags: [scope, probability-zero, too-technical, previously-repeated]
+  - id: retain-intuitive-continuous-variable-definition
+    location: definition of a continuous random variable
+    declined_proposal: Add disconnected-support and other edge cases to the gapless-range definition.
+    author_rationale: The intuitive definition is appropriate at this level; disconnected-support edge cases are outside scope.
+    scope: Preserve the introductory definition.
+    reopen_if: The chapter introduces mixed or disconnected continuous supports as instructional examples.
+    decided_at: 2026-07-31
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch11_initial_20260730/decisions.yml
+    tags: [scope, edge-case, definition]
+  - id: hidden-density-fit-is-not-an-objective
+    location: Austin probability-model construction
+    declined_proposal: Explain the hidden fitting procedure used to construct the probability curve.
+    author_rationale: The surrounding text clearly frames the curve as a probability model, and its fitting procedure is not part of the teaching objective.
+    scope: Do not add model-construction detail to this passage.
+    reopen_if: Students are asked to reproduce or evaluate the fitting procedure rather than interpret the probability model.
+    decided_at: 2026-07-31
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch11_initial_20260730/decisions.yml
+    tags: [scope, hidden-computation, previously-adjudicated]
+

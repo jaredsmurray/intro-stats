@@ -1,0 +1,4 @@
+interface:
+  display_name: "Book Student Review"
+  short_description: "Run a lean, evidence-first textbook review"
+  default_prompt: "Use $book-student-review to run a lean student-friction and technical audit, skeptically compile only material findings, streamline my adjudication decisions, apply approved revisions, clear the prose against my voice pack, and verify the result."

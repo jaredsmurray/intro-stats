@@ -1,0 +1,502 @@
+---
+title: "Sampling Distributions and Confidence Intervals"
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(scales)
+
+# Figures render at their intrinsic size (fig-width x 96px), capped by the
+# ~702px content column -- they are never upscaled to fill it. So axis text
+# lands at its true point size, and base_size, not fig-width, is what makes it
+# legible next to 17px body text. At 13, tick labels are ~14px.
+theme_set(theme_minimal(base_size = 13))
+
+sap <- read_csv("data/sap_roe/sap_roe.csv", show_col_types = FALSE)
+
+sap_n    <- nrow(sap)
+sap_mean <- mean(sap$roe)
+sap_sd   <- sd(sap$roe)
+sap_se   <- sap_sd / sqrt(sap_n)
+benchmark <- mean(sap$industry_roe)
+sap_lo <- sap_mean - 2 * sap_se
+sap_hi <- sap_mean + 2 * sap_se
+t_bench <- (sap_mean - benchmark) / sap_se
+p_bench <- 2 * pnorm(-abs(t_bench))
+claim_mu <- benchmark * 1.32
+t_claim <- (sap_mean - claim_mu) / sap_se
+p_claim <- 2 * pnorm(-abs(t_claim))
+```
+
+```{r}
+#| label: app-sim-setup
+#| include: false
+# Recreate the app's simulated population (webapps/sap_sampling_app/app.R):
+# the same frozen bootstrap resample, kernel bandwidth, and seed, so these
+# figures show the same population a reader sees in the app. Values in percent.
+app_roe <- c(
+  -0.120396544, -0.100691091, 0.167590054, 0.137871816, -0.008553021, 0.137871816,
+  0.125869109, 0.029765192, -0.044352879, 0.252452635, 0.181038292, -0.023422169,
+  0.048956074, 0.127671050, 0.410341235, 0.258652282, 0.034964973, 0.258652282,
+  0.256746830, -0.100691091, 0.129724225, 0.034964973, 0.803444112, 0.258652282,
+  0.803444112, 0.167590054, -0.018913042, 0.509901026, 0.388392828, 0.148384173,
+  0.167590054, 0.627228636, -0.083626775, 0.357408018, 0.188396498, 0.009950306,
+  0.012788839, 0.448264021, -0.083626775, 0.033139821, 0.129724225, 0.380798900,
+  -0.095886669, 0.009950306, -0.018913042, 0.048956074, -0.045643574, 0.027237541,
+  0.200929684, 0.006652830, -0.023422169, 0.076985554, 0.027237541, -0.045643574,
+  0.137871816, 0.048956074, -0.038963332, 0.127671050, 0.033574695, -0.074997475,
+  0.129724225, 0.240981928, 0.001447413, 0.181038292, 0.188396498, -0.100691091,
+  0.132512837, 0.236645754, 0.252452635, 0.200929684, 0.803444112, -0.042335084,
+  0.034964973, 0.258652282, -0.044352879, -0.097850051, 0.188643477, 0.015643796,
+  0.057244759, -0.038963332, -0.014643583
+)
+set.seed(2026)
+app_bw <- density(app_roe)$bw
+app_pop <- sample(app_roe, 30000, replace = TRUE) + rnorm(30000, 0, app_bw)
+bad <- which(app_pop < -1)
+while (length(bad) > 0) {
+  app_pop[bad] <- sample(app_roe, length(bad), replace = TRUE) +
+    rnorm(length(bad), 0, app_bw)
+  bad <- which(app_pop < -1)
+}
+app_pop  <- 100 * app_pop
+app_mu   <- mean(app_pop)
+app_sigma <- sd(app_pop)
+app_xlim <- range(app_pop)
+app_n    <- 81
+app_se   <- app_sigma / sqrt(app_n)
+
+# The walkthrough's samples, drawn in the order a reader pressing the buttons
+# would see them: the first draw is "sample 1", the second "sample 2", and so on.
+set.seed(81)
+app_draws <- matrix(sample(app_pop, app_n * 5000, replace = TRUE), nrow = app_n)
+app_means <- colMeans(app_draws)
+
+# App colors
+app_bar    <- "#0173B2"
+app_mark   <- "#CC0000"
+app_normal <- "#9370DB"
+app_hit    <- "#2E8B57"
+app_miss   <- "#CC0000"
+
+# The app builds its intervals from the population sigma it knows, so the
+# margin is the same for every sample and only the center moves.
+app_margin <- 2 * app_se
+app_hits   <- abs(app_means - app_mu) <= app_margin
+
+app_stats_label <- function(lab) {
+  geom_label(data = tibble(x = Inf, y = Inf, lab = lab),
+             aes(x = x, y = y, label = lab), inherit.aes = FALSE,
+             hjust = 1.02, vjust = 1.1, size = 3, color = "gray20",
+             lineheight = 1.1, fill = alpha("white", 0.65), label.size = 0)
+}
+
+app_pop_panel <- function() {
+  ggplot(tibble(roe = app_pop), aes(x = roe)) +
+    geom_histogram(bins = 60, fill = app_bar, alpha = 0.85) +
+    geom_vline(xintercept = app_mu, color = "grey30", linewidth = 1) +
+    app_stats_label(paste0("N = 30,000\nmu = ", number(app_mu, accuracy = 0.1),
+                           "%\nsigma = ", number(app_sigma, accuracy = 0.1), "%")) +
+    coord_cartesian(xlim = app_xlim, expand = FALSE) +
+    scale_x_continuous(labels = function(x) paste0(x, "%")) +
+    labs(x = "Return on equity", y = "Count",
+         subtitle = "Population of ROE values (simulated)") +
+    theme(panel.grid.minor = element_blank())
+}
+
+app_sample_panel <- function(s) {
+  ggplot(tibble(roe = s), aes(x = roe)) +
+    geom_histogram(binwidth = 5, boundary = 0, fill = app_bar, alpha = 0.85) +
+    geom_rug(sides = "b", color = app_bar, alpha = 0.7) +
+    geom_vline(xintercept = mean(s), color = app_mark, linewidth = 1) +
+    app_stats_label(paste0("n = ", length(s),
+                           "\nx-bar = ", number(mean(s), accuracy = 0.1),
+                           "%\ns = ", number(sd(s), accuracy = 0.1), "%")) +
+    coord_cartesian(xlim = app_xlim, expand = FALSE) +
+    scale_x_continuous(labels = function(x) paste0(x, "%")) +
+    labs(x = "Return on equity", y = "Count", subtitle = "Current sample") +
+    theme(panel.grid.minor = element_blank())
+}
+
+app_dist_panel <- function(k, show_normal = FALSE, show_ci = FALSE,
+                           xlim = app_xlim) {
+  means <- app_means[1:k]
+  # With the interval shown the X takes the hit/miss color, as it does in the app
+  mark <- if (show_ci) {
+    if (app_hits[k]) app_hit else app_miss
+  } else {
+    app_mark
+  }
+  cap <- paste("Samples taken:", format(k, big.mark = ","))
+  if (show_ci) {
+    cap <- paste0(cap, "   |   CI coverage: ",
+                  number(100 * mean(app_hits[1:k]), accuracy = 0.1), "%")
+  }
+  p <- ggplot(tibble(m = means), aes(x = m)) +
+    geom_histogram(aes(y = after_stat(density)), binwidth = 0.5,
+                   boundary = app_mu, fill = app_bar, alpha = 0.85) +
+    geom_vline(xintercept = app_mu, color = "grey30",
+               linetype = "dashed", linewidth = 1) +
+    coord_cartesian(xlim = xlim, expand = FALSE,
+                    clip = if (show_ci) "off" else "on") +
+    scale_x_continuous(labels = function(x) paste0(x, "%")) +
+    labs(x = "Sample mean ROE", y = "Density",
+         subtitle = "Sampling distribution of the sample mean",
+         caption = cap) +
+    theme(panel.grid.minor = element_blank())
+  if (show_normal) {
+    p <- p + stat_function(fun = function(x) dnorm(x, app_mu, app_se),
+                           color = app_normal, linewidth = 1.1, alpha = 0.9)
+  }
+  if (show_ci) {
+    p <- p +
+      geom_segment(data = tibble(lo = means[k] - app_margin,
+                                 hi = means[k] + app_margin),
+                   aes(x = lo, xend = hi, y = 0, yend = 0),
+                   color = mark, linewidth = 1.4) +
+      geom_point(data = tibble(x = c(means[k] - app_margin,
+                                     means[k] + app_margin), y = 0),
+                 aes(x = x, y = y), shape = 124, size = 3, color = mark)
+  }
+  p +
+    geom_point(data = tibble(x = means[k], y = 0), aes(x = x, y = y),
+               shape = 4, size = 3.5, color = mark, stroke = 1.8)
+}
+
+# One horizontal interval per sample, in the order they were drawn, so the
+# misses the coverage tracker counts are visible individually.
+app_ci_panel <- function(k) {
+  d <- tibble(id = 1:k,
+              m = app_means[1:k],
+              lo = m - app_margin,
+              hi = m + app_margin,
+              hit = app_hits[1:k])
+  ggplot(d, aes(y = id)) +
+    geom_vline(xintercept = app_mu, color = "grey30",
+               linetype = "dashed", linewidth = 1) +
+    geom_segment(aes(x = lo, xend = hi, yend = id, color = hit),
+                 linewidth = 0.45, alpha = 0.9) +
+    geom_point(aes(x = m, color = hit), size = 0.55) +
+    scale_color_manual(values = c(`TRUE` = app_hit, `FALSE` = app_miss),
+                       guide = "none") +
+    scale_x_continuous(labels = function(x) paste0(x, "%")) +
+    labs(x = "Sample mean ROE", y = "Sample") +
+    theme(panel.grid.minor = element_blank())
+}
+```
+
+## The SAP dispute {#sec-sap-dispute}
+
+In 2005 SAP, the world's largest maker of enterprise software, ran advertisements claiming that companies running SAP are 32% more profitable than companies that don't. The figure came from a study SAP commissioned and never released for public scrutiny [@carr-sap-lies; @carr-sap-ads]. In March 2006 the analyst firm Nucleus Research published a rebuttal [@sap-nucleus]. Nucleus built its own dataset: it collected the 81 publicly traded companies listed as customers on SAP's web site and looked up each one's **return on equity** (ROE) --- annual profit as a percentage of shareholder equity, a standard measure of how profitably a company uses its capital --- along with the average ROE of each company's industry. The numbers ran the other way. The 81 SAP customers averaged an ROE of 12.6% against industry benchmarks averaging 15.7%, and Nucleus titled the report "SAP customers are 20 percent less profitable than their peers" (12.6 is about 20% below 15.7).
+
+SAP dismissed the report as "junk science." Its argument was about sample size: 81 companies out of SAP's roughly 30,000 customers is about a quarter of one percent, far too few --- SAP claimed --- to say anything about the customer base as a whole. Who is right? Both sides are arguing about the same unknown quantity, the average ROE among all 30,000 customers. The next few chapters build the tools to say what 81 companies can and cannot tell us about it.
+
+The `sap_roe` data contain the 81 companies from the Nucleus report, one row per company: its name (`company`), its industry (`industry`), its ROE in percent (`roe`), and the average ROE of its industry (`industry_roe`). The companies are household names. BMW, Caterpillar, Unilever, and Xerox all appear, spread across about 30 industries. @fig-sap-roe shows the 81 ROE values along with the two averages in dispute.
+
+```{r}
+#| label: fig-sap-roe
+#| fig-cap: !expr paste0("ROE for the 81 publicly traded SAP customers in the Nucleus report. The sample mean of ", number(sap_mean, accuracy = 0.1), "% sits about 3 percentage points below the 15.7% average of the companies' industry benchmarks, and the spread around both lines dwarfs the gap between them.")
+#| fig-width: 7
+#| fig-height: 3.4
+ggplot(sap, aes(x = roe)) +
+  geom_histogram(binwidth = 10, boundary = 0,
+                 fill = "steelblue", color = "white", alpha = 0.85) +
+  geom_vline(xintercept = sap_mean, color = "steelblue", linewidth = 1) +
+  geom_vline(xintercept = benchmark, color = "darkorange",
+             linetype = "dashed", linewidth = 1) +
+  annotate("text", x = sap_mean - 2, y = 20.5, hjust = 1, size = 3.4,
+           color = "steelblue",
+           label = paste0("sample mean ", number(sap_mean, accuracy = 0.1), "%")) +
+  annotate("text", x = benchmark + 2, y = 23, hjust = 0, size = 3.4,
+           color = "darkorange",
+           label = paste0("industry benchmark ", number(benchmark, accuracy = 0.1), "%")) +
+  scale_x_continuous(labels = function(x) paste0(x, "%")) +
+  labs(x = "Return on equity", y = "Companies")
+```
+
+The spread is the first thing to take from the figure. Company ROEs run from `r number(min(sap$roe), accuracy = 0.1)`% up to `r number(max(sap$roe), accuracy = 0.1)`%, with a standard deviation of `r number(sap_sd, accuracy = 0.1)` percentage points. Profitability is wildly variable, and it is natural to wonder whether the chance inclusion or exclusion of one or more of these companies could materially change our estimate of average profitability among the entire population of firms. After all, we know that the sample mean is quite sensitive to outliers.
+
+Here is the frame we will use for the next few chapters. Among all of SAP's customers there is some true average ROE: call it $\mu$. We can't compute $\mu$ --- that would require the ROE of every customer --- so we estimate it with the sample mean of the 81 companies we do observe, $\bar{x} = 12.6\%$. That 12.6% is our observed estimate. We use capital $\bar{X}$ for the estimator: the sample mean before we know which random sample we will get. Across possible random samples, its **estimation error** is $\bar{X} - \mu$. For the sample we observed, the realized error is $\bar{x} - \mu$: how far our answer sits from the true one. *We can never calculate that realized error directly*, because doing so would require knowing $\mu$. SAP's objection, restated in these terms, is that with $n = 81$ the estimation error is probably enormous. Nucleus clearly takes the other side, and (taken literally) their headline implies that the estimation error is irrelevant.
+
+To reason about an error we can't observe, we need a model for how the sample arose. For now, consider the 81 companies as a **simple random sample** of SAP customers: a lottery draw in which every customer was equally likely to appear. Since the population is so large, we can equivalently model the observed ROEs as realizations of iid random variables $X_1, \dots, X_{81}$, drawn from a discrete distribution placing probability 1/N on each of the $N$ companies in the population. The mean and standard deviation of that distribution are $\mu$ and $\sigma$, respectively. We made the same move in the introductory chapter, when we treated 1,000 survey responses as 1,000 draws from a probability distribution over optimists and pessimists. Here the outcome is a company's ROE instead of a yes-or-no answer.
+
+### Connecting sampling from a population to sampling from a probability distribution, again
+
+If you're still wondering why we can treat each firm in our sample as an independent draw from a probability distribution, this section is for you. We'll begin by drawing a single firm --- $X$ --- completely at random from the population, with each company in the population equally likely to be selected.
+We have a single draw from the discrete probability distribution over *all* values of ROE in the *population*, given by the (large) table below.
+
+```{r}
+#| label: tbl-population-dist
+#| tbl-cap: "The probability distribution of a single random draw from the population. Each of the 30,000 companies is equally likely, so each has probability 1/30,000. The ROE values shown are from the simulated population used in the sampling app later in this chapter."
+pop_rows <- tibble(
+  Company = c(as.character(1:5), "$\\vdots$", "30,000"),
+  roe = c(paste0(number(app_pop[1:5], accuracy = 0.1), "%"), "$\\vdots$",
+          paste0(number(app_pop[30000], accuracy = 0.1), "%")),
+  prob = c(rep("1/30,000", 5), "$\\vdots$", "1/30,000")
+)
+knitr::kable(pop_rows, escape = FALSE, align = "rrr",
+             col.names = c("Company", "ROE ($x$)", "$\\Pr(X = x)$"))
+```
+
+Using our [rules for random variables](prob_03_distribution-parameters.qmd#sec-rv-mean), the mean of this distribution $\mu$ is just the average of all the possible outcomes:
+
+$$
+\mu = \sum_{i=1}^{30{,}000} x_i \cdot \Pr(X = x_i) = \frac{x_1 + x_2 + \cdots + x_{30{,}000}}{30{,}000} = \frac{`r number(app_pop[1], accuracy = 0.1)` + `r number(app_pop[2], accuracy = 0.1)` + \cdots + `r number(app_pop[30000], accuracy = 0.1)`}{30{,}000}.
+$$
+
+So our 81 firms are just 81 independent draws from this distribution. This ignores the fact that we usually wouldn't allow sampling the same company twice when we designed a survey like this, but the population size is so large relative to the sample size that the chance of drawing the same company twice is negligible. 
+
+ <!---
+The expected value for $X_1$ is just $\mu$: That's a basic calculation from TODO:REF. Similarly its standard deviation will be $\sigma$. 
+To get the second row in our sample -- $X_2$ -- we take another random sample from the same distribution, which has mean $\mu$ and standard deviaition $\sigma$. This is the same as flipping a coin to get a sample from a binary distribution where a 1 or 0 is equally likely, or rolling a die to get a sample from a distribution over 1 - 6 where each outcome is equally likely. Our die just happens to have 30,000 faces.
+
+ Repeated application of our basic probability rules tells us that the probability we get a firm with ROE in any given interval, say 5% - 15%, is:
+
+$$
+\frac{\text{Number of companies with ROE between 5\% and 15\%}}{Number of companies in the population}
+$$
+
+That is, 
+--->
+
+## Sampling distributions and confidence intervals {#sec-sampling-ci}
+
+SAP's sample size objection is really a claim about repetition: had Nucleus drawn a different 81 companies at random, the average would have come out differently, and SAP is betting it would have come out very differently --- so differently, in fact, that we can't learn anything meaningful from a sample of size $n=81$. There is a certain appeal to the argument: you probably wouldn't trust a sample of three firms to learn about the whole population. On the other hand, it would be bad luck indeed if a random sample of 810 companies produced an average far from the true population average. Larger samples depend less on which firms happen to be included. How can we quantify this?
+
+Ask the question directly. Suppose we could redraw the sample --- hand thousands of analysts their own random 81 customers and have each one compute a sample mean. No two analysts would produce exactly the same estimate. Since there is no bias in the random sampling process, we'd expect that their estimates are scattered more or less randomly around the true population value. The spread of their answers tells us how reliable any single analyst's estimate is: if the variation across random samples is small, then any single analyst's estimate is probably close to the truth. If the variation is large, then any single analyst's estimate could be far from the truth. The distribution of the analysts' estimates across random samples is called the **sampling distribution** of the statistic:
+
+::: {.callout-note}
+## Definition: Sampling distribution
+
+The **sampling distribution** of a statistic (like the sample mean) is the probability distribution of that statistic across random samples of a given size $n$, where each sample is drawn from the population or from the true probability distribution.
+:::
+
+In real life we get one sample, so we never see the sampling distribution directly. But if each of our hypothetical analysts got approximately the same number, we could feel confident in the results of any single one of them. 
+
+We already know two things about this distribution exactly. The [rules for sums and averages of iid random variables](prob_07_combining-random-variables.qmd#sec-sums-averages) give $E[\bar X] = \mu$ and $SD(\bar X) = \sigma/\sqrt{n}$. The [Central Limit Theorem (CLT)](prob_07_combining-random-variables.qmd#sec-clt) adds the shape: the sampling distribution of the sample mean is approximately normal, regardless of the shape of the population distribution, as long as the sample size is large enough:
+
+$$
+\bar{X} \;\approx\; N\!\left(\mu,\; \sigma^2/n\right).
+$$
+
+In words: across random samples, the sample mean is right on average, and its typical distance from the truth shrinks as the sample grows.
+
+Using our rules for [shifting and scaling random variables](prob_03_distribution-parameters.qmd#sec-shift-scale), which apply to [normal distributions](prob_04_normal.qmd) too, we can get the distribution of the estimation *error* $\bar{X} - \mu$ over many random samples by shifting the mean to zero:
+
+$$
+\bar{X} - \mu \;\approx\; N\!\left(0,\; \sigma^2/n\right).
+$$
+
+In words: On average across many random samples, the estimation error is zero --- there is no bias introduced by random sampling. Further, the typical size of our estimation error is the standard deviation of this distribution, $\sigma/\sqrt{n}$ --- also known as the **standard error** (of the sample mean). 
+
+::: {.callout-note}
+## Definition: Standard error
+
+The **standard error** of a statistic is the standard deviation of its sampling distribution. For a statistic that is right on average, like the sample mean, it is the typical size of the estimation error:
+
+$$
+SE(\bar{X}) = \frac{\sigma}{\sqrt{n}} \approx \frac{s}{\sqrt{n}},
+$$
+
+estimated by plugging in the sample standard deviation $s$ for the unknown $\sigma$.
+:::
+
+These formulas quantify two observations that were already intuitive to you: The random sampling means that there is no systematic bias in our estimates, and the typical size of our estimation error shrinks as the sample grows.
+
+For the SAP sample the ingredients are $s = `r number(sap_sd, accuracy = 0.1)`$ and $n = 81$, so
+
+$$
+SE(\bar{X}) \approx \frac{`r number(sap_sd, accuracy = 0.1)`}{\sqrt{81}} = \frac{`r number(sap_sd, accuracy = 0.1)`}{9} \approx `r number(sap_se, accuracy = 0.01)`.
+$$
+
+In words: when we estimate the average ROE of all SAP customers from 81 of them, our estimate typically misses by about 2.9 percentage points. The gap Nucleus built its headline on is 3.1 points --- almost exactly the size of a typical error induced by using a random sample of size 81 instead of the entire population.
+
+### Simulating the sampling distribution {#sec-app-walkthrough}
+
+The sampling distribution is easiest to understand by building one yourself. In reality we get one sample and never see the distribution behind it, so what follows is a demonstration. The app simulates a population of 30,000 ROE values built to resemble the SAP customer base --- so you can redraw the sample at will, the one thing Nucleus could not do.
+
+::: {.callout-tip}
+## Try it yourself
+
+Open the [sampling distribution explorer](sap_sampling_app.qmd){target="_blank"} in a new browser window beside this page. Work through the steps below as you read.
+:::
+
+
+The app shows three stacked panels. The top panel is the population: a histogram of all 30,000 simulated ROE values, with the population size $N$, the population mean $\mu$, and the population standard deviation $\sigma$ printed on the plot. This is the complete population, which Nucleus never had.
+
+Set the sample size to 81, matching the Nucleus study, and hit the "Take 1 sample" button. The middle panel shows the 81 values the app just drew, with $n$, $\bar{x}$, and $s$ printed beside them. A red line marks the sample mean. The bottom panel repeats that mean as a red X, beside a dashed line at the population mean $\mu$.
+
+```{r}
+#| label: fig-app-1sample
+#| fig-cap: "The app after one sample of n = 81. Top: the simulated population. Middle: the 81 sampled values, with the sample mean marked by the red line. Bottom: that same mean as a red X, beside the dashed line at the population mean."
+#| fig-width: 7
+#| fig-height: 8
+library(patchwork)
+app_pop_panel() / app_sample_panel(app_draws[, 1]) / app_dist_panel(1)
+```
+
+Compare the red X to the dashed line. The sample mean landed close to $\mu$, but not on it --- and your app will show a different random sample than the one printed here, so your $\bar{x}$ will differ from ours. That sample-to-sample variation is exactly what we set out to measure.
+
+Hit "Take 1 sample" again. The middle panel now shows a fresh set of 81 companies with a new mean, the red X jumps to the new value, and the bottom panel keeps the previous mean in its history. Two samples, two estimates, neither equal to $\mu$.
+
+```{r}
+#| label: fig-app-2samples
+#| fig-cap: "The bottom panel after a second sample. The red X sits at the newest sample mean; the first sample's mean stays in the histogram."
+#| fig-width: 7
+#| fig-height: 2.8
+app_dist_panel(2)
+```
+
+Keep going. Each press adds one more sample mean to the bottom panel, the "Samples taken" counter tracks how many you've drawn, and the "Take many samples" button adds them in batches of 50. After a few dozen samples the histogram is ragged. After a few thousand it is smooth.
+
+```{r}
+#| label: fig-app-50samples
+#| fig-cap: "After 50 samples the histogram of sample means is taking shape but still ragged. The x-axis here and in the next figures is zoomed in relative to the app's."
+#| fig-width: 7
+#| fig-height: 2.8
+app_dist_panel(50, xlim = app_mu + c(-12, 12))
+```
+
+```{r}
+#| label: fig-app-5000samples
+#| fig-cap: "After 5,000 samples the histogram is smooth and bell-shaped, centered at the population mean."
+#| fig-width: 7
+#| fig-height: 2.8
+app_dist_panel(5000, xlim = app_mu + c(-12, 12))
+```
+
+You'll notice two things about the histogram you just built:
+
+1. It is centered at the population mean: about half the samples over-estimate $\mu$, and about half under-estimate it.
+2. It is bell-shaped, even though the population in the top panel is skewed.
+
+This isn't a coincidence; this is the Central Limit Theorem at work. Tick the "Show normal approximation" box and the app overlays the curve $N(\mu, \sigma^2/n)$ in purple --- computed from the simulated population's mean and standard deviation and the sample size. Our 2.85 was an estimate of exactly this kind of quantity from one sample, with $s$ standing in for the $\sigma$ we don't know; here the app knows its population's $\sigma$, so its standard error comes out different.
+
+```{r}
+#| label: fig-app-normal
+#| fig-cap: !expr 'paste0("The same 5,000 sample means with the normal approximation overlaid in purple: the curve N(mu, sigma^2/n) computed from the population mean, the population standard deviation, and n = 81, for a standard error of ", number(app_se, accuracy = 0.01), " percentage points.")'
+#| fig-width: 7
+#| fig-height: 2.8
+app_dist_panel(5000, show_normal = TRUE, xlim = app_mu + c(-12, 12))
+```
+
+Nucleus, of course, could not press "Take 1 sample" a second time; it had one draw and one mean. But the theory that predicted your purple curve applies equally to the one sample we actually hold. That is enough to say how far a single $\bar{X}$ typically lands from $\mu$.
+
+### From the sampling distribution to an interval {#sec-ci}
+
+The sampling distribution of $\bar{X}$ is approximately normal, so the [68/95/99.7 rule](prob_04_normal.qmd) applies: in about 95% of random samples, $\bar{X}$ lands within 2 standard errors of $\mu$. Equivalently, $\bar X - \mu$ lands within 2 standard errors of zero in 95% of samples. Now flip that statement around: if $\bar{X}$ is within 2 SE of $\mu$ in 95% of samples, then $\mu$ is within 2 SE of $\bar{X}$ in 95% of samples. That flip turns a fact about the estimator into a recipe for a range of values the truth could plausibly take. Therefore,
+
+$$
+\bar X \pm 2 \cdot SE(\bar X) \text{ contains } \mu \text{ in 95\% of random samples.}
+$$
+
+This is a *confidence interval*. The way to think of a confidence interval is as a set of plausible values. We take $\bar x$, our best guess for $\mu$, then add and subtract a multiple of the standard error to account for the likely size of our estimation error, at a given level of confidence (in this case 95\%).
+
+::: {.callout-note}
+## Definition: Confidence interval
+
+A **95% confidence interval** for a parameter is a range of values, computed from the sample, that contains the true parameter value in 95% of random samples. For statistics with approximately normal sampling distributions, the recipe is
+
+$$
+\text{estimate} \pm 2 \times \text{(standard error)}.
+$$
+:::
+
+The interval collects the **plausible values** of the parameter --- the potential values of the population mean $\mu$ that are consistent with the data we saw at a given level of confidence. For the SAP sample,
+
+$$
+12.6 \pm 2(`r number(sap_se, accuracy = 0.01)`) = 12.6 \pm `r number(2 * sap_se, accuracy = 0.1)` = [`r number(sap_lo, accuracy = 0.1)`\%,\ `r number(sap_hi, accuracy = 0.1)`\%].
+$$
+
+In words: the true average ROE among all SAP customers is plausibly anywhere from about 6.9% to about 18.3%. The industry benchmark of 15.7% sits inside that range. Parity with peers is a plausible value --- the 3.1-point gap Nucleus led with could easily be ordinary sampling variation. So, for that matter, is an average ROE of 7%, which would be far worse than Nucleus claimed. The data can't establish Nucleus's headline, and can't rule it out either. In this sense SAP is at least partially right. But note that SAP's advertised 32% advantage would imply a true population average ROE of about 20.7%, which sits far outside the confidence interval.
+
+So far we've read the interval as a range of plausible values. The 95% itself describes the procedure rather than this particular interval, and the app will show you the difference. Tick "Show 95% confidence interval" and every sample now draws its interval along the bottom of the sampling distribution, colored green when it covers the dashed line at $\mu$ and red when it misses. The app builds its intervals from the population $\sigma$ it knows, so they all have the same width and only the center moves.
+
+```{r}
+#| label: fig-app-ci
+#| fig-cap: !expr 'paste0("The bottom panel after one sample of n = 81 with the interval shown. The sample mean of ", number(app_means[1], accuracy = 0.01), "% plus or minus 2 standard errors (", number(app_margin, accuracy = 0.01), " points) gives the interval [", number(app_means[1] - app_margin, accuracy = 0.1), "%, ", number(app_means[1] + app_margin, accuracy = 0.1), "%], drawn in ", if (app_hits[1]) "green because it covers" else "red because it misses", " the dashed line at mu.")'
+#| fig-width: 7
+#| fig-height: 2.8
+app_dist_panel(1, show_ci = TRUE, xlim = app_mu + c(-12, 12))
+```
+
+Keep sampling and the footer keeps a running tally of how often the interval covered $\mu$. The tally bounces around early on --- after 50 samples ours read `r number(100 * mean(app_hits[1:50]), accuracy = 0.1)`% --- and settles near 95% as the samples pile up. @fig-app-coverage draws the first 100 intervals separately instead of one at a time, so you can see each miss the tracker counted.
+
+```{r}
+#| label: fig-app-coverage
+#| fig-cap: !expr 'paste0("The first 100 samples, one interval each, in the order they were drawn. The ", sum(!app_hits[1:100]), " red intervals miss the population mean; the other ", sum(app_hits[1:100]), " cover it. Across all 5,000 samples the coverage is ", number(100 * mean(app_hits), accuracy = 0.1), "%.")'
+#| fig-width: 7
+#| fig-height: 4.2
+app_ci_panel(100)
+```
+
+Our SAP interval is one draw from a process like this one, and we cannot tell which kind we got. No probability statement about this particular interval is available: $\mu$ is a fixed number, and $[`r number(sap_lo, accuracy = 0.1)`\%, `r number(sap_hi, accuracy = 0.1)`\%]$ either contains it or it doesn't. What we can say is that the interval came from a method that captures the truth 95% of the time. That's the best we can hope for.
+
+
+
+## The bootstrap {#sec-bootstrap}
+
+Many of the ideas above generalize to other statistics --- proportions are just means, and we can work out the standard errors for differences in means or proportions. The same goes for the intercept and slope in the [line of best fit](twovar_02_quantitative-quantitative.qmd#sec-best-fit-line) we saw earlier. 
+
+However, not every interesting statistic has a nice sampling distribution. And we are relying on an approximation that works in large samples, but it's not always clear how large those samples need to be before the sampling distribution is close to normal. 
+
+The bootstrap is a powerful and general technique for dealing with these situations. It allows us to estimate the sampling distribution of a statistic without assuming a particular probability model or deriving a formula for the standard error. It still needs a representative sample, and a reasonably large one --- the sample is only a good proxy for the population when $n$ is big enough. It is a simulation-based method that uses the sample itself as a stand-in for the population. The idea is quite simple: in the simulation exercise above, we drew many random samples from a known population to see how the sample mean varied. We could approximate this process if we had a good proxy for the population distribution. If our sample is *representative*, it should be a good proxy for the true population distribution --- good enough, at least, to estimate the sampling distribution of a statistic. That's what the bootstrap does.
+
+::: {.callout-note}
+## Definition: The bootstrap
+
+To bootstrap a statistic computed from a sample of size $n$: draw $n$ observations from the sample **with replacement**, compute the statistic on this *bootstrap sample*, and repeat many times (say $B = 10{,}000$). The shape of the $B$ bootstrap statistics approximates the statistic's sampling distribution, and their standard deviation is the **bootstrap standard error**.
+:::
+
+In words: treat your sample as if it were the population, redraw from it thousands of times, and use the resulting distribution to estimate the standard error of the statistic and/or compute a confidence interval. A few points here bear emphasis:
+
+#### Why sample n=81 firms? {.unnumbered}
+
+If we want the bootstrapped distribution to be a good approximation of the true sampling distribution, we need to mimic the original sampling process as closely as possible. The size of our original sample is an important determinant of the sampling distribution; if we take fewer than 81 firms, the bootstrap will overestimate the variability of the sample mean. If we take more than 81 firms, the bootstrap will underestimate the variability of the sample mean. So we draw 81 firms from our sample of 81 firms.
+
+#### Why sample with replacement? {.unnumbered}
+
+Each bootstrap iteration draws 81 firms from a sample of exactly 81 firms. Without replacement there is only one possible draw: every resampled dataset would be the original sample, just shuffled, and the mean wouldn't vary across bootstrap resamples at all. Sampling with replacement is what lets the resamples differ.
+
+#### Why not bootstrap everything? {.unnumbered}
+
+Why bother with the large-sample theory and mathematical derivations of the standard error if we can just do the bootstrap instead? There are a few reasons:
+
+1. The bootstrap can be slow to compute, especially for large datasets or complex statistics. The CLT and standard error formulas are simple.
+2. The bootstrap can be overkill. We've already seen that even with a relatively small sample, the CLT gives a good approximation to the sampling distribution of the mean.
+3. The standard error formulas expose which factors drive estimation error higher and lower, and they are often useful for planning studies. The bootstrap is more of a black box.
+
+::: {.callout-tip}
+## Try it yourself
+
+Open the [bootstrap explorer](sap_bootstrap_app.qmd){target="_blank"} in a new browser window. It resamples the 81 firms of the Nucleus study one draw at a time, so you can watch which firms repeat, which sit out, and how the resample means accumulate.
+:::
+
+@fig-sap-bootstrap shows the result of bootstrapping the SAP mean, with the normal sampling distribution the CLT predicts drawn over it for comparison.
+
+```{r}
+#| label: fig-sap-bootstrap
+#| fig-cap: !expr 'paste0("10,000 bootstrap sample means of the 81 SAP customer ROEs, with the CLT''s normal approximation for the sampling distribution of the mean overlaid. The two agree: the bootstrap standard error of ", number(boot_se, accuracy = 0.01), " sits within 0.01 of the formula value of ", number(sap_se, accuracy = 0.01), ", without using the formula.")'
+#| fig-width: 7
+#| fig-height: 3.6
+set.seed(81)
+boot_means <- replicate(10000, mean(sample(sap$roe, replace = TRUE)))
+boot_se <- sd(boot_means)
+
+boot_curve <- tibble(
+  x = seq(min(boot_means), max(boot_means), length.out = 300),
+  y = dnorm(x, sap_mean, sap_se)
+)
+
+ggplot() +
+  geom_histogram(aes(x = boot_means, y = after_stat(density)),
+                 bins = 45, fill = "steelblue", color = "white", alpha = 0.85) +
+  geom_line(data = boot_curve, aes(x, y), color = "darkorange", linewidth = 1) +
+  geom_vline(xintercept = sap_mean, linetype = "dashed", color = "grey30") +
+  scale_x_continuous(labels = function(x) paste0(x, "%")) +
+  labs(x = "Bootstrap sample mean ROE", y = "Density")
+```
+
+The bootstrap standard error comes out to `r number(boot_se, accuracy = 0.01)`, compared to our direct calculation of $s/\sqrt{n} = `r number(sap_se, accuracy = 0.01)`$. The confidence interval barely moves: $12.6 \pm 2(`r number(boot_se, accuracy = 0.01)`)$ gives the same plausible range for $\mu$, to the first decimal, as the formula did. For the sample mean the two routes agree; the bootstrap matters when there is no formula to check against.

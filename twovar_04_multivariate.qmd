@@ -1,0 +1,12 @@
+---
+title: "More Than Two Variables"
+---
+
+Real questions rarely stop at two variables. A house's price depends on its size, but also on its location and its age; attrition in the work-from-home experiment depended on treatment, but managers and non-managers responded differently. This chapter extends the two-variable tools --- crosstabs, grouped summaries, scatterplots --- to three or more variables at once, using color, faceting, and conditioning to add dimensions.
+
+<!-- TODO: full chapter. Candidate examples:
+  - austin: price vs sqft, colored/faceted by zipcode
+  - bloom: attrition by treat x role (3-way; ties to the Simpson's paradox TODO in ch 6)
+  - returns: several assets vs market; scatterplot matrices
+  - faceting as conditioning; small multiples as the general tool
+  - bridge to regression as the formal machinery for many variables -->

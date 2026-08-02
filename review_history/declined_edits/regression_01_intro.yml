@@ -1,0 +1,24 @@
+schema_version: 1
+chapter_source: regression_01_intro.qmd
+declined_edits:
+  - id: no-extra-population-model-boundary-here
+    location: fitted-line interpretation
+    declined_proposal: Add a technical population-model qualification to each fitted-value and residual interpretation.
+    author_rationale: At this chapter's resolution, a line that fits the data well supports the stated interpretations.
+    scope: Preserve the current introductory resolution.
+    reopen_if: The passage makes an explicit population-inference claim, the displayed line is not a good fit, or the chapter's model-based scope changes.
+    decided_at: 2026-07-31
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch19_initial_20260731_thread/decisions.yml
+    tags: [scope, too-technical, model-boundary]
+  - id: retain-empty-lot-extrapolation-contrast
+    location: zero-area intercept interpretation
+    declined_proposal: Remove or further qualify the empty-lot interpretation because a zero-square-foot house is unrealistic.
+    author_rationale: The objection arises in class, and the surrounding text immediately identifies the prediction as unreliable extrapolation.
+    scope: Retain the contrast with its surrounding extrapolation explanation.
+    reopen_if: The extrapolation explanation is removed or the example is used as a realistic prediction rather than an intercept interpretation.
+    decided_at: 2026-07-31
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch19_initial_20260731_thread/decisions.yml
+    tags: [teaching-example, extrapolation, already-covered]
+

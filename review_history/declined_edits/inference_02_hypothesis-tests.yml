@@ -1,0 +1,14 @@
+schema_version: 1
+chapter_source: inference_02_hypothesis-tests.qmd
+declined_edits:
+  - id: four-point-five-five-is-about-five-percent
+    location: normal-tail approximation in hypothesis-testing discussion
+    declined_proposal: Qualify or replace the statement that 4.55 percent is about 5 percent.
+    author_rationale: 4.55 percent is about 5 percent for this chapter's purposes, and the unhedged sentence stands.
+    scope: Preserve the chapter-level approximation.
+    reopen_if: The displayed calculation or intended precision changes, or the value is used where the 0.45 percentage-point difference affects a decision.
+    decided_at: 2026-07-29
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch17/student_review.md
+    tags: [precision, approximation, no-added-hedge]
+

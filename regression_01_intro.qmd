@@ -1,0 +1,597 @@
+---
+title: "Introduction to Linear Regression"
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(scales)
+library(patchwork)
+
+# Figures render at their intrinsic size (fig-width x 96px), capped by the
+# ~702px content column -- they are never upscaled to fill it. So axis text
+# lands at its true point size, and base_size, not fig-width, is what makes it
+# legible next to 17px body text. At 13, tick labels are ~14px.
+theme_set(theme_minimal(base_size = 13))
+
+source("R/pkg/model_table.R")
+
+source("R/render/inline_format.R")  # math_usd() and friends
+
+austin <- read_csv("data/austin_houses/austin_houses_subset.csv", show_col_types = FALSE)
+
+fit <- lm(latest_price ~ living_area_sq_ft, data = austin)
+fit_beds <- lm(latest_price ~ num_of_bedrooms, data = austin)
+fit_both <- lm(latest_price ~ living_area_sq_ft + num_of_bedrooms, data = austin)
+
+austin_model <- austin |>
+  mutate(
+    fitted = predict(fit),
+    residual = resid(fit),
+    null_fitted = mean(latest_price),
+    null_residual = latest_price - null_fitted
+  )
+
+rse <- summary(fit)$sigma
+r2 <- summary(fit)$r.squared
+r2_beds <- summary(fit_beds)$r.squared
+r2_both <- summary(fit_both)$r.squared
+rse_both <- summary(fit_both)$sigma
+sd_price <- sd(austin_model$latest_price)
+resid_var <- var(austin_model$residual)
+price_var <- var(austin_model$latest_price)
+slope_area <- coef(fit)[["living_area_sq_ft"]]
+slope_area_both <- coef(fit_both)[["living_area_sq_ft"]]
+
+positive_house <- austin_model |>
+  filter(residual > 0) |>
+  slice_max(residual, n = 1, with_ties = FALSE)
+
+negative_house <- austin_model |>
+  filter(residual < 0) |>
+  slice_min(residual, n = 1, with_ties = FALSE)
+
+example_houses <- bind_rows(
+  positive_house |> mutate(residual_type = "Positive residual"),
+  negative_house |> mutate(residual_type = "Negative residual")
+)
+
+line_data <- tibble(
+  living_area_sq_ft = seq(
+    quantile(austin$living_area_sq_ft, 0.02, na.rm = TRUE),
+    quantile(austin$living_area_sq_ft, 0.98, na.rm = TRUE),
+    length.out = 200
+  )
+) |>
+  mutate(latest_price = predict(fit, newdata = pick(everything())))
+
+b0 <- coef(fit)[[1]]
+b1 <- coef(fit)[[2]]
+bb <- coef(fit_beds)
+bm <- coef(fit_both)
+x_new <- 2000
+y_pred <- b0 + b1 * x_new
+
+profs <- read_csv("data/hamermesh_evals/hamermesh_evals.csv", show_col_types = FALSE)
+fit_beauty <- lm(eval ~ beauty, data = profs)
+fit_beauty_age <- lm(eval ~ beauty + age, data = profs)
+pb <- coef(fit_beauty)
+pba <- coef(fit_beauty_age)
+```
+
+In @sec-best-fit-line, we used the "line of best fit" to summarize an apparent linear trend between two variables. This is an exercise in **linear regression**. This chapter builds up linear regression in detail, showing how it can be used to generate predictions and learn nuanced relationships between multiple variables. 
+
+Our running example is the Austin housing data from earlier chapters: `r comma(nrow(austin))` recent sales in three ZIP codes, including each home's sale price, living area, and number of bedrooms.
+
+## Finding the line of best fit {#sec-least-squares}
+
+We've been referring to the "line of best fit", but that's imprecise. It's only the line of best fit when we measure "best" in a particular way: as the line that minimizes our average squared prediction error. Write a candidate line as $b_0 + b_1x$, with intercept $b_0$ and slope $b_1$. The least-squares line uses the values of $b_0$ and $b_1$ that minimize the sum --- or equivalently the average --- of the squared errors:
+
+$$
+\frac1n \sum_{i=1}^n {(y_i - \underbrace{(b_0 + b_1 x_i)}_{\text{prediction}})^2}.
+$$
+
+Here $y_i$ is the **outcome variable**, the thing we predict --- sale price --- and $x_i$ is the **predictor**, living area.
+
+Any other values of $b_0$ and $b_1$ would give a larger average squared error over the observed data points. We write $\hat\beta_0$ and $\hat\beta_1$ for the intercept and slope that minimize the average squared error; these are the **least-squares coefficients**.
+
+These are the same values we obtained in @sec-best-fit-line: $\hat\beta_1 = b = r\,s_y/s_x$ and $\hat\beta_0 = a = \bar y - \hat\beta_1\bar x$. Those formulas solve the minimization problem when the model has one predictor.
+
+::: {.Notation #not-hats}
+## Hats mean estimates
+
+A hat marks a quantity estimated from data: $\hat\beta_0$ and $\hat\beta_1$ are estimates of a population intercept and slope, which the next chapters define precisely. The fitted value $\hat{y}_i$ wears its hat for the same reason: it estimates the average outcome at $x_i$. And the [sample proportion $\hat{p}$](singlevar_05_categorical.qmd#sec-proportion-mean) fits the same pattern once we think of it as estimating a population proportion.
+:::
+
+### Residuals and fitted values {#sec-residuals-fitted}
+
+For house $i$, the **fitted value** is the prediction from the fitted line:
+
+$$
+\hat{y}_i = \hat{\beta}_0 + \hat{\beta}_1 x_i.
+$$
+
+In plain English, $\hat{y}_i$ is the price we predict for house $i$ from its living area. The fitted values carry the part of price that can be predicted from area using a straight line.
+
+The **residual** is the observed sale price minus that fitted value:
+
+$$
+e_i = y_i - \hat{y}_i.
+$$
+
+The residual is the prediction error for house $i$. Residuals carry the part of price that the fitted line does not predict from area --- any part of that relationship that is nonlinear, the influence of other variables (the location, age, amenities, and so on) as well as (essentially) random variability like who happens to be in and out of the market at the same time, what other houses are listed concurrently, and so on. 
+
+::: {.callout-note}
+## Definition: Residual
+
+The residual for observation $i$ is $e_i = y_i - \hat{y}_i$, the observed outcome minus its fitted value. A positive residual means the observed outcome was higher than predicted; a negative residual means it was lower.
+:::
+
+@fig-example-residuals draws two residuals as vertical distances from the fitted line. The endpoints on the line are fitted values, while the observed points are sale prices.
+
+```{r}
+#| label: fig-example-residuals
+#| fig-cap: "Two Austin homes and their residuals. A positive residual reaches upward from the fitted line; a negative residual reaches downward."
+#| fig-width: 7
+#| fig-height: 4
+
+ggplot(austin_model, aes(living_area_sq_ft, latest_price)) +
+  geom_point(color = "gray60", alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE, color = "steelblue", linewidth = 1) +
+  geom_segment(
+    data = example_houses,
+    aes(xend = living_area_sq_ft, yend = fitted, color = residual_type),
+    linewidth = 1
+  ) +
+  geom_point(data = example_houses, aes(color = residual_type), size = 3) +
+  geom_point(
+    data = example_houses,
+    aes(y = fitted),
+    color = "steelblue",
+    shape = 1,
+    size = 3
+  ) +
+  scale_color_manual(values = c("Positive residual" = "darkorange", "Negative residual" = "steelblue")) +
+  scale_x_continuous(labels = comma) +
+  scale_y_continuous(labels = dollar) +
+  labs(x = "Living area (square feet)", y = "Sale price", color = NULL)
+```
+
+The positive-residual home has `r comma(positive_house$living_area_sq_ft)` square feet and sold for `r dollar(positive_house$latest_price, accuracy = 1)`. Its fitted value is `r dollar(positive_house$fitted, accuracy = 1)`, giving a residual of `r dollar(positive_house$residual, accuracy = 1)`. It sold for more than expected given its size. The negative-residual home has `r comma(negative_house$living_area_sq_ft)` square feet and sold for `r dollar(negative_house$latest_price, accuracy = 1)`. Its fitted value is `r dollar(negative_house$fitted, accuracy = 1)`, giving a residual of `r dollar(negative_house$residual, accuracy = 1)`. It sold for less than expected given its size. That doesn't mean that the first house was a good deal and the second a bad deal, just that they sold for more or less than expected *given the information we had*. The first house might be newer, in a more desirable area, or track to a better school district. 
+
+## Interpreting linear regression with a single variable
+
+A regression with one predictor is called a **simple regression**; a regression with two or more predictors is called a **multiple regression**.
+
+The least-squares fit for predicting price from living area is
+
+$$
+\widehat{\text{price}} = `r comma(b0, accuracy = 1)` + `r number(b1, accuracy = 0.01)` \times \text{area},
+$$
+
+and the fit for predicting price from the number of bedrooms is
+
+$$
+\widehat{\text{price}} = `r comma(bb[[1]], accuracy = 1)` + `r comma(bb[[2]], accuracy = 1)` \times \text{beds}.
+$$
+
+Statistical software reports a fit as a table rather than an equation. @tbl-price-area and @tbl-price-beds give these two in that form: the estimated coefficients, their standard errors and 95% confidence intervals, and then the $t$-statistic and p-value for the null hypothesis that the coefficient is zero. The rows underneath hold the residual standard error and $R^2$, two summaries of prediction error that we take up in the next chapter, along with the number of observations the fit used.
+
+```{r}
+#| label: tbl-price-area
+#| tbl-cap: "Predicting Austin sale prices from living area."
+
+coef_table(
+  fit,
+  fmt = label_dollar(accuracy = 0.01),
+  coef_map = c(
+    "(Intercept)" = "Intercept",
+    "living_area_sq_ft" = "Living area (sq ft)"
+  )
+)
+```
+
+```{r}
+#| label: tbl-price-beds
+#| tbl-cap: "Predicting Austin sale prices from the number of bedrooms."
+
+coef_table(
+  fit_beds,
+  fmt = label_dollar(accuracy = 1),
+  coef_map = c(
+    "(Intercept)" = "Intercept",
+    "num_of_bedrooms" = "Bedrooms"
+  )
+)
+```
+
+What do we do with these equations, and what exactly do the estimated intercepts and slopes mean?
+
+### Making predictions
+
+To predict the sale price of a newly listed house, plug its living area into the fitted line: for a 2,000-square-foot house the model predicts $`r math_usd(b0)` + `r number(b1, accuracy = 0.01)` \times 2000 \approx `r math_usd(y_pred, accuracy = 1000)`$. @fig-prediction-walkthrough traces the same calculation on the graph.
+
+```{r}
+#| label: fig-prediction-walkthrough
+#| fig-cap: "Predicting the sale price of a 2,000-square-foot house: start at 2,000 on the x-axis, go up to the fitted line, and read the prediction off the y-axis."
+#| fig-width: 7
+#| fig-height: 4
+
+ggplot(austin_model, aes(living_area_sq_ft, latest_price)) +
+  geom_point(color = "gray60", alpha = 0.25) +
+  geom_smooth(method = "lm", se = FALSE, color = "steelblue", linewidth = 1) +
+  geom_segment(aes(x = x_new, xend = x_new, y = -Inf, yend = y_pred),
+               linetype = "dashed", color = "darkorange", linewidth = 0.8) +
+  geom_segment(aes(x = x_new, xend = -Inf, y = y_pred, yend = y_pred),
+               linetype = "dashed", color = "darkorange", linewidth = 0.8) +
+  annotate("point", x = x_new, y = y_pred, color = "steelblue", size = 4) +
+  annotate("label", x = x_new, y = min(austin_model$latest_price),
+           label = "1. Start at 2,000 sq ft", color = "darkorange", size = 3.4) +
+  annotate("label", x = x_new + 150, y = y_pred, hjust = 0,
+           label = "2. Go up to the line", color = "darkorange", size = 3.4) +
+  annotate("label", x = min(austin_model$living_area_sq_ft) + 100, y = y_pred, hjust = 0, vjust = -0.4,
+           label = paste0("3. Predicted price: ", dollar(y_pred, accuracy = 1000)),
+           color = "darkorange", size = 3.4) +
+  scale_x_continuous(labels = comma) +
+  scale_y_continuous(labels = dollar) +
+  labs(x = "Living area (square feet)", y = "Sale price")
+```
+
+This prediction has two interpretations, and both are useful:
+
+- It is our best guess at the sale price of a single newly listed 2,000-square-foot house.
+- It is also the model's estimate of the *average* sale price among *all* 2,000-square-foot houses in these ZIP codes.
+
+Thinking of a regression prediction as the estimated average outcome for all similar units is the reading that will carry through the rest of this part of the book.
+
+### Interpreting the slope
+
+The slope is the difference in predicted price per one-unit difference in the predictor. @fig-slope-rise-run shows the slope as rise over run along the fitted line.
+
+```{r}
+#| label: fig-slope-rise-run
+#| fig-cap: !expr 'paste0("The slope as rise over run: over a 1,000-square-foot run, the predicted price rises by about ", dollar(1000 * b1, accuracy = 1000), ", or ", dollar(b1, accuracy = 1), " per square foot.")'
+#| fig-width: 8
+#| fig-height: 5
+
+x1 <- 1500; x2 <- 2500
+y1 <- b0 + b1 * x1; y2 <- b0 + b1 * x2
+
+ggplot(austin_model, aes(living_area_sq_ft, latest_price)) +
+  geom_point(color = "gray60", alpha = 0.25) +
+  geom_smooth(method = "lm", se = FALSE, color = "steelblue", linewidth = 1) +
+  annotate("point", x = c(x1, x2), y = c(y1, y2), color = "steelblue", size = 3) +
+  annotate("segment", x = x2 + 100, xend = x2 + 100, y = y1, yend = y2,
+           arrow = arrow(ends = "both", length = unit(0.12, "inches")),
+           color = "darkorange", linewidth = 0.8) +
+  annotate("label", x = x2 + 220, y = (y1 + y2) / 2, hjust = 0, size = 3.4,
+           color = "darkorange",
+           label = paste0("Rise = ", dollar(y2 - y1, accuracy = 1000))) +
+  annotate("segment", x = x1, xend = x2, y = y1 - 60000, yend = y1 - 60000,
+           arrow = arrow(ends = "both", length = unit(0.12, "inches")),
+           color = "grey40", linewidth = 0.8) +
+  annotate("label", x = (x1 + x2) / 2, y = y1 - 60000, vjust = 1.4, size = 3.4,
+           color = "grey40", label = "Run = 1,000 sq ft") +
+  annotate("label",
+           x = min(austin_model$living_area_sq_ft),
+           y = min(austin_model$latest_price),
+           hjust = 0, size = 3.6,
+           label = paste0("Slope = Rise/Run = ", dollar(b1, accuracy = 1),
+                          " per sq ft")) +
+  scale_x_continuous(labels = comma) +
+  scale_y_continuous(labels = dollar) +
+  labs(x = "Living area (square feet)", y = "Sale price")
+```
+
+Because predictions are estimated averages, the slope of `r dollar(b1, accuracy = 0.01)` per square foot can be read two ways:
+
+- Comparing two houses that differ in size by one square foot, the larger house has a predicted price `r dollar(b1, accuracy = 0.01)` higher.
+- On average, houses that are one square foot larger sell for about `r dollar(b1, accuracy = 0.01)` more.
+
+### Interpreting the intercept
+
+The intercept is the predicted price when every predictor equals zero --- here, a house with no living area at all.
+
+```{r}
+#| label: fig-intercept-extrapolation
+#| fig-cap: !expr 'paste0("The intercept is the point where the fitted line crosses x = 0, here ", dollar(b0, accuracy = 1000), ". The dashed stretch of line has no data under it.")'
+#| fig-width: 8
+#| fig-height: 5
+
+min_area <- min(austin_model$living_area_sq_ft)
+
+ggplot(austin_model, aes(living_area_sq_ft, latest_price)) +
+  geom_point(color = "gray60", alpha = 0.25) +
+  geom_smooth(method = "lm", se = FALSE, color = "steelblue", linewidth = 1) +
+  annotate("segment", x = 0, xend = min_area, y = b0, yend = b0 + b1 * min_area,
+           color = "steelblue", linewidth = 1, linetype = "dashed") +
+  annotate("point", x = 0, y = b0, color = "darkorange", size = 4) +
+  annotate("label", x = 100, y = b0, hjust = 0, vjust = -0.5, size = 3.4,
+           color = "darkorange",
+           label = paste0("Intercept = ", dollar(b0, accuracy = 1000))) +
+  scale_x_continuous(labels = comma, limits = c(0, NA)) +
+  scale_y_continuous(labels = dollar) +
+  labs(x = "Living area (square feet)", y = "Sale price")
+```
+
+Is the intercept meaningful, and should we trust it?
+
+- Meaningful? Perhaps: no house has zero square feet, but an empty lot does, and lots do sell.
+- Reliable? No: our smallest house is about `r comma(min_area)` square feet, so the value at zero is an extrapolation far outside the data.
+- The general lesson: don't trust predictions far beyond the observed range of the predictors.
+
+## Interpreting linear regression with multiple variables
+
+Living area and the number of bedrooms both predict price, and more useful information should give better predictions. @fig-scatter-beds-color shows both at once, and suggests a complication: the two predictors are related to each other, since bigger houses tend to have more bedrooms.
+
+```{r}
+#| label: fig-scatter-beds-color
+#| fig-cap: "Sale price versus living area, colored by the number of bedrooms. Houses with more bedrooms cluster at larger sizes."
+#| fig-width: 8
+#| fig-height: 5
+
+ggplot(austin_model, aes(living_area_sq_ft, latest_price, color = factor(num_of_bedrooms))) +
+  geom_point(alpha = 0.6) +
+  scale_color_viridis_d() +
+  scale_x_continuous(labels = comma) +
+  scale_y_continuous(labels = dollar) +
+  labs(x = "Living area (square feet)", y = "Sale price", color = "Bedrooms")
+```
+
+Fitting a linear regression with both predictors gives
+
+$$
+\widehat{\text{price}} = `r comma(bm[[1]], accuracy = 1)` + `r number(bm[[2]], accuracy = 0.01)` \times \text{area} - `r comma(abs(bm[[3]]), accuracy = 1)` \times \text{beds}.
+$$
+
+Predictions work exactly as before --- plug in both X values --- but compare the coefficients to the two simple regression slopes, as in @tbl-austin-three-models:
+
+- The area coefficient grew, from `r number(b1, accuracy = 0.01)` to `r number(bm[[2]], accuracy = 0.01)` dollars per square foot.
+- The beds coefficient shrank *and changed sign*, from +`r comma(bb[[2]], accuracy = 1)` to $-`r comma(abs(bm[[3]]), accuracy = 1)`$ dollars per bedroom.
+
+```{r}
+#| label: tbl-austin-three-models
+#| tbl-cap: "The two simple regressions and the multiple regression. Each coefficient is followed by its 95% confidence interval; a blank cell means the predictor is not in that model."
+
+reg_table(
+  list(
+    "Area" = fit,
+    "Bedrooms" = fit_beds,
+    "Area + bedrooms" = fit_both
+  ),
+  fmt = label_dollar(accuracy = 1),
+  coef_map = c(
+    "(Intercept)" = "Intercept",
+    "living_area_sq_ft" = "Living area (sq ft)",
+    "num_of_bedrooms" = "Bedrooms"
+  )
+)
+```
+
+### Multiple regression coefficients are adjusted comparisons
+
+The coefficients in a multiple regression are similar to slopes, with one important difference. The beds coefficient says that if we compare two houses **with the same living area** that differ by one bedroom, the one with the extra bedroom has a predicted price `r dollar(abs(bm[[3]]), accuracy = 1)` *lower*. Every coefficient works this way: it gives the predicted difference between units that differ in that one predictor and match on all the others.
+
+One way to see this is to rewrite the multiple regression as a different *simple* regression of price on beds for each fixed area:
+
+$$
+\widehat{\text{price}} = \underbrace{[`r comma(bm[[1]], accuracy = 1)` + `r number(bm[[2]], accuracy = 0.01)` \times \text{area}]}_{\text{area-specific intercept}} \; \underbrace{- `r comma(abs(bm[[3]]), accuracy = 1)`}_{\text{common slope}} \times \text{beds}.
+$$
+
+```{r}
+#| label: fig-multi-lines
+#| fig-cap: "The multiple regression as a family of parallel lines: each living area gets its own intercept, and every line shares the same (negative) slope in bedrooms."
+#| fig-width: 7
+#| fig-height: 4
+
+lines_df <- tibble(
+  area_val = c(1200, 1750, 2200, 2800),
+  intercept = bm[[1]] + bm[[2]] * area_val,
+  slope = bm[[3]]
+)
+
+ggplot(austin_model, aes(num_of_bedrooms, latest_price)) +
+  geom_jitter(aes(color = living_area_sq_ft), width = 0.2, height = 0, alpha = 0.5) +
+  geom_abline(data = lines_df,
+              aes(intercept = intercept, slope = slope, color = area_val),
+              linewidth = 1) +
+  scale_color_viridis_c(labels = comma) +
+  scale_y_continuous(labels = dollar) +
+  labs(x = "Number of bedrooms", y = "Sale price",
+       color = "Living area\n(sq ft)")
+```
+
+Does a *negative* adjusted comparison make sense? If two houses have the same area, more bedrooms likely means smaller rooms --- and buyers do not necessarily pay more for an additional, smaller bedroom.
+
+### Is the negative coefficient consistent with the data?
+
+We don't have enough houses of any *single* size to compare (say) 3- and 4-bedroom prices directly (one reason to fit a model in the first place), but we can compare average prices within subsets of the data where the living area is similar. @fig-area-slider slides a 500-square-foot window across the data and makes that comparison in each window.
+
+```{r}
+#| label: fig-area-slider
+#| fig-cap: "Average sale price for 3- versus 4-bedroom houses as a 500-square-foot window slides across the range of living areas. The 4-bedroom average is lower in every window. (Windows where either group has fewer than 15 sales are dropped.)"
+
+window_width <- 500
+window_starts <- seq(1000, 3000, by = 100)
+
+slider_stats <- map_dfr(window_starts, function(s) {
+  austin_model |>
+    filter(living_area_sq_ft >= s, living_area_sq_ft < s + window_width,
+           num_of_bedrooms %in% c(3, 4)) |>
+    summarize(avg_price = mean(latest_price), n = n(), .by = num_of_bedrooms) |>
+    mutate(window_start = s)
+}) |>
+  pivot_wider(names_from = num_of_bedrooms, values_from = c(avg_price, n)) |>
+  filter(n_3 >= 15, n_4 >= 15) |>
+  mutate(label = paste0(
+    "Window: ", comma(window_start), "-", comma(window_start + window_width), " sq ft\n",
+    "Avg price (3 beds): ", dollar(avg_price_3, accuracy = 1000), "\n",
+    "Avg price (4 beds): ", dollar(avg_price_4, accuracy = 1000), "\n",
+    "Difference: ", dollar(round(avg_price_4, -3) - round(avg_price_3, -3),
+                           accuracy = 1000)
+  ))
+
+# Render one frame per window and assemble the GIF directly with gifski
+frame_dir <- file.path(tempdir(), "slider_frames")
+dir.create(frame_dir, showWarnings = FALSE)
+
+frame_files <- map_chr(seq_len(nrow(slider_stats)), function(i) {
+  s <- slider_stats$window_start[i]
+  frame_data <- austin_model |>
+    mutate(in_window = living_area_sq_ft >= s & living_area_sq_ft < s + window_width)
+
+  p <- ggplot(frame_data,
+              aes(living_area_sq_ft, latest_price, color = factor(num_of_bedrooms))) +
+    annotate("rect", xmin = s, xmax = s + window_width, ymin = -Inf, ymax = Inf,
+             fill = "grey80", alpha = 0.4) +
+    geom_point(aes(alpha = ifelse(in_window, 0.9, 0.15))) +
+    scale_alpha_identity() +
+    annotate("label",
+             x = min(austin_model$living_area_sq_ft),
+             y = max(austin_model$latest_price),
+             hjust = 0, vjust = 1, size = 3.4,
+             label = slider_stats$label[i]) +
+    scale_color_viridis_d() +
+    scale_x_continuous(labels = comma) +
+    scale_y_continuous(labels = dollar) +
+    labs(x = "Living area (square feet)", y = "Sale price", color = "Bedrooms")
+
+  f <- file.path(frame_dir, sprintf("frame_%02d.png", i))
+  ggsave(f, p, width = 8, height = 5, dpi = 96)
+  f
+})
+
+gif_file <- knitr::fig_path(".gif")
+dir.create(dirname(gif_file), recursive = TRUE, showWarnings = FALSE)
+invisible(gifski::gifski(frame_files, gif_file,
+                         width = 768, height = 480, delay = 0.5))
+knitr::include_graphics(gif_file)
+```
+
+<!-- 
+ @fig-area-slices does this for three overlapping bands.
+
+```{r}
+#| label: fig-area-slices
+#| fig-cap: "Average sale price for 3- versus 4-bedroom houses within three bands of similar living area. Within each band, the 4-bedroom houses sell for less on average, consistent with the negative adjusted comparison."
+#| fig-width: 8
+#| fig-height: 4
+
+slice_bounds <- tibble(
+  area_min = c(1500, 2000, 2500),
+  area_max = c(2000, 2500, 3000)
+)
+
+slice_means <- slice_bounds |>
+  mutate(band = paste0(comma(area_min), "-", comma(area_max), " sq ft")) |>
+  rowwise() |>
+  reframe(
+    band = band,
+    austin_model |>
+      filter(living_area_sq_ft >= area_min, living_area_sq_ft <= area_max,
+             num_of_bedrooms %in% c(3, 4)) |>
+      summarize(avg_price = mean(latest_price), n = n(),
+                .by = num_of_bedrooms)
+  )
+
+ggplot(slice_means,
+       aes(x = factor(num_of_bedrooms), y = avg_price, fill = factor(num_of_bedrooms))) +
+  geom_col(width = 0.6, alpha = 0.85) +
+  geom_text(aes(label = dollar(avg_price, accuracy = 1000)), vjust = -0.4, size = 3.2) +
+  facet_wrap(~band) +
+  scale_fill_manual(values = c("3" = "steelblue", "4" = "darkorange"), guide = "none") +
+  scale_y_continuous(labels = dollar, expand = expansion(mult = c(0, 0.12))) +
+  labs(x = "Number of bedrooms", y = "Average sale price")
+``` 
+-->
+
+In every window, the four-bedroom homes sell for *less* than the three-bedroom homes, consistent with the negative adjusted comparison. (The actual differences bounce around quite a bit due to small sample sizes, but the overall pattern is clear.) The windows compare houses with similar living areas; the regression coefficient compares houses at a fixed living area.
+
+So what is going on across the three fits? 
+
+- Living area and bedrooms are correlated: larger houses tend to have more bedrooms.
+- Without area in the model, beds acts as a proxy for size --- more bedrooms means a bigger house, which means a higher price on average. That is the positive simple regression slope.
+- With area in the model, the beds coefficient describes same-size comparisons, where extra bedrooms likely mean smaller rooms.
+
+Which model is "right"? Both are --- they estimate different things:
+
+- The simple regression estimates the overall linear relationship between beds and price, irrespective of size.
+- The multiple regression estimates the relationship between beds and price *among houses of the same size*. Adding a predictor "adjusts for" or "controls for" it by comparing like with like.
+
+The same logic explains the area coefficient's move in the other direction: without beds in the model, area was partially standing in for bedrooms, and the simple slope blended the two. 
+
+### Another example: beauty and course evaluations
+
+Hamermesh and Parker collected student evaluations for `r comma(nrow(profs))` UT Austin course sections from 2000--2002, along with characteristics of each instructor: the average evaluation score (`eval`, on a 1--5 scale), a beauty rating (`beauty`, the average of six students' ratings of the instructor's photo, normalized so that 0 is average), the instructor's `age`, and more [@hamermesh-parker-2005]. The [data are described here](appendix_data.qmd#sec-data-evals-hamermesh).
+
+```{r}
+#| label: fig-beauty-eval
+#| fig-cap: "Average course evaluation versus instructor beauty rating, with the least-squares line. The association is positive."
+#| fig-width: 7
+#| fig-height: 4.5
+
+ggplot(profs, aes(beauty, eval)) +
+  geom_point(color = "gray50", alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "steelblue", linewidth = 1) +
+  labs(x = "Beauty rating (0 is average)", y = "Average course evaluation")
+```
+
+Start with the simple linear regression of evaluation on beauty, given as an equation and then in @tbl-eval-beauty:
+
+$$
+\widehat{\text{eval}} = `r number(pb[[1]], accuracy = 0.01)` + `r number(pb[[2]], accuracy = 0.001)` \times \text{beauty}.
+$$
+
+```{r}
+#| label: tbl-eval-beauty
+#| tbl-cap: "Predicting average course evaluations from the instructor's beauty rating."
+
+coef_table(
+  fit_beauty,
+  coef_map = c(
+    "(Intercept)" = "Intercept",
+    "beauty" = "Beauty rating"
+  )
+)
+```
+
+How do we interpret the fit?
+
+- The intercept is meaningful here: an average-looking instructor (beauty = 0) has a predicted evaluation of `r number(pb[[1]], accuracy = 0.01)`.
+- Comparing two instructors who differ by one unit of beauty, the more attractive instructor scores about `r number(pb[[2]], accuracy = 0.01)` points higher on average.
+
+Could the association be driven by another variable, the way bedrooms stood in for size? Age is a candidate: older instructors tend to receive lower beauty ratings (the correlation is `r number(cor(profs$age, profs$beauty), accuracy = 0.01)`), and experience could push evaluations in either direction. Adding age to the model gives
+
+$$
+\widehat{\text{eval}} = `r number(pba[[1]], accuracy = 0.01)` + `r number(pba[[2]], accuracy = 0.001)` \times \text{beauty} + `r number(pba[[3]], accuracy = 0.0001)` \times \text{age}.
+$$
+
+- The beauty coefficient barely moves (`r number(pb[[2]], accuracy = 0.001)` to `r number(pba[[2]], accuracy = 0.001)`): whether or not we compare instructors of the same age, more attractive instructors get higher evaluations on average.
+- The age coefficient is so small --- about `r number(pba[[3]], accuracy = 0.0001)` evaluation points per year --- that it rounds to 0.000 in the table. Even a 20-year age difference changes the predicted evaluation by less than 0.01 points.
+- That rules out one alternative explanation for the association, at least with age entering linearly. It does not rule out others.
+
+@tbl-eval-beauty-age shows both fits together.
+
+```{r}
+#| label: tbl-eval-beauty-age
+#| tbl-cap: "The evaluations model before and after adding the instructor's age."
+
+reg_table(
+  list(
+    "Beauty" = fit_beauty,
+    "Beauty + age" = fit_beauty_age
+  ),
+  fmt = 3,
+  coef_map = c(
+    "(Intercept)" = "Intercept",
+    "beauty" = "Beauty rating",
+    "age" = "Age (years)"
+  )
+)
+```
+
+## Conclusion
+
+These two simple examples have shown us that as we add or remove predictors, coefficients can rise, fall, or even flip sign. They can also stay the same.  What happens depends on the relationships *among the predictors* and *between each predictor and the outcome*. Interpreting the coefficients in a regression model requires carefully considering which variables are in or out of the model.

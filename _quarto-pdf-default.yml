@@ -1,0 +1,13 @@
+project:
+  output-dir: _output/pdf-default
+
+book:
+  output-file: book-default
+
+format:
+  pdf:
+    documentclass: book
+    pdf-engine: xelatex
+    include-in-header: tex/callouts.tex
+    geometry:
+      - margin=1in

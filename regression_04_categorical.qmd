@@ -1,0 +1,442 @@
+---
+title: "Categorical predictors"
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(scales)
+
+source("R/pkg/model_table.R")
+
+# Figures render at their intrinsic size (fig-width x 96px), capped by the
+# ~702px content column -- they are never upscaled to fill it. So axis text
+# lands at its true point size, and base_size, not fig-width, is what makes it
+# legible next to 17px body text. At 13, tick labels are ~14px.
+theme_set(theme_minimal(base_size = 13))
+
+# Nominal groups (gender, ZIP) take the book's qualitative palette, ColorBrewer
+# Set2. Viridis is reserved for ordered counts, as in regression_01's bedrooms.
+
+source("R/render/inline_format.R")  # math_usd() and friends
+
+profs <- read_csv("data/hamermesh_evals/hamermesh_evals.csv", show_col_types = FALSE) |>
+  mutate(gender = relevel(factor(gender), ref = "female"))
+
+austin <- read_csv(
+  "data/austin_houses/austin_houses_subset.csv",
+  show_col_types = FALSE
+) |>
+  mutate(zipcode = relevel(factor(zipcode), ref = "78731"))
+
+model_gender <- lm(eval ~ gender, data = profs)
+model_gender_beauty <- lm(eval ~ beauty + gender, data = profs)
+fit_zip <- lm(latest_price ~ zipcode, data = austin)
+fit_zip_78721 <- lm(
+  latest_price ~ zipcode,
+  data = austin |> mutate(zipcode = relevel(zipcode, ref = "78721"))
+)
+fit_zip_area <- lm(
+  latest_price ~ zipcode + living_area_sq_ft,
+  data = austin
+)
+
+gender_means <- profs |>
+  group_by(gender) |>
+  summarize(mean_eval = mean(eval), .groups = "drop")
+
+female_mean <- gender_means |>
+  filter(gender == "female") |>
+  pull(mean_eval)
+male_mean <- gender_means |>
+  filter(gender == "male") |>
+  pull(mean_eval)
+
+gender_coef <- coef(model_gender)
+gender_female_fit <- unname(gender_coef["(Intercept)"])
+gender_male_difference <- unname(gender_coef["gendermale"])
+gender_male_fit <- gender_female_fit + gender_male_difference
+gender_ci <- unname(confint(model_gender)["gendermale", ])
+
+gender_beauty_coef <- coef(model_gender_beauty)
+beauty_slope <- unname(gender_beauty_coef["beauty"])
+adjusted_gender_difference <- unname(gender_beauty_coef["gendermale"])
+gender_beauty_ci <- confint(model_gender_beauty)
+beauty_ci <- unname(gender_beauty_ci["beauty", ])
+adjusted_gender_ci <- unname(gender_beauty_ci["gendermale", ])
+
+profs_plot <- profs |>
+  mutate(pred_gender_beauty = predict(model_gender_beauty))
+
+zip_means <- austin |>
+  group_by(zipcode) |>
+  summarize(
+    mean_price = mean(latest_price),
+    mean_area = mean(living_area_sq_ft),
+    .groups = "drop"
+  )
+
+mean_78731 <- zip_means |>
+  filter(zipcode == "78731") |>
+  pull(mean_price)
+mean_78721 <- zip_means |>
+  filter(zipcode == "78721") |>
+  pull(mean_price)
+mean_78723 <- zip_means |>
+  filter(zipcode == "78723") |>
+  pull(mean_price)
+
+zip_coef <- coef(fit_zip)
+zip_intercept <- unname(zip_coef["(Intercept)"])
+zip_78721_difference <- unname(zip_coef["zipcode78721"])
+zip_78723_difference <- unname(zip_coef["zipcode78723"])
+zip_78721_fit <- zip_intercept + zip_78721_difference
+zip_78723_fit <- zip_intercept + zip_78723_difference
+zip_ci <- confint(fit_zip)
+zip_78721_ci <- unname(zip_ci["zipcode78721", ])
+zip_78723_ci <- unname(zip_ci["zipcode78723", ])
+
+zip_78721_ref_coef <- coef(fit_zip_78721)
+zip_78721_ref_intercept <- unname(zip_78721_ref_coef["(Intercept)"])
+zip_78731_vs_78721 <- unname(zip_78721_ref_coef["zipcode78731"])
+zip_78723_vs_78721 <- unname(zip_78721_ref_coef["zipcode78723"])
+
+stopifnot(max(abs(fitted(fit_zip) - fitted(fit_zip_78721))) < 1e-6)
+
+zip_area_coef <- coef(fit_zip_area)
+adjusted_78721_difference <- unname(zip_area_coef["zipcode78721"])
+adjusted_78723_difference <- unname(zip_area_coef["zipcode78723"])
+area_slope <- unname(zip_area_coef["living_area_sq_ft"])
+zip_area_ci <- confint(fit_zip_area)
+adjusted_78721_ci <- unname(zip_area_ci["zipcode78721", ])
+adjusted_78723_ci <- unname(zip_area_ci["zipcode78723", ])
+area_ci <- unname(zip_area_ci["living_area_sq_ft", ])
+
+austin_plot <- austin |>
+  mutate(pred_zip_area = predict(fit_zip_area))
+```
+
+To incorporate categorical predictors into a regression model, we need to convert the categories into numerical values. We do this with **dummy variables**, the 0/1 variables from @sec-dummy-variables. The category represented by zero is called the **reference category**. We begin with the simple case of a two-level categorical predictor, then move to three or more levels.
+
+## Two categories {#sec-two-category-predictor}
+
+Recall the [course-evaluation example](regression_01_intro.qmd#another-example-beauty-and-course-evaluations) from the beginning of our regression discussion. The ultimate goal was to understand the relationship, if any, between an instructor's appearance and their average course evaluations. This is complicated by the fact that many variables are plausibly related to both appearance and evaluations. Multiple regression gives us one tool to try and adjust for these other variables. One such variable is gender. @fig-eval-gender shows the distributions of course evaluations by gender. Male instructors have a mean evaluation of `r number(male_mean, accuracy = 0.01)`, compared with `r number(female_mean, accuracy = 0.01)` for female instructors.
+
+```{r}
+#| label: fig-eval-gender
+#| fig-cap: "Student evaluations by recorded gender. Each box shows one group's median, quartiles, and outliers on a common scale."
+#| fig-width: 7
+#| fig-height: 4.5
+
+ggplot(profs, aes(x = gender, y = eval)) +
+  geom_boxplot(fill = "steelblue", alpha = 0.5, outlier.alpha = 0.3) +
+  labs(x = NULL, y = "Average student evaluation")
+```
+
+Evaluations vary within both groups, but their centers also differ. 
+A regression model needs a numerical representation of `gender` to express this comparison as an intercept and a coefficient. We can define `male = 1` for male instructors and `male = 0` for female instructors. The choice is arbitrary --- it changes what the coefficients refer to, but not, as we'll see, the model's fit.
+
+The model uses this coding to turn the comparison between categories into an intercept and a coefficient. We get the fitted equation
+
+$$
+\widehat{\text{eval}} =
+`r number(gender_female_fit, accuracy = 0.01)` +
+`r number(gender_male_difference, accuracy = 0.01)`\text{male}.
+$$
+
+Let's see what that means. For a female instructor, `male = 0`, so
+
+$$
+\widehat{\text{eval}}_{
+\text{female}} =
+`r number(gender_female_fit, accuracy = 0.01)` +
+`r number(gender_male_difference, accuracy = 0.01)`(0)
+= `r number(gender_female_fit, accuracy = 0.01)`.
+$$
+
+For a male instructor, `male = 1`, so
+
+$$
+\widehat{\text{eval}}_{
+\text{male}} =
+`r number(gender_female_fit, accuracy = 0.01)` +
+`r number(gender_male_difference, accuracy = 0.01)`(1)
+= `r number(gender_male_fit, accuracy = 0.01)`.
+$$
+
+These are exactly the two group means we started with at the beginning of this section. Remember, the regression prediction is our best guess at the average outcome for a given value of the $X$ variables. Since $X$ takes two levels here, the linear model exactly reproduces the two group means.
+
+The "slope" `r number(gender_male_difference, accuracy = 0.01)` is the difference in predicted evaluations for male versus female instructors. We get "male minus female" because we coded female as the zero or *reference* category --- we understand the coefficient *in reference to* the average evaluations for female instructors, given simply by the intercept (which is always the predicted value when all $X$ variables are set to zero).
+
+
+::: {.callout-note}
+## Definition: Reference category
+
+The **reference category** is the category for which all dummy variables representing a categorical predictor equal zero. Other category coefficients describe differences relative to that category.
+:::
+
+
+Changing the reference category changes the signs and interpretations of the category coefficients. It does not change the fitted values, residuals, or overall model fit. If we choose male as the reference instead, the intercept describes male instructors and the dummy coefficient becomes the female-minus-male difference.
+
+The 95% confidence interval for the male-minus-female difference runs from `r number(gender_ci[1], accuracy = 0.01)` to `r number(gender_ci[2], accuracy = 0.01)` evaluation points, the interval reported for the dummy coefficient in @tbl-eval-gender. These are plausible values for the *population* difference; zero is not a plausible value here, so we have evidence that the population means differ by gender. We have not established that female instructors get lower evaluations on average *because* they are female, however!
+
+```{r}
+#| label: tbl-eval-gender
+#| tbl-cap: "Predicting average course evaluations from the instructor's recorded gender, with female as the reference category."
+
+coef_table(
+  model_gender,
+  coef_map = c(
+    "(Intercept)" = "Intercept (female)",
+    "gendermale" = "Male vs. female"
+  )
+)
+```
+
+## Categorical predictors in multiple regression {#sec-categorical-multiple-regression}
+
+The same coding works when a model contains other predictors, which gives us the ability to control for other variables when we make a comparison between groups. We add `beauty`, the instructor's standardized panel rating, to compare instructors who have the same beauty score. Female remains the reference category.
+
+The fitted model is
+
+$$
+\widehat{\text{eval}} =
+`r number(gender_beauty_coef["(Intercept)"], accuracy = 0.01)` +
+`r number(beauty_slope, accuracy = 0.01)`\text{beauty} +
+`r number(adjusted_gender_difference, accuracy = 0.01)`\text{male}.
+$$
+
+Interpreting the coefficients in a multiple regression model is similar to the simple case, but we now adjust for the other predictors:
+
+- Among instructors with the same beauty score, male instructors have predicted evaluations `r number(adjusted_gender_difference, accuracy = 0.01)` points higher than female instructors. 
+- Among instructors of the same recorded gender, a one-unit increase in beauty corresponds to a predicted evaluation increase of `r number(beauty_slope, accuracy = 0.01)` points. Because beauty is standardized, one unit is one standard deviation in the panel rating. You can read both comparisons while holding the other predictor constant, as in [our earlier multiple-regression discussion](regression_01_intro.qmd#multiple-regression-coefficients-are-adjusted-comparisons).
+
+This model draws one fitted line for each gender in @fig-eval-gender-beauty. Plugging in `male = 0` gives the female line, and `male = 1` gives the male line:
+
+- Female line: $\widehat{\text{eval}} = `r number(gender_beauty_coef["(Intercept)"], accuracy = 0.01)` + `r number(beauty_slope, accuracy = 0.01)`\text{beauty}$
+- Male line: $\widehat{\text{eval}} = `r number(gender_beauty_coef["(Intercept)"], accuracy = 0.01)` + `r number(beauty_slope, accuracy = 0.01)`\text{beauty} + `r number(adjusted_gender_difference, accuracy = 0.01)`$
+
+These are plotted below.
+
+```{r}
+#| label: fig-eval-gender-beauty
+#| fig-cap: "Student evaluations and beauty scores by recorded gender. The additive regression model estimates parallel fitted lines separated by the gender coefficient."
+#| fig-width: 7
+#| fig-height: 4.5
+
+ggplot(
+  profs_plot,
+  aes(x = beauty, y = eval, color = gender)
+) +
+  geom_point(alpha = 0.35) +
+  geom_line(aes(y = pred_gender_beauty), linewidth = 1.1) +
+  scale_color_brewer(palette = "Set2") +
+  labs(
+    x = "Standardized beauty rating",
+    y = "Average student evaluation",
+    color = "Gender"
+  )
+```
+
+
+Notice the intercept is no longer the female mean of `r number(gender_female_fit, accuracy = 0.01)`: `r number(gender_beauty_coef["(Intercept)"], accuracy = 0.01)` is the predicted evaluation for a female instructor with a beauty rating of exactly 0. Both lines have a slope of `r number(beauty_slope, accuracy = 0.01)`; they are *forced* to be parallel by this model specification. The male dummy shifts that line vertically by `r number(adjusted_gender_difference, accuracy = 0.01)` points, so the two lines stay the same distance apart.
+@tbl-gender-beauty-intervals sets this model beside the gender-only model from the last section; its confidence intervals quantify the uncertainty in these two conditional comparisons.
+
+```{r}
+#| label: tbl-gender-beauty-intervals
+#| tbl-cap: "The gender comparison before and after adjusting for beauty. Each estimate is followed by its 95% confidence interval; a blank cell means the predictor is not in that model."
+
+reg_table(
+  list(
+    "Gender" = model_gender,
+    "Gender + beauty" = model_gender_beauty
+  ),
+  coef_map = c(
+    "(Intercept)" = "Intercept (female)",
+    "gendermale" = "Male vs. female",
+    "beauty" = "Beauty rating"
+  )
+)
+```
+
+The plausible range for the male-minus-female difference is `r number(adjusted_gender_ci[1], accuracy = 0.01)` to `r number(adjusted_gender_ci[2], accuracy = 0.01)` points among instructors with the same beauty score. For a one-standard-deviation increase in beauty, the plausible range is `r number(beauty_ci[1], accuracy = 0.01)` to `r number(beauty_ci[2], accuracy = 0.01)` points among instructors of the same recorded gender.  If the gender gap were driven by beauty ratings, comparing instructors with the same beauty score should shrink it. Instead the estimated gap grows slightly, from `r number(gender_male_difference, accuracy = 0.01)` to `r number(adjusted_gender_difference, accuracy = 0.01)` points --- female instructors in these data average slightly higher beauty ratings --- so we can't attribute the difference in average evaluations to a correlation between gender and the beauty score.
+
+## Three or more categories {#sec-zip-predictor}
+
+The Austin housing data contain sale prices from ZIP codes 78731, 78721, and 78723 (recorded in the column `zipcode`). @fig-price-zip compares `latest_price`, the sale price in dollars, across the three categories.
+
+```{r}
+#| label: fig-price-zip
+#| fig-cap: "Sale price in three Austin ZIP codes, with the reference category 78731 first. Each box shows one group's median, quartiles, and outliers on a common scale."
+#| fig-width: 7
+#| fig-height: 4.5
+
+ggplot(austin, aes(x = zipcode, y = latest_price)) +
+  geom_boxplot(fill = "steelblue", alpha = 0.5, outlier.alpha = 0.3) +
+  scale_y_continuous(labels = dollar_format(scale = 1e-3, suffix = "K")) +
+  labs(x = "ZIP code", y = "Sale price")
+```
+
+There is one natural dummy variable for each ZIP code. Each dummy marks whether a home is in that ZIP code, so exactly one of the three dummies equals 1 for every home.
+
+| ZIP code | $D_{78731}$ | $D_{78721}$ | $D_{78723}$ |
+|---|---:|---:|---:|
+| 78731 | 1 | 0 | 0 |
+| 78721 | 0 | 1 | 0 |
+| 78723 | 0 | 0 | 1 |
+
+: The three dummy variables for Austin ZIP code. Each row has one 1 and two 0s. {#tbl-zip-all-dummies}
+
+A regression model with an intercept cannot use all three dummies at once. For every home, $D_{78731}+D_{78721}+D_{78723}=1$, which is also the value of the intercept's constant term. Including all three dummies would give the model two ways to represent the same information. We therefore omit $D_{78731}$ and use 78731 as the reference category, leaving the coding in @tbl-zip-coding.
+
+| ZIP code | $D_{78721}$ | $D_{78723}$ |
+|---|---:|---:|
+| 78731 | 0 | 0 |
+| 78721 | 1 | 0 |
+| 78723 | 0 | 1 |
+
+: Dummy-variable coding with 78731 as the reference category. {#tbl-zip-coding}
+
+Measuring price in thousands of dollars, the fitted regression equation is
+
+$$
+\widehat{\text{price}}_{(\$1{,}000s)} =
+`r number(zip_intercept / 1000, accuracy = 0.01)`
+- `r number(abs(zip_78721_difference) / 1000, accuracy = 0.01)`D_{78721}
+- `r number(abs(zip_78723_difference) / 1000, accuracy = 0.01)`D_{78723}.
+$$
+
+The intercept gives the mean sale price in 78731. Each dummy coefficient then compares its ZIP code with 78731. Plugging in the two dummies gives the three predicted prices:
+
+$$
+\begin{aligned}
+\widehat{\text{price}}_{78731}
+  &= `r number(zip_intercept / 1000, accuracy = 0.01)` \\
+\widehat{\text{price}}_{78721}
+  &= `r number(zip_intercept / 1000, accuracy = 0.01)`
+     - `r number(abs(zip_78721_difference) / 1000, accuracy = 0.01)`
+   = `r number(mean_78721 / 1000, accuracy = 0.01)` \\
+\widehat{\text{price}}_{78723}
+  &= `r number(zip_intercept / 1000, accuracy = 0.01)`
+     - `r number(abs(zip_78723_difference) / 1000, accuracy = 0.01)`
+   = `r number(mean_78723 / 1000, accuracy = 0.01)`.
+\end{aligned}
+$$
+
+These are the three group means, measured in thousands of dollars.
+
+Now suppose that we want to compare the other ZIP codes with 78721 instead. We omit $D_{78721}$, making 78721 the reference category, and fit the model with $D_{78731}$ and $D_{78723}$:
+
+$$
+\widehat{\text{price}}_{(\$1{,}000s)} =
+`r number(zip_78721_ref_intercept / 1000, accuracy = 0.01)`
++ `r number(zip_78731_vs_78721 / 1000, accuracy = 0.01)`D_{78731}
++ `r number(zip_78723_vs_78721 / 1000, accuracy = 0.01)`D_{78723}.
+$$
+
+The coefficients have changed because the comparisons have changed. The intercept is now the mean sale price in 78721. The two dummy coefficients tell us that homes in 78731 sold for `r number(zip_78731_vs_78721 / 1000, accuracy = 0.01)` thousand dollars more on average than homes in 78721, while homes in 78723 sold for `r number(zip_78723_vs_78721 / 1000, accuracy = 0.01)` thousand dollars more on average than homes in 78721.
+
+The fitted values have not changed. Setting both dummies to zero gives the 78721 mean, while setting each dummy to 1 in turn recovers the same 78731 and 78723 means as the first model. Changing the reference category changes the coefficient comparisons, not the model's predictions, residuals, or overall fit.
+
+The same construction works for any categorical predictor. A predictor with $K$ categories gives us $K$ possible dummy variables. With an intercept in the model, we omit the dummy for the reference category and include the remaining $K-1$.
+
+The 95% confidence interval for the 78721-minus-78731 mean-price difference runs from `r dollar(zip_78721_ci[1], accuracy = 1)` to `r dollar(zip_78721_ci[2], accuracy = 1)`. For 78723 minus 78731, the plausible range runs from `r dollar(zip_78723_ci[1], accuracy = 1)` to `r dollar(zip_78723_ci[2], accuracy = 1)`. Both intervals describe unadjusted differences in mean sale price, and both appear in @tbl-price-zip-model.
+
+```{r}
+#| label: tbl-price-zip-model
+#| tbl-cap: "Predicting Austin sale prices from ZIP code, with 78731 as the reference category."
+
+coef_table(
+  fit_zip,
+  fmt = label_dollar(accuracy = 1),
+  coef_map = c(
+    "(Intercept)" = "Intercept (78731)",
+    "zipcode78721" = "78721 vs. 78731",
+    "zipcode78723" = "78723 vs. 78731"
+  )
+)
+```
+
+### Accounting for living area
+
+The estimates above are raw, overall means and comparisons. Houses in 78731 sell for more on average than those in the other two ZIP codes. Does this represent a premium associated with living in 78731, or are the homes there different on other factors associated with price?
+
+@fig-price-area-zip-raw plots sale price against living area, with the homes colored by ZIP code.
+
+```{r}
+#| label: fig-price-area-zip-raw
+#| fig-cap: "Sale price against living area for homes in three Austin ZIP codes. Homes in 78731 tend to be larger than homes in 78721 and 78723."
+#| fig-width: 7
+#| fig-height: 4.5
+
+ggplot(
+  austin,
+  aes(x = living_area_sq_ft, y = latest_price, color = zipcode)
+) +
+  geom_point(alpha = 0.6) +
+  scale_color_brewer(palette = "Set2") +
+  scale_x_continuous(labels = comma) +
+  scale_y_continuous(labels = dollar_format(scale = 1e-3, suffix = "K")) +
+  labs(
+    x = "Living area (square feet)",
+    y = "Sale price",
+    color = "ZIP code"
+  )
+```
+
+Homes in 78731 are larger on average than those in the other two ZIP codes. How much of the difference in average sale prices is associated with these differences in living area? We can answer this question with a multiple regression model that includes both ZIP code and living area as predictors.
+
+We add `living_area_sq_ft`, the home's living area in square feet, so the ZIP coefficients compare homes of the same size. @tbl-zip-model-comparison compares the ZIP coefficients before and after we account for living area.
+
+```{r}
+#| label: tbl-zip-model-comparison
+#| tbl-cap: "ZIP-code coefficients before and after accounting for living area. Each estimate is followed by its 95% confidence interval; a blank cell means the predictor is not in that model."
+
+reg_table(
+  list(
+    "ZIP code only" = fit_zip,
+    "ZIP code + living area" = fit_zip_area
+  ),
+  fmt = label_dollar(accuracy = 1),
+  coef_map = c(
+    "(Intercept)" = "Intercept (78731)",
+    "zipcode78721" = "78721 vs. 78731",
+    "zipcode78723" = "78723 vs. 78731",
+    "living_area_sq_ft" = "Living area (sq ft)"
+  )
+)
+```
+
+The raw price gaps of `r dollar(abs(zip_78721_difference), accuracy = 1)` and `r dollar(abs(zip_78723_difference), accuracy = 1)` shrink to adjusted gaps of `r dollar(abs(adjusted_78721_difference), accuracy = 1)` and `r dollar(abs(adjusted_78723_difference), accuracy = 1)`. Living area accounts for part of each raw gap. The intercept also needs re-interpreting once living area enters the model: it is no longer the 78731 mean, but the predicted price of a 78731 home with zero square feet --- an extrapolation, since no such home exists.
+
+Among homes with the same living area, the predicted price in 78721 is `r dollar(abs(adjusted_78721_difference), accuracy = 1)` lower than in 78731. For 78723, the adjusted difference is `r dollar(abs(adjusted_78723_difference), accuracy = 1)` lower. The plausible ranges are `r dollar(adjusted_78721_ci[1], accuracy = 1)` to `r dollar(adjusted_78721_ci[2], accuracy = 1)` and `r dollar(adjusted_78723_ci[1], accuracy = 1)` to `r dollar(adjusted_78723_ci[2], accuracy = 1)`, respectively. Both exclude zero. The adjusted model still estimates lower sale prices in 78721 and 78723 than in 78731 for homes of the same size.
+
+The model assigns the three ZIP codes a common living-area slope of `r dollar(area_slope, accuracy = 1)` per square foot. Its plausible range is `r dollar(area_ci[1], accuracy = 1)` to `r dollar(area_ci[2], accuracy = 1)` per square foot. @fig-price-area-zip shows the observations and the three fitted lines. The ZIP dummies shift the lines vertically while the area slope remains fixed.
+
+At any fixed living area, the vertical gap between two of the fitted lines is the adjusted ZIP difference: how much the predicted price differs between those two ZIP codes for a house of that size.
+
+```{r}
+#| label: fig-price-area-zip
+#| fig-cap: "Sale price and living area in three Austin ZIP codes. The model estimates one shared area slope and three parallel fitted lines."
+#| fig-width: 7
+#| fig-height: 4.5
+
+ggplot(
+  austin_plot,
+  aes(x = living_area_sq_ft, y = latest_price, color = zipcode)
+) +
+  geom_point(alpha = 0.45) +
+  geom_line(aes(y = pred_zip_area), linewidth = 1.1) +
+  scale_color_brewer(palette = "Set2") +
+  scale_x_continuous(labels = comma) +
+  scale_y_continuous(labels = dollar_format(scale = 1e-3, suffix = "K")) +
+  labs(
+    x = "Living area (square feet)",
+    y = "Sale price",
+    color = "ZIP code"
+  )
+```
+
+This comparison remains descriptive rather than causal. We could add other predictors to compare more similar homes, but this model stops after accounting for living area.

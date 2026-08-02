@@ -1,0 +1,7 @@
+---
+title: "Sampling Distribution Explorer — SAP Customer ROE"
+---
+
+This app accompanies the [chapter on sampling distributions and confidence intervals](inference_01_sampling-distributions.qmd). It simulates a population of 30,000 ROE values built to resemble SAP's customer base, so you can do the one thing the Nucleus study could not: redraw the sample. Each draw records the mean ROE of $n$ companies, and those means accumulate into the sampling distribution of the sample mean; a switch adds the normal approximation and a confidence interval whose coverage you can track across thousands of samples. The app runs in your browser and takes a few moments to start.
+
+[Open the sampling distribution explorer](https://jaredsmurray.github.io/stats-webapps/sap_sampling.html){target="_blank"}

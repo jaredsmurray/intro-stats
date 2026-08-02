@@ -1,0 +1,14 @@
+schema_version: 1
+chapter_source: singlevar_01_visualizing-distributions.qmd
+declined_edits:
+  - id: density-interpretation-is-not-missing
+    location: density-curve interpretation discussion
+    declined_proposal: Expand the chapter on the premise that it does not teach how to interpret a density curve.
+    author_rationale: The chapter already spends substantial time explaining density curves; the review missed the surrounding treatment and mistook a local concern for a missing concept.
+    scope: Preserve the existing depth unless a new review identifies a narrow residual failure after reading the complete passage.
+    reopen_if: The density discussion is materially rewritten or a new reader demonstrates a specific unrecoverable misconception that survives the surrounding explanation.
+    decided_at: 2026-07-30
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch01_initial_20260730/student_review.md
+    tags: [already-covered, reviewer-overread]
+

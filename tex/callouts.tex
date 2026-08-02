@@ -1,0 +1,29 @@
+% Preserve the book's paragraph spacing inside all tcolorbox environments.
+\newlength{\calloutparskip}
+\AtBeginDocument{%
+  \setlength{\calloutparskip}{\parskip}%
+  \tcbset{before upper={\setlength{\parskip}{\calloutparskip}}}%
+  % Align custom numbered blocks with native Quarto PDF callouts.
+  \renewenvironment{fobxSimple}[2]{%
+    \begin{tcolorbox}[
+      enhanced,
+      breakable,
+      colframe=#1-color2,
+      colbacktitle=#1-color1,
+      colback=white,
+      coltitle=black,
+      title={#2},
+      fonttitle=\bfseries,
+      boxrule=.7pt,
+      leftrule=3.5pt,
+      arc=1mm,
+      outer arc=1mm,
+      left=.5em,
+      right=.5em,
+      toptitle=.7mm,
+      bottomtitle=.7mm
+    ]%
+  }{%
+    \end{tcolorbox}%
+  }%
+}

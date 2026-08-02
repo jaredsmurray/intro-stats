@@ -1,0 +1,452 @@
+---
+title: "Interactions"
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(scales)
+
+source("R/render/inline_format.R")
+source("R/pkg/model_table.R")
+
+theme_set(theme_minimal(base_size = 13))
+
+profs <- read_csv(
+  "data/hamermesh_evals/hamermesh_evals.csv",
+  show_col_types = FALSE
+) |>
+  mutate(gender = relevel(factor(gender), ref = "female"))
+
+austin <- read_csv(
+  "data/austin_houses/austin_houses_subset.csv",
+  show_col_types = FALSE
+)
+
+houses <- austin |>
+  transmute(
+    price = latest_price,
+    area = living_area_sq_ft,
+    age = age
+  )
+
+model0 <- lm(eval ~ beauty + gender, data = profs)
+model_separate_female <- lm(eval ~ beauty, data = filter(profs, gender == "female"))
+model_separate_male <- lm(eval ~ beauty, data = filter(profs, gender == "male"))
+model1 <- lm(eval ~ beauty * gender, data = profs)
+model3 <- lm(price ~ area * age, data = houses)
+
+houses_centered <- houses |>
+  mutate(
+    area_c = area - mean(area),
+    age_c = age - mean(age)
+  )
+
+model3_area_centered <- lm(price ~ area_c * age, data = houses_centered)
+model3_centered <- lm(price ~ area_c * age_c, data = houses_centered)
+
+eval_cf <- coef(model1)
+eval_ci <- confint(model1)
+cf <- coef(model3)
+house_area_centered_cf <- coef(model3_area_centered)
+house_centered_cf <- coef(model3_centered)
+
+mean_area <- mean(houses$area)
+mean_age <- mean(houses$age)
+
+female_intercept <- unname(eval_cf["(Intercept)"])
+female_beauty_slope <- unname(eval_cf["beauty"])
+male_intercept <- unname(eval_cf["(Intercept)"] + eval_cf["gendermale"])
+male_beauty_slope <- unname(eval_cf["beauty"] + eval_cf["beauty:gendermale"])
+interaction_eval <- unname(eval_cf["beauty:gendermale"])
+interaction_eval_ci <- unname(eval_ci["beauty:gendermale", ])
+gender_eval_ci <- unname(eval_ci["gendermale", ])
+female_beauty_ci <- unname(eval_ci["beauty", ])
+
+area_slope_age_10 <- unname(cf["area"] + 10 * cf["area:age"])
+area_slope_age_45 <- unname(cf["area"] + 45 * cf["area:age"])
+area_slope_age_70 <- unname(cf["area"] + 70 * cf["area:age"])
+
+coefficient_comparison <- tibble(
+  Term = c("Intercept", "Area", "Age", "Area x age"),
+  `Uncentered estimate` = c(
+    cf["(Intercept)"], cf["area"], cf["age"], cf["area:age"]
+  ),
+  `Area-centered estimate` = c(
+    house_area_centered_cf["(Intercept)"], house_area_centered_cf["area_c"],
+    house_area_centered_cf["age"], house_area_centered_cf["area_c:age"]
+  ),
+  `Area-and-age-centered estimate` = c(
+    house_centered_cf["(Intercept)"], house_centered_cf["area_c"],
+    house_centered_cf["age_c"], house_centered_cf["area_c:age_c"]
+  )
+) |>
+  mutate(
+    `Uncentered estimate` = format_signed(
+      `Uncentered estimate`, comma,
+      accuracy = 0.01, prefix = "\\$", show_plus = FALSE
+    ),
+    `Area-centered estimate` = format_signed(
+      `Area-centered estimate`, comma,
+      accuracy = 0.01, prefix = "\\$", show_plus = FALSE
+    ),
+    `Area-and-age-centered estimate` = format_signed(
+      `Area-and-age-centered estimate`, comma,
+      accuracy = 0.01, prefix = "\\$", show_plus = FALSE
+    )
+  )
+
+prediction_check <- tibble(
+  area = c(min(houses$area), mean_area, max(houses$area)),
+  age = c(min(houses$age), mean_age, max(houses$age))
+)
+prediction_check_centered <- prediction_check |>
+  mutate(area_c = area - mean_area, age_c = age - mean_age)
+
+max_area_centered_fitted_difference <- max(abs(
+  fitted(model3) - fitted(model3_area_centered)
+))
+max_area_centered_residual_difference <- max(abs(
+  residuals(model3) - residuals(model3_area_centered)
+))
+max_fitted_difference <- max(abs(fitted(model3) - fitted(model3_centered)))
+max_residual_difference <- max(abs(residuals(model3) - residuals(model3_centered)))
+max_area_centered_prediction_difference <- max(abs(
+  predict(model3, newdata = prediction_check) -
+    predict(model3_area_centered, newdata = prediction_check_centered)
+))
+max_prediction_difference <- max(abs(
+  predict(model3, newdata = prediction_check) -
+    predict(model3_centered, newdata = prediction_check_centered)
+))
+r_squared_uncentered <- summary(model3)$r.squared
+r_squared_centered <- summary(model3_centered)$r.squared
+
+stopifnot(
+  isTRUE(all.equal(
+    unname(coef(model_separate_female)),
+    c(female_intercept, female_beauty_slope)
+  )),
+  isTRUE(all.equal(
+    unname(coef(model_separate_male)),
+    c(male_intercept, male_beauty_slope)
+  )),
+  isTRUE(all.equal(
+    unname(cf["area:age"]),
+    unname(house_area_centered_cf["area_c:age"])
+  )),
+  isTRUE(all.equal(
+    unname(cf["area:age"]),
+    unname(house_centered_cf["area_c:age_c"])
+  )),
+  max_area_centered_fitted_difference < 1e-6,
+  max_area_centered_residual_difference < 1e-6,
+  max_area_centered_prediction_difference < 1e-6,
+  max_fitted_difference < 1e-6,
+  max_residual_difference < 1e-6,
+  max_prediction_difference < 1e-6,
+  isTRUE(all.equal(r_squared_uncentered, r_squared_centered))
+)
+```
+
+In @sec-categorical-multiple-regression, we predicted course evaluations from an instructor's beauty rating and recorded gender. That model fit gave us the two fitted lines in @fig-interaction-additive-first. They are parallel because of the particular linear model we wrote down:
+
+$$
+\widehat{Y}=\widehat{\beta}_0+\widehat{\beta}_1(\text{male})+\widehat{\beta}_2(\text{beauty}).
+$$
+
+Our calculations in the last chapter showed that whatever the estimated coefficients are, this model will produce two *parallel* lines predicting evaluations from beauty --- the effect of beauty on predicted evaluations when comparing two instructors of the same gender is the same whether we're looking at two male or two female instructors.
+
+```{r}
+#| label: fig-interaction-additive-first
+#| fig-cap: "The additive model assigns female and male instructors the same beauty slope, so its fitted lines are parallel."
+#| fig-width: 7
+#| fig-height: 4.5
+
+profs |>
+  mutate(pred = predict(model0)) |>
+  ggplot(aes(x = beauty, y = eval, color = gender)) +
+  geom_point() +
+  geom_line(aes(y = pred)) +
+  scale_color_brewer(palette = "Set2") +
+  labs(y = "Average student evaluation", x = "Beauty")
+```
+
+What do we get if we fit the beauty-evaluation line separately within each gender? @fig-interaction-separate-first allows each group to have its own intercept and slope. The two lines clearly have different slopes. 
+
+
+```{r}
+#| label: fig-interaction-separate-first
+#| fig-cap: "Separate within-gender regressions allow both the intercept and the beauty slope to differ between female and male instructors."
+#| fig-width: 7
+#| fig-height: 4.5
+
+ggplot(profs, aes(x = beauty, y = eval, color = gender)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_color_brewer(palette = "Set2") +
+  labs(y = "Average student evaluation", x = "Beauty")
+```
+
+We should have two questions in mind: (1) Do the two slopes really differ, or is this sampling variation? (2) If they do differ, how can we expand our model to estimate that difference directly (instead of separate lines for each gender)? Answering (2) will answer (1) along the way. We need to introduce an **interaction** term to allow the beauty slope to depend on gender.
+
+::: {.callout-note}
+## Definition: Interaction
+
+An **interaction** is a term in the regression model that allows the coefficient on one predictor to depend on the value of another predictor. If the coefficient on $X_1$ depends on $X_2$, then the coefficient on $X_2$ also depends on $X_1$.
+:::
+
+## A categorical and a quantitative predictor {#sec-categorical-quantitative-interaction}
+
+The interaction model adds the product of the beauty score and the male dummy:
+
+$$
+\widehat{Y}=\widehat{\beta}_0+\widehat{\beta}_1(\text{male})+\widehat{\beta}_2(\text{beauty})+\widehat{\beta}_3(\text{male})(\text{beauty}).
+$$
+
+The fitted coefficients are in the table below.
+
+```{r}
+#| label: tbl-eval-interaction
+#| tbl-cap: "Predicting average course evaluations from beauty, recorded gender, and their interaction. Female is the reference category, and each estimate is shown with its 95% confidence interval."
+
+coef_table(
+  model1,
+  fmt = label_number(accuracy = 0.01),
+  coef_map = c(
+    "(Intercept)" = "Intercept (female, beauty = 0)",
+    "gendermale" = "Male vs. female (beauty = 0)",
+    "beauty" = "Beauty rating (female)",
+    "beauty:gendermale" = "Beauty rating x male"
+  )
+)
+```
+
+Let's see how this model generates different slopes by plugging in an instructor of each type and rearranging the equations. For female instructors, `male = 0`, so the model becomes
+
+$$
+\widehat{Y}_{\text{female}}
+=\widehat{\beta}_0+\widehat{\beta}_2(\text{beauty}).
+$$
+
+The female line has intercept $\widehat{\beta}_0$ and beauty slope $\widehat{\beta}_2$. With the estimated coefficients we get 
+$$
+\widehat{Y}_{\text{female}}=`r format_signed(female_intercept, number, accuracy = 0.01, show_plus = FALSE)``r format_signed(female_beauty_slope, number, accuracy = 0.01)`(\text{beauty})
+$$
+
+For male instructors, `male = 1`, so the model becomes
+
+$$
+\widehat{Y}_{\text{male}}
+=(\widehat{\beta}_0+\widehat{\beta}_1)
++(\widehat{\beta}_2+\widehat{\beta}_3)(\text{beauty}).
+$$
+
+Plugging the estimates in again,
+
+$$
+\widehat{Y}_{\text{male}}=`r format_signed(male_intercept, number, accuracy = 0.01, show_plus = FALSE)``r format_signed(male_beauty_slope, number, accuracy = 0.01)`(\text{beauty}).
+$$
+
+These fitted lines match the two separate within-gender regressions from the introduction --- we're able to reproduce the separate-sample fits using a single regression fit to the entire dataset. This is particularly useful when we want to adjust for other variables like age (which would make the two simple regressions above two multiple regressions that include age). 
+
+```{r}
+#| label: fig-interaction-fitted
+#| fig-cap: "The interaction model estimates separate intercepts and beauty slopes for female and male instructors."
+#| fig-width: 7
+#| fig-height: 4.5
+
+profs |>
+  mutate(pred = predict(model1)) |>
+  ggplot(aes(x = beauty, y = eval, color = gender)) +
+  geom_point() +
+  geom_line(aes(y = pred)) +
+  scale_color_brewer(palette = "Set2") +
+  labs(y = "Average student evaluation", x = "Beauty")
+```
+
+## Interpreting the coefficients
+
+The interpretations of the coefficients are implicit in the equations above:
+
+- The intercept, $\widehat{\beta}_0=`r format_signed(eval_cf["(Intercept)"], number, accuracy = 0.01, show_plus = FALSE)`$, is the predicted evaluation for a female instructor with average beauty (beauty = 0).
+
+- The gender main effect, $\widehat{\beta}_1=`r format_signed(eval_cf["gendermale"], number, accuracy = 0.01, show_plus = FALSE)`$, is the predicted male-minus-female difference for an average-looking instructor. To see that, plug in `male = 1` and `beauty = 0` to get $\widehat{Y}_{\text{male}}-\widehat{Y}_{\text{female}}=\widehat{\beta}_1$.
+
+- The beauty main effect, $\widehat{\beta}_2=`r format_signed(eval_cf["beauty"], number, accuracy = 0.01, show_plus = FALSE)`$, is the predicted evaluation difference per beauty point among female instructors. We can read that off the line for female instructors we obtained above.
+
+- The interaction coefficient, $\widehat{\beta}_3=`r format_signed(interaction_eval, number, accuracy = 0.01, show_plus = FALSE)`$, is the male beauty slope minus the female beauty slope. The two slopes differ by `r format_signed(interaction_eval, number, accuracy = 0.01, show_plus = FALSE)` evaluation points per beauty point in this sample.
+
+The main effects have nice, clean interpretations here because the beauty score is mean-centered. It's usually a good idea to mean center quantitative predictors when they appear in an interaction. Mean-centering does not change the fitted values or quality of fit. It changes the lower-order coefficient estimates and their interpretations.
+
+The final bullet answers our first question from the introduction: Could the apparent slope difference be sampling variation? The 95% confidence interval for the interaction coefficient runs from `r number(interaction_eval_ci[1], accuracy = 0.01)` to `r number(interaction_eval_ci[2], accuracy = 0.01)` evaluation points per beauty point. A difference of zero between the two population slopes remains plausible. The fitted sample slopes differ, but the data do not give us strong evidence that the population slopes do.
+
+### Main effects and hierarchy
+
+A model that contains $X_1X_2$ should also retain the main effects $X_1$ and $X_2$ in general. Omitting one of the main effects makes a strong assumption. In this particular case:
+
+1. Omitting the main effect for gender would *force* the model to predict that male and female instructors with average beauty have the same predicted evaluation. In @tbl-eval-interaction, the 95% confidence interval for this main effect runs from `r number(gender_eval_ci[1], accuracy = 0.01)` to `r number(gender_eval_ci[2], accuracy = 0.01)`. Zero is not plausible under this model, so the data do not support that restriction.
+2. Omitting the main effect for beauty would *force* the model to conclude that the beauty slope is zero for female instructors. Its 95% confidence interval runs from `r number(female_beauty_ci[1], accuracy = 0.001)` to `r number(female_beauty_ci[2], accuracy = 0.001)`, so zero remains plausible. Even so, dropping the main effect would impose a zero slope on the female reference group while allowing a slope for male instructors through the interaction term alone.
+
+In the general case, main effects in an interaction model describe the effect of one predictor when the other predictor equals zero. While there may be very specific contexts when it makes sense to assume these away, they are few and far between. 
+
+## Two quantitative predictors {#sec-quantitative-quantitative-interaction}
+
+We've seen the living area of a house emerge as a strong single predictor of sale price. Does its effect on predicted price change as a function of the other variables? Let's look at `age`, a home's age in years. It seems possible that an additional square foot might be worth more for a newer home than an older one. We can assess that with an interaction term:
+
+$$
+\widehat{\text{price}}
+=\widehat{\beta}_0+\widehat{\beta}_1(\text{area})
++\widehat{\beta}_2(\text{age})
++\widehat{\beta}_3(\text{area})(\text{age}).
+$$
+
+For these Austin homes, the fitted equation is
+
+$$
+\widehat{\text{price}}
+=`r format_signed(cf["(Intercept)"], comma, accuracy = 1, prefix = "\\$", show_plus = FALSE)`
+`r format_signed(cf["area"], comma, accuracy = 0.01, prefix = "\\$")`(\text{area})
+`r format_signed(cf["age"], comma, accuracy = 1, prefix = "\\$")`(\text{age})
+`r format_signed(cf["area:age"], number, accuracy = 0.0001, prefix = "\\$")`(\text{area})(\text{age}).
+$$
+
+How do we interpret the coefficients?
+
+- The intercept, $`r format_signed(cf["(Intercept)"], comma, accuracy = 1, prefix = "\\$", show_plus = FALSE)`$, is the predicted price of a brand-new, zero-square-foot home. That is not a useful number on its own. 
+- The age main effect, $`r format_signed(cf["age"], comma, accuracy = 1, prefix = "\\$", show_plus = FALSE)`$, is the predicted price difference per additional year for a zero-square-foot home. Again, not useful on its own.
+- The area main effect, $`r format_signed(cf["area"], comma, accuracy = 0.01, prefix = "\\$", show_plus = FALSE)`$, is the predicted price difference per additional square foot for a brand-new home. Unlike the age main effect, this is a meaningful number.
+- The interaction coefficient is `r format_signed(cf["area:age"], number, accuracy = 0.0001, prefix = "\\$", show_plus = FALSE)` per square-foot-year. Each additional year of age increases the effect of an additional square foot by `r format_signed(cf["area:age"], number, accuracy = 0.0001, prefix = "\\$", show_plus = FALSE)` per square foot. That's a mouthful, but it's the same idea as before: The effect of area depends on how old the house is, and that dependence is driven by $\hat\beta_3$. We have:
+
+$$
+\widehat{\text{price}}
+=\left(\widehat{\beta}_0+\widehat{\beta}_2\,\text{age}\right)
++\left(\widehat{\beta}_1+\widehat{\beta}_3\,\text{age}\right)\text{area}.
+$$
+
+Looking at that age-dependent slope above, we can see it falls from about `r format_signed(area_slope_age_10, comma, accuracy = 1, prefix = "\\$", show_plus = FALSE)` per square foot for a 10-year-old home to `r format_signed(area_slope_age_45, comma, accuracy = 1, prefix = "\\$", show_plus = FALSE)` at age 45 and `r format_signed(area_slope_age_70, comma, accuracy = 1, prefix = "\\$", show_plus = FALSE)` at age 70.
+
+@fig-house-area-age-interaction plots all homes using a continuous age scale and highlights the fitted lines at those three ages. The lines flatten as age increases according to the equation above. We could also re-write the model in terms of an area-specific slope determining the effect of age.
+
+```{r}
+#| label: fig-house-area-age-interaction
+#| fig-cap: "Sale price and living area, colored by home age, with fitted interaction-model lines highlighted at ages 10, 45, and 70."
+#| fig-width: 7
+#| fig-height: 4.5
+
+age_hi <- c(10, 45, 70)
+
+area_grid <- seq(min(houses$area), max(houses$area), length.out = 200)
+predictions <- expand.grid(area = area_grid, age = age_hi)
+predictions$predicted_price <- predict(model3, newdata = predictions)
+
+# Build line colors from the same viridis scale used for points
+age_dom <- range(houses$age, na.rm = TRUE)
+line_cols <- scales::col_numeric(
+  palette = viridisLite::viridis(256, option = "D", end = 1),
+  domain = age_dom
+)(age_hi)
+line_cols <- setNames(line_cols, as.character(age_hi))
+
+ggplot() +
+  geom_point(
+    data = houses,
+    aes(x = area, y = price, color = age),
+    alpha = 0.45
+  ) +
+  scale_color_viridis_c(
+    name = "Age (years)",
+    option = "D", end = 1, limits = age_dom
+  ) +
+  ggnewscale::new_scale_color() +
+  geom_line(
+    data = predictions,
+    aes(x = area, y = predicted_price, color = factor(age)),
+    linewidth = 1.1
+  ) +
+  scale_color_manual(
+    name = "Highlighted ages",
+    values = line_cols
+  ) +
+  scale_x_continuous(labels = comma) +
+  scale_y_continuous(labels = dollar_format(scale = 0.001, suffix = "K")) +
+  labs(
+    x = "Living area (square feet)",
+    y = "Sale price"
+  )
+```
+
+Finally, mean-centering area would produce an identical fit with more useful interpretations of the intercept and age main effect, just as the mean-centered beauty score did above. The area main effect already describes brand-new homes, so age = 0 is a meaningful reference point. If we wanted to interpret the area main effect at the mean age instead, we would center age too.
+
+<!-- 
+### Centering area, then age
+
+Zero square feet falls outside the meaningful comparison space, so first center area:
+
+$$
+\text{area}_c=\text{area}-\overline{\text{area}}.
+$$
+
+The sample mean is `r comma(mean_area, accuracy = 1)` square feet. The area-centered model is
+
+$$
+\widehat{\text{price}}
+=\widehat{\delta}_0+\widehat{\delta}_1(\text{area}_c)
++\widehat{\delta}_2(\text{age})
++\widehat{\delta}_3(\text{area}_c)(\text{age}).
+$$
+
+This model has the same fitted surface. Its intercept describes a brand-new home of average area, and its age main effect describes the predicted price difference per year for a home of average area. The area main effect still describes a brand-new home because age remains uncentered.
+
+Age zero is substantively meaningful, so we can stop there. If we instead want the area main effect to describe a home of average age, we can also define
+
+$$
+\text{age}_c=\text{age}-\overline{\text{age}}.
+$$
+
+The sample mean age is `r number(mean_age, accuracy = 0.1)` years. Centering both predictors gives
+
+$$
+\widehat{\text{price}}
+=\widehat{\gamma}_0+\widehat{\gamma}_1(\text{area}_c)
++\widehat{\gamma}_2(\text{age}_c)
++\widehat{\gamma}_3(\text{area}_c)(\text{age}_c).
+$$
+
+This model still uses the same fitted surface, but now describes all lower-order coefficients at the sample means. The centered coefficients have the following interpretations:
+
+- $\widehat{\gamma}_0=`r format_signed(house_centered_cf["(Intercept)"], comma, accuracy = 1, prefix = "\\$", show_plus = FALSE)`$ is the predicted price of a home with average area and average age.
+- $\widehat{\gamma}_1=`r format_signed(house_centered_cf["area_c"], comma, accuracy = 1, prefix = "\\$", show_plus = FALSE)`$ is the predicted price difference per additional square foot for a home of average age.
+- $\widehat{\gamma}_2=`r format_signed(house_centered_cf["age_c"], comma, accuracy = 1, prefix = "\\$", show_plus = FALSE)`$ is the predicted price difference per additional year for a home of average area.
+- $\widehat{\gamma}_3=`r format_signed(house_centered_cf["area_c:age_c"], number, accuracy = 0.0001, prefix = "\\$", show_plus = FALSE)`$ is the change in either slope for a one-unit increase in the other predictor, just as before centering.
+
+@tbl-centered-house-coefficients sets the three parameterizations side by side. Centering area changes the intercept and age main effect. Centering age as well also changes the area main effect. The interaction estimate remains $`r format_signed(cf["area:age"], number, accuracy = 0.0001, prefix = "\\$", show_plus = FALSE)`$ throughout.
+
+```{r}
+#| label: tbl-centered-house-coefficients
+#| tbl-cap: "Austin housing interaction-model coefficients with neither predictor centered, area centered, and both area and age centered at their sample means."
+
+knitr::kable(
+  coefficient_comparison,
+  align = c("l", "r", "r", "r")
+)
+```
+
+All three models have the same fitted values and residuals to within numerical rounding. Their checked predictions agree to within `r scientific(max(max_area_centered_prediction_difference, max_prediction_difference), digits = 2)` dollars, and the models have $R^2=`r number(r_squared_uncentered, accuracy = 0.001)`$. The lines in @fig-house-area-age-interaction therefore describe all three parameterizations.
+
+Mean-centering is an interpretation choice, not a requirement. Center only the predictors whose zero points do not answer the comparison you need. In another application, a different reference value may give more useful comparisons. -->
+
+## Using interactions {#sec-using-interactions}
+
+Interactions make a model more complex to analyze and explain, so include one when the dependence of a coefficient on another predictor is substantively relevant or produces better predictions.
+
+We don't need interactions just because two predictors are correlated, or because we want to estimate the coefficient on one predictor while adjusting for the other. An additive model already gives like-to-like comparisons. We need an interaction when the coefficient on one predictor *changes* with another predictor.
+
+Interactions also apply to two categorical predictors. We can represent a full interaction by creating one larger categorical variable whose categories are all observed combinations of the original two variables. Unless we're particularly interested in testing certain group differences, we might as well just make the combined categorical variable and fit a single regression model. 
+
+## Data used in this section {.unnumbered}
+
+- [Course Evaluations and Instructor Appearance](appendix_data.qmd#sec-data-evals-hamermesh)
+- [Austin House Listings](appendix_data.qmd#sec-data-housing-kaggle)

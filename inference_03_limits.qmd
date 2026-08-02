@@ -1,0 +1,13 @@
+---
+title: "The Limits of Statistical Inference"
+---
+
+Let's recap what we've found over the last two chapters. If we treat the 81 companies as a random sample from the population of SAP firms --- or at least representative enough that they are an "as-if" random sample --- then neither Nucleus nor SAP's claims hold up. The 3.1-point gap Nucleus reported is almost exactly the size of a typical estimation error from a sample of 81 firms, so it is entirely plausible that the true average ROE among all SAP customers is equal to the industry benchmark of 15.7%. Claiming that SAP customers are 20% less profitable than their peers is not supported by the data.
+
+On the other hand, SAP's advertised 32% advantage would imply a true average ROE of about 20.7%, which sits far outside the [confidence interval we computed](inference_01_sampling-distributions.qmd#sec-ci). The data are inconsistent with that claim. Claiming that SAP customers are 32% more profitable than their peers is not supported by the data either.
+
+However, these 81 firms were not a random sample from SAP's client list. Only SAP could generate that random sample (at a reasonable cost), and it did not. The 81 companies were a *convenience sample*; Nucleus obtained it from SAP's website and we have no reason to believe they are representative of the entire population of SAP customers. So are the data useful at all?
+
+Yes, they support a more limited but still important conclusion: the 81 companies are enough to show that SAP's advertised 32% advantage is questionable at best. Why can we say that? Either the 81 companies are a random/representative sample, in which case SAP's claim of 20.7% average ROE among its clients is not supported by the data according to our analysis here. If the data are not representative, it stands to reason that SAP wouldn't have chosen to highlight a sample of systematically *less profitable* companies than their average client.  
+
+A complete, honest data analysis will often have to contend with more than traditional notions of statistical error (sampling variability). Biased sampling, missing data, measurement error, and other issues all introduce error and variability that aren't accounted for by the simple confidence intervals reported here. But an estimate carrying an interval accounting for *some* sources of error is better than an estimate that ignores uncertainty, and if we're careful we can still make reasonable inferences even with messy, real-world data.

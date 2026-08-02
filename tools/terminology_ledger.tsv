@@ -1,0 +1,100 @@
+# Cumulative terminology ledger — maintained by the book-student-review skill's
+# consistency auditor; rows are appended only after Jared adjudicates them.
+# One row per concept. "allowed_variants" and "near_misses" are comma-separated;
+# near_misses are terms seen in the wild for this concept that are NOT allowed.
+# Rows that harden into bright-line rules can graduate to style_terms.tsv.
+concept	canonical_term	symbol	allowed_variants	near_misses	first_defined_in
+random variable	random variable	capital letters (X, Y, D)	uncertain quantity		prob_02_probability-basics.qmd
+event	event	A, B	outcome collection		prob_02_probability-basics.qmd
+probability of an event	probability	Pr(A)	chance	likelihood,odds,confidence (for a model outcome),P(A),p(A)	prob_02_probability-basics.qmd
+probability interpretation (frequency)	long-run frequency interpretation			frequency,frequentist	prob_01_intro.qmd
+probability interpretation (belief)	subjective interpretation		personal belief,personal subjective beliefs,subjective assessment,betting odds	degrees of belief	prob_01_intro.qmd
+mutually exclusive events	mutually exclusive		cannot both happen	disjoint	prob_02_probability-basics.qmd
+complement rule	complement rule	Pr(not A) = 1 - Pr(A)			prob_02_probability-basics.qmd
+addition rule	addition rule	Pr(A or B) = Pr(A) + Pr(B) - Pr(A and B)	general addition rule		prob_02_probability-basics.qmd
+discrete random variable	discrete random variable		count (for integer-valued)		prob_02_probability-basics.qmd
+continuous random variable	continuous random variable				prob_02_probability-basics.qmd
+probability distribution	probability distribution		distribution		prob_01_intro.qmd
+probability mass function	probability mass function	PMF	probability distribution table		prob_02_probability-basics.qmd
+probability density function	probability density function	PDF	density curve (model),model density	density plot (for the model object)	prob_02_probability-basics.qmd
+cumulative distribution function (model)	cumulative distribution function	CDF			prob_02_probability-basics.qmd
+empirical CDF	empirical cumulative distribution function	ECDF/CDF	empirical CDF		singlevar_01_visualizing-distributions.qmd
+density curve (observed data)	density curve		density plot (the graphic)		singlevar_01_visualizing-distributions.qmd
+dummy variable	dummy variable	0/1	indicator variable,binary variable		singlevar_05_categorical.qmd
+sample proportion	proportion	p-hat	share,default rate,defect rate	rate (bare)	singlevar_05_categorical.qmd
+distribution parameter	parameter		feature of a probability distribution	center-and-spread-only gloss	prob_01_intro.qmd
+probability model	probability model				prob_01_intro.qmd
+bar chart of a categorical variable	bar chart		dot plot (sibling)	frequency chart	singlevar_05_categorical.qmd
+FOMC outcome	target range		target-range midpoint	target rate	prob_01_intro.qmd
+default indicator	default indicator	D	default dummy		prob_02_probability-basics.qmd
+loan payoff	loan payoff	X			prob_02_probability-basics.qmd
+fitted value	fitted value	y-hat_i	predicted value	prediction (for the number itself)	regression_01_intro.qmd
+residual	residual	e_i	prediction error (observed)	error (bare, before regression_03 defines true errors)	regression_01_intro.qmd
+standard error of an estimate	standard error	SE		residual standard error (distinct concept)	inference_01_sampling-distributions.qmd
+correlation	correlation	r		R (capital, bare)	twovar_02_quantitative-quantitative.qmd
+predictor	predictor	X, x_i	covariates (other books' vocabulary, attributed)	covariate (as house term),explanatory variable	regression_01_intro.qmd
+outcome variable	outcome variable	Y, y_i	outcome	response,dependent variable	regression_01_intro.qmd
+true error	true error	epsilon_i	error (once regression_03 is reached)	residual (the observed counterpart)	regression_03_model.qmd
+normal distribution	normal distribution	N(mu, sigma^2) — second argument is the variance	Gaussian distribution (aliased once at first mention),bell curve (informal)	normal curve,N(mu, sigma) with SD as second argument	prob_04_normal.qmd
+standard normal distribution	standard normal distribution	Z ~ N(0, 1)		unit normal,standard normal curve	prob_04_normal.qmd
+standardized random variable	standardize	Z = (X - mu)/sigma	standardization	z-transform	prob_03_distribution-parameters.qmd
+z-score (observed value)	z-score	z = (x - xbar)/s	standardized value	Z-score (mid-sentence capital),standard score	singlevar_04_transformations.qmd
+68/95/99.7 rule	68/95/99.7 rule	mu +/- k*sigma, k = 1, 2, 3		empirical rule,three-sigma rule	prob_04_normal.qmd
+QQ plot	quantile-quantile (QQ) plot		QQ plot (after first use)	Q-Q plot,normal probability plot	prob_04_normal.qmd
+fitted probability model	fitted model		estimated model	the data are normal (shape claim about data)	prob_04_normal.qmd
+reference category	reference category	all dummies = 0	reference (after first use),category with the omitted dummy	baseline category,omitted category,holdout category,base level	regression_04_categorical.qmd
+coefficient on a category dummy	coefficient		dummy coefficient,gender/ZIP coefficient,"X vs. reference" table label,category coefficient	slope (for a dummy)	regression_04_categorical.qmd
+adjusted comparison	adjusted comparison		adjusts for,controls for,among units with the same X,holding the other predictor constant	confounding factor (undefined),effect of X	regression_01_intro.qmd
+linear regression model	linear regression model	Y_i = beta_0 + beta_1 X_i + epsilon_i, epsilon_i ~iid N(0, sigma^2)	the full model,probability model (generic)	regression equation	regression_03_model.qmd
+LINE assumptions	LINE assumptions		the four assumptions,Linearity,Independence,Normality,Equal variance	regression assumptions (bare),Gauss-Markov conditions	regression_03_model.qmd
+error standard deviation	error standard deviation	sigma (sigma-hat = RSE)	standard deviation sigma,standard deviation of the errors	model standard deviation,residual standard deviation (for sigma itself)	regression_03_model.qmd
+population regression line	population regression line	beta_0 + beta_1 x	population relationship,true mean price at X	true line,fitted line (the sample counterpart)	regression_03_model.qmd
+predictive distribution	predictive distribution	N(beta_0-hat + beta_1-hat x, sigma-hat^2)	plug-in predictive distribution	sampling distribution (distinct concept)	regression_03_model.qmd
+prediction interval	prediction interval		95% prediction interval	confidence interval (for a new observation),predictive interval	regression_03_model.qmd
+standardized residual	standardized residual	e_i / RSE		studentized residual,scaled residual	regression_03_model.qmd
+conditional distribution	conditional distribution	(Y | X = x)		posterior (misapplied)	prob_05_multivariate-distributions.qmd
+population	population		overall population,population of interest	universe	prob_01_intro.qmd
+sample	sample		subset of the population		prob_01_intro.qmd
+random sampling	random sampling		completely at random,lottery-ticket draw	probability sampling	prob_01_intro.qmd
+sample from a distribution	draws from a probability distribution		realizations of a random process,sample drawn from a probability distribution	simulated data (before simulation is defined)	prob_01_intro.qmd
+representative sample	representative		represent (verb),no systematic biases	unbiased sample (conflates with estimator bias)	prob_01_intro.qmd
+expected value of a random variable	mean (of a random variable)	E[X] = mu	expected value,expected payoff/profit/return (applied),long-run average	most likely value,average value (bare, for the parameter),expected target rate	prob_03_distribution-parameters.qmd
+variance of a random variable	variance	Var(X) = sigma^2	probability-weighted average of squared deviations,expected squared distance from the mean	average deviation from the mean,average distance from the mean	prob_03_distribution-parameters.qmd
+standard deviation of a random variable	standard deviation	SD(X) = sigma = sqrt(Var(X))	spread,unpredictability,risk (decision contexts)	volatility (bare, outside finance asides)	prob_03_distribution-parameters.qmd
+median of a distribution	median	0.5 quantile	smallest value where cumulative probability reaches 0.50		prob_03_distribution-parameters.qmd
+quantile of a distribution	quantile	p-th quantile via CDF	percentile,quartile	inverse CDF (undefined term)	prob_03_distribution-parameters.qmd
+IQR of a distribution	interquartile range	IQR = q0.75 - q0.25	middle half		prob_03_distribution-parameters.qmd
+shift-and-scale rule	shifting and scaling	E[aX+b] = a mu + b, SD(aX+b) = |a| sigma	linear transformation rules	linearity of expectation (bare, before prob_07)	prob_03_distribution-parameters.qmd
+joint distribution (model)	joint probability distribution	Pr(X = x and Y = y)	joint distribution,joint probabilities	joint proportion (data-frame term)	prob_05_multivariate-distributions.qmd
+marginal probability (model)	marginal probability	Pr(X = x)	marginal distribution,overall probability,base rate (glossed at first use)	unconditional probability,marginal proportion (data-frame term)	prob_05_multivariate-distributions.qmd
+conditional probability (events)	conditional probability	Pr(A | B)	given,conditional on		prob_05_multivariate-distributions.qmd
+independence of random variables	independent	Pr(X = x and Y = y) = Pr(X = x) Pr(Y = y)	independence	uncorrelated (distinct, weaker property)	prob_05_multivariate-distributions.qmd
+covariance of random variables	covariance	Cov(X, Y)	expected product of deviations	s_xy (data-frame symbol)	prob_05_multivariate-distributions.qmd
+correlation of random variables	correlation	Corr(X, Y)		r (data-frame symbol),measure of dependence (bare, without "linear")	prob_05_multivariate-distributions.qmd
+linear combination	linear combination	Z = aX + bY + c			prob_07_combining-random-variables.qmd
+portfolio weights	portfolio weights	w, 1 - w	allocation,weight on X	proportion invested	prob_07_combining-random-variables.qmd
+Sharpe ratio	Sharpe ratio	(E[R_p] - r_f)/SD(R_p)	risk-adjusted return		prob_07_combining-random-variables.qmd
+risk-free rate	risk-free rate	r_f	T-bill rate,sample-average T-bill rate (estimate)		prob_07_combining-random-variables.qmd
+iid random variables	independent and identically distributed	iid	independent draws,all from the same distribution	independent (bare, dropping identical distribution)	prob_07_combining-random-variables.qmd
+Central Limit Theorem	Central Limit Theorem	sum ~ N(n*mu, n*sigma^2); Xbar ~ N(mu, sigma^2/n)	CLT (abbreviated first in inference_01)		prob_07_combining-random-variables.qmd
+hypothesis test	hypothesis test		test		inference_02_hypothesis-tests.qmd
+null hypothesis	null hypothesis		posited value,hypothesized value (for the number itself)	accept the null,prove the null	inference_02_hypothesis-tests.qmd
+alternative hypothesis	alternative hypothesis		alternative	research hypothesis	inference_02_hypothesis-tests.qmd
+test statistic	test statistic	T (random), t (observed)	t-statistic,z-statistic	t statistic (unhyphenated)	inference_02_hypothesis-tests.qmd
+p-value	p-value		measure of the strength of evidence against the null	P-value,p value,probability the null is true,probability the result is due to chance	inference_02_hypothesis-tests.qmd
+significance level	significance level	alpha	the 5% level	level of confidence (that is 1 - alpha),confidence level	inference_02_hypothesis-tests.qmd
+test decision	reject / fail to reject		don't reject,not rejected (figure labels only),act as if the null is false	accept the null,conclude the null is true	inference_02_hypothesis-tests.qmd
+false positive	false positive		rejecting the null when it is actually true,Type I error (after formal introduction)		inference_02_hypothesis-tests.qmd
+least squares coefficients	least-squares coefficients	beta-hat_0, beta-hat_1	least-squares estimates	b_0, b_1 (the candidate values, not the minimizers),least squares (unhyphenated modifier)	regression_01_intro.qmd
+simple linear regression	simple regression		regression with one predictor	bivariate regression,univariate regression	regression_01_intro.qmd
+multiple regression	multiple regression		regression with multiple variables	multivariate regression	regression_01_intro.qmd
+slope (of a fitted line)	slope	b (twovar_02), beta-hat_1 (regression on)	rise over run,difference in predicted outcome per one-unit difference in the predictor	effect (causal reading),correlation (conflation)	twovar_02_quantitative-quantitative.qmd
+intercept (of a fitted line)	intercept	beta-hat_0	predicted outcome when every predictor equals zero	constant,baseline	twovar_02_quantitative-quantitative.qmd
+prediction (new observation)	prediction	y-hat at a new x	predicted price/eval (in context),best guess (informal)	fitted value (reserved for observed units),forecast	regression_01_intro.qmd
+residual standard error	residual standard error	RSE, s_e	residual standard deviation (software label, attributed),sigma (software label, attributed)	standard error (unqualified, when the RSE is meant)	regression_02_prediction.qmd
+R-squared	R²	R^2	multiple R² (beside tables),adjusted R² (beside tables),proportion of variance explained (attributed to other books)	coefficient of determination	regression_02_prediction.qmd
+adjusted R-squared	adjusted R²	R^2 (adjusted)	1 − (RSE/s_y)² (the defining identity)		regression_02_prediction.qmd
+sample standard deviation	standard deviation	s, s_y, s_e	spread (informal)	SD(·) applied to a data column	singlevar_03_location-and-spread.qmd
+sample variance	variance	s², s_y², s_e²		Var(·) applied to a data column	singlevar_03_location-and-spread.qmd
+null model	null model		intercept-only model (parenthetical)	baseline model	regression_02_prediction.qmd
+convenience sample	convenience sample				inference_03_limits.qmd

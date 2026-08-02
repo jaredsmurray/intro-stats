@@ -1,0 +1,14 @@
+schema_version: 1
+chapter_source: singlevar_05_categorical.qmd
+declined_edits:
+  - id: struck-category-transition-and-workhorse-claims
+    location: opening organization and binary-variable transition
+    declined_proposal: Reintroduce either “The number of categories is a separate feature” or the paragraph calling binary variables the chapter's workhorses and linking their arithmetic back to Chapter 3.
+    author_rationale: Jared struck both additions from the approved structural rewrite.
+    scope: Preserve the lean transition and do not restore these claims as connective prose.
+    reopen_if: The section order or chapter objectives change enough that a new transition is genuinely required.
+    decided_at: 2026-07-30
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch05_initial_20260730/decisions.yml
+    tags: [voice, unnecessary-transition, rejected-prose]
+

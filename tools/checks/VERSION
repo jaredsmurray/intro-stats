@@ -1,0 +1,10 @@
+toolkit: qmd-checks
+ref: v0.1.0
+describe: v0.1.0
+sha: cb0f4e7ff51f0e170536453738bab3668ace2879
+installed: 2026-08-02T04:12:43Z
+source: /Users/jm75583/repos/qmd-checks
+
+# Vendored copy. It does not update itself; re-run the toolkit's
+# install.sh to refresh. Config files are project-owned and are never
+# overwritten by an install.

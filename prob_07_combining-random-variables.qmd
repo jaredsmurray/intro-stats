@@ -1,0 +1,552 @@
+---
+title: "Combining Random Variables"
+---
+
+```{r}
+#| label: setup
+#| include: false
+#| echo: false
+library(tidyverse)
+library(scales)
+library(patchwork)
+
+# Figures render at their intrinsic size (fig-width x 96px), capped by the
+# ~702px content column -- they are never upscaled to fill it. So axis text
+# lands at its true point size, and base_size, not fig-width, is what makes it
+# legible next to 17px body text. At 13, tick labels are ~14px.
+theme_set(theme_minimal(base_size = 13))
+
+portfolios <- read_csv("data/portfolios/portfolios.csv", show_col_types = FALSE) |>
+  mutate(date = as.Date(date))
+
+# Annualized summaries used throughout the chapter
+funds    <- c("SPY", "EFA", "TLT")
+ann_mean <- 52 * sapply(portfolios[funds], mean)
+ann_sd   <- sqrt(52) * sapply(portfolios[funds], sd)
+ann_cov  <- 52 * cov(portfolios[funds])
+cor_mat  <- cor(portfolios[funds])
+rf_ann   <- 52 * mean(portfolios$rf)
+
+# ColorBrewer Set2, the book's qualitative palette. Kept as a named vector
+# rather than scale_*_brewer because individual colors are pulled out below for
+# single-asset panels.
+asset_cols <- c(SPY = "#66C2A5", EFA = "#FC8D62", TLT = "#8DA0CB")
+```
+
+So far we have worked with one random variable at a time: a distribution, a mean to summarize its center, and a standard deviation to summarize its spread. Many of the quantities we actually care about are built out of *several* random variables at once. A firm's total revenue is the sum of revenue across regions. Its profit is revenue minus costs. And an investment portfolio's return is a weighted average of the returns on the assets inside it. This chapter develops the rules for the mean and variance of these combinations, and uses them to answer a practical question: how can you choose which assets to combine in a portfolio?
+
+Our running example uses the `portfolios` data, which record weekly returns on three exchange-traded funds over the two years from October 2023 through September 2025 [@portfolios-2025]. An exchange-traded fund (ETF) holds a basket of assets and trades like a single stock, so buying one share buys a slice of the whole basket. `SPY` holds the S&P 500 and is a standard stand-in for the U.S. stock market --- it's the same market series we have used since the chapter on describing distributions. `EFA` holds large stocks from developed markets outside North America: Europe, Japan, Australia. `TLT` holds long-term U.S. Treasury bonds, government debt with twenty or more years to maturity. Each return is the percent change in the fund's value from one Friday close to the next, expressed as a proportion, for `r nrow(portfolios)` weeks.
+
+## Portfolios are linear combinations {#sec-linear-combinations}
+
+Suppose you split your money between two of these funds, putting a fraction $w$ of it in the first and the remaining $1 - w$ in the second. Next week's return on the whole portfolio is
+
+$$
+R_p = w R_1 + (1 - w) R_2,
+$$
+
+where $R_1$ and $R_2$ are the two funds' returns. In words: your money grows by a weighted average of the two returns, with weights equal to the fractions invested. The fractions $w$ and $1 - w$ are called **portfolio weights**.
+
+$R_p$ is an example of a **linear combination** of random variables: a new random variable of the form
+
+$$
+Z = aX + bY + c,
+$$
+
+built by scaling $X$ and $Y$ by constants, adding them, and possibly shifting by a constant $c$. The portfolio has $a = w$, $b = 1 - w$, and $c = 0$, but the same form shows up in many other settings. For example, future profit is a random variable defined by future revenue minus variable costs (both random variables because they are uncertain) minus known fixed costs: That's a linear combination with $a = 1$, $b = -1$, and $c$ negative.
+
+The portfolio $R_p$ is a new random variable, with its own distribution, its own mean, and its own standard deviation. What are they? Working out the full distribution of a linear combination is tedious. The mean and variance follow simple rules.
+
+## The mean and variance of a linear combination {#sec-lincom-rules}
+
+The mean of a linear combination does what you'd expect: averages add.
+
+::: {.callout-note}
+## The mean of a linear combination
+
+$$
+E[aX + bY + c] = a\,E[X] + b\,E[Y] + c.
+$$
+
+This rule always holds, whether or not $X$ and $Y$ are independent.
+:::
+
+In words: to get the expected value of the combination, combine the expected values the same way. If east-coast revenue averages \$2M and west-coast revenue averages \$1.5M, expected total revenue is \$3.5M. No assumptions required.
+
+The variance is different: it depends on how $X$ and $Y$ move *together*. We already have the measures for that from @sec-rv-correlation: the covariance and correlation of random variables. The definition is restated here because the variance rule runs on it.
+
+::: {.callout-note}
+## Definition: Covariance and correlation of random variables
+
+For random variables $X$ and $Y$ with means $\mu_X$ and $\mu_Y$, the **covariance** is the expected product of their deviations:
+
+$$
+\text{Cov}(X, Y) = E\big[(X - \mu_X)(Y - \mu_Y)\big] = \sum_{\text{pairs } (x,\, y)} \Pr(X = x \text{ and } Y = y)\,(x - \mu_X)(y - \mu_Y),
+$$
+
+and the **correlation** rescales it to a unitless number between $-1$ and $+1$:
+
+$$
+\text{Corr}(X, Y) = \frac{\text{Cov}(X, Y)}{SD(X)\,SD(Y)}.
+$$
+:::
+
+In words: for every possible pair of outcomes, ask whether $X$ and $Y$ land on the same side of their means, multiply the two deviations, and average with probability weights. Pairs that agree --- both above or both below --- push the covariance up; pairs that disagree pull it down. If $X$ and $Y$ are independent, every product of deviations averages away and the covariance and correlation are exactly zero. This is just like the sample covariance and correlation we computed in @sec-cov-cor, except now we are working with a probability model rather than a dataset. 
+
+The variance of a linear combination depends critically on the covariance between the two random variables:
+
+::: {.callout-note}
+## The variance of a linear combination
+
+$$
+\text{Var}(aX + bY + c) = a^2\,\text{Var}(X) + b^2\,\text{Var}(Y) + 2ab\,\text{Cov}(X, Y).
+$$
+
+When $X$ and $Y$ are independent (or merely uncorrelated) the last term is zero, and *variances add*:
+
+$$
+\text{Var}(aX + bY + c) = a^2\,\text{Var}(X) + b^2\,\text{Var}(Y).
+$$
+:::
+
+In words: scale each variance by the *squared* constant, then correct for how the two variables move together. The constant shift $c$ moves the distribution but doesn't change its spread, so it drops out entirely. When $a$ and $b$ are both positive, a positive covariance inflates the variance --- the two variables tend to miss high together and miss low together, so their swings compound. A negative covariance shrinks it, because one variable's bad draws tend to arrive alongside the other's good ones.
+
+One more fact makes these rules usable with data. Sample statistics obey exactly the same algebra: if you build the new column $z_i = a x_i + b y_i + c$ in a dataset, its sample mean is $a \bar{x} + b \bar{y} + c$ and its sample variance is $a^2 s_x^2 + b^2 s_y^2 + 2ab\, s_{xy}$, where $s_{xy}$ is the sample covariance from @sec-cov-cor. This is not an approximation; it's an algebraic identity. So when we estimate means, variances, and covariances from returns data, we can push those estimates through the rules above and get the portfolio's estimated mean and variance without ever constructing the portfolio column itself.
+
+## Portfolio risk and diversification {#sec-portfolio-risk}
+
+Applied to the two-asset portfolio $R_p = w R_1 + (1-w) R_2$, the rules read:
+
+$$
+E[R_p] = w\,E[R_1] + (1 - w)\,E[R_2]
+$$
+$$
+\text{Var}(R_p) = w^2\,\text{Var}(R_1) + (1 - w)^2\,\text{Var}(R_2) + 2w(1 - w)\,\text{Cov}(R_1, R_2).
+$$
+
+The portfolio's expected return is the weighted average of the two expected returns. Its standard deviation --- the risk --- depends on the two assets' covariance as well as their individual variances. The formula may not be intuitive, but the relationship it describes is.
+
+Start with the simplest possible case: two stocks, each with a 10% expected return and a 20% standard deviation, held in equal weights ($w = 0.5$). The expected return of the portfolio is $0.5(10\%) + 0.5(10\%) = 10\%$, the same as either stock alone. Any weighted average of two 10% expected returns is 10%. The variance is another matter. Writing $\text{Cov}(R_1, R_2) = \text{Corr}(R_1, R_2) \times 0.20 \times 0.20$ and plugging in,
+
+$$
+\text{Var}(R_p) = 0.5^2(0.20)^2 + 0.5^2(0.20)^2 + 2(0.5)(0.5)\,\text{Cov}(R_1, R_2) = 0.02 + 0.02\,\text{Corr}(R_1, R_2).
+$$
+
+The portfolio's variance --- and so its risk --- depends on how correlated the two stocks are. Let's see a few examples:
+
+- **Perfectly correlated,** $\text{Corr} = 1$: $\text{Var}(R_p) = 0.04$, so $SD(R_p) = 20\%$. The two stocks move in lockstep, and the "portfolio" is no different from holding either one alone. We haven't diversified at all.
+- **Positively correlated,** $\text{Corr} = 0.5$: $SD(R_p) = \sqrt{0.03} \approx 17.3\%$. The stocks tend to miss in the same direction, but not always, so risk drops --- some.
+- **Independent, so** $\text{Corr} = 0$: $SD(R_p) = \sqrt{0.02} \approx 14.1\%$. Their deviations do not move systematically together, so the covariance term drops out.
+- **Negatively correlated,** $\text{Corr} = -0.5$: $SD(R_p) = \sqrt{0.01} = 10\%$. Now each stock actively hedges the other. One's below-average weeks tend to arrive during the other's above-average weeks, and the portfolio is half as risky as either holding.
+
+@fig-risk-vs-corr traces the whole curve. Same two stocks, same 10% expected return in every case --- but the portfolio's risk runs from 20% all the way down to 0% depending on the correlation.
+
+```{r}
+#| label: fig-risk-vs-corr
+#| fig-cap: "Risk of a 50/50 portfolio of two stocks, each with a 10% expected return and a 20% standard deviation, as the correlation between their returns varies. The dashed line marks the 20% risk of holding either stock alone; the points mark the four cases worked in the text."
+#| fig-width: 7
+#| fig-height: 4
+corr_grid <- seq(-1, 1, by = 0.01)
+risk_curve <- tibble(corr = corr_grid, sd = sqrt(0.02 + 0.02 * corr_grid))
+cases <- tibble(corr = c(-0.5, 0, 0.5, 1)) |>
+  mutate(sd = sqrt(0.02 + 0.02 * corr))
+
+ggplot(risk_curve, aes(corr, sd)) +
+  geom_hline(yintercept = 0.20, linetype = "dashed", color = "grey60") +
+  annotate("text", x = -0.95, y = 0.207, hjust = 0, size = 3.2, color = "grey40",
+           label = "risk of either stock alone (20%)") +
+  geom_line(color = "steelblue", linewidth = 1) +
+  geom_point(data = cases, color = "darkorange", size = 3) +
+  scale_x_continuous(breaks = seq(-1, 1, 0.5)) +
+  scale_y_continuous(labels = percent, limits = c(0, 0.22)) +
+  labs(x = "Correlation between the two stocks' returns",
+       y = "Portfolio standard deviation")
+```
+
+All else equal, if our goal is controlling risk we prefer assets that are negatively correlated --- when one is down, the other tends to be up and vice-versa, which stabilizes the portfolio. However, adding positively correlated assets can still produce a portfolio with a better risk profile.
+
+### Optimizing the allocation {#sec-portfolio-optimization}
+
+```{r}
+#| label: cg-setup
+#| include: false
+mu_c <- 0.08; mu_g <- 0.12
+sd_c <- 0.15; sd_g <- 0.25
+corr_cg <- 0.3
+rf_styl <- 0.03
+cov_cg <- corr_cg * sd_c * sd_g
+
+cg <- tibble(w = seq(0, 1, by = 0.01)) |>
+  mutate(mean = w * mu_c + (1 - w) * mu_g,
+         sd = sqrt(w^2 * sd_c^2 + (1 - w)^2 * sd_g^2 + 2 * w * (1 - w) * cov_cg),
+         sharpe = (mean - rf_styl) / sd)
+
+three_cg <- cg |>
+  filter(near(w, 0.8) | near(w, 0.5) | near(w, 0.2)) |>
+  arrange(desc(w)) |>
+  mutate(label = c("Conservative (w = 0.8)", "Balanced (w = 0.5)", "Aggressive (w = 0.2)"))
+
+w_minvar_cg <- cg$w[which.min(cg$sd)]
+w_maxsharpe_cg <- cg$w[which.max(cg$sharpe)]
+```
+
+Identical assets keep the algebra clean but don't reflect reality. Suppose now we're building a portfolio of two stocks with different characteristics. Consider a conservative stock $C$ with an 8% expected return and a 15% standard deviation, and a growth stock $G$ with a 12% expected return and a 25% standard deviation, with $\text{Corr}(C, G) = 0.3$. The portfolio is $R_p = wC + (1-w)G$, where $w$ is the fraction in the conservative stock. Three candidate allocations are given in the table below:
+
+```{r}
+#| label: tbl-cg-portfolios
+#| tbl-cap: "Three allocations between the conservative stock (8% expected return, 15% SD) and the growth stock (12% expected return, 25% SD), with correlation 0.3."
+#| echo: false
+three_cg |>
+  transmute(Portfolio = label,
+            `Expected return` = percent(mean, accuracy = 0.1),
+            `Standard deviation` = percent(sd, accuracy = 0.1)) |>
+  knitr::kable(align = c("l", "r", "r"))
+```
+
+Working down the rows of the table we see that each step toward the growth stock adds the same 1.2 percentage points of expected return; the portfolio always interpolates expected returns linearly. The risk does not move in matching steps: it climbs 2.1 points going from conservative to balanced, then 4.7 more going from balanced to aggressive. @fig-portfolio-weights shows the full picture as $w$ sweeps from all-growth to all-conservative.
+
+```{r}
+#| label: fig-portfolio-weights
+#| fig-cap: "Expected return and risk of the conservative/growth portfolio as a function of the weight on the conservative stock. Expected return falls in a straight line as the portfolio shifts toward the conservative stock, but risk bottoms out at about 82% conservative before ticking back up. The points mark the three allocations from the table."
+#| fig-width: 7.5
+#| fig-height: 4.2
+cg_long <- cg |>
+  pivot_longer(c(mean, sd), names_to = "measure", values_to = "value") |>
+  mutate(measure = if_else(measure == "mean", "Expected return", "Standard deviation"))
+
+three_long <- three_cg |>
+  pivot_longer(c(mean, sd), names_to = "measure", values_to = "value") |>
+  mutate(measure = if_else(measure == "mean", "Expected return", "Standard deviation"))
+
+ggplot(cg_long, aes(w, value, color = measure)) +
+  geom_vline(xintercept = w_minvar_cg, linetype = "dashed", color = "grey60") +
+  annotate("text", x = w_minvar_cg - 0.02, y = 0.24, hjust = 1, size = 3.2,
+           color = "grey40", label = "minimum risk (82% conservative)") +
+  geom_line(linewidth = 1) +
+  geom_point(data = three_long, size = 2.5) +
+  geom_text(data = cg_long |> filter(near(w, 0.15)),
+            aes(label = measure), vjust = -1, size = 3.2) +
+  scale_color_brewer(palette = "Set2", guide = "none") +
+  scale_x_continuous(labels = percent) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Weight on the conservative stock", y = NULL)
+```
+
+The risk is minimized at about `r percent(w_minvar_cg)` in the conservative stock --- not 100%. In fact, no one should ever hold more than `r percent(w_minvar_cg)` conservative: portfolios to the right of the dashed line have both lower expected return and higher risk than the minimum-risk mix. Which portfolio to choose to the *left* of that line depends on your appetite for risk. 
+
+### Risk-adjusted returns: the Sharpe ratio {#sec-sharpe}
+
+Choosing along the curve is easier with a single number that trades return against risk. The standard one compares excess returns (over the "risk-free rate" --- think interest in a savings account, or yield on U.S. Treasury bills) to the portfolio's standard deviation. This is the **Sharpe ratio** [@sharpe-1966]:
+
+::: {.callout-note}
+## Definition: The Sharpe ratio
+
+$$
+\text{Sharpe ratio} = \frac{E[R_p] - r_f}{SD(R_p)}.
+$$
+:::
+
+In words: the Sharpe ratio is the expected return you earn *in excess of* the risk-free rate, per unit of risk taken. If you can earn $r_f$ without any risk at all, only the return above $r_f$ compensates you for the portfolio's swings, and dividing by the standard deviation puts portfolios of different riskiness on a common scale. Between two portfolios with the same excess return, the less risky one has the higher Sharpe ratio.
+
+With a 3% risk-free rate, the three allocations compare like this:
+
+```{r}
+#| label: tbl-cg-sharpe
+#| tbl-cap: "The three conservative/growth allocations with their Sharpe ratios, using a 3% risk-free rate."
+#| echo: false
+three_cg |>
+  transmute(Portfolio = label,
+            `Expected return` = percent(mean, accuracy = 0.1),
+            `Standard deviation` = percent(sd, accuracy = 0.1),
+            `Sharpe ratio` = number(sharpe, accuracy = 0.01)) |>
+  knitr::kable(align = c("l", "r", "r", "r"))
+```
+
+The balanced portfolio wins. Moving from conservative to balanced buys 1.2 points of expected return for 2.1 points of risk, a trade the Sharpe ratio approves; moving from balanced to aggressive buys the same 1.2 points for 4.7 points of risk, and the ratio drops. @fig-sharpe-weights shows the Sharpe ratio across all allocations: it peaks at about `r percent(w_maxsharpe_cg)` in the conservative stock, between the balanced and conservative candidates.
+
+```{r}
+#| label: fig-sharpe-weights
+#| fig-cap: "Sharpe ratio of the conservative/growth portfolio as a function of the weight on the conservative stock, using a 3% risk-free rate. The maximum is at about 59% conservative; the points mark the three candidate allocations."
+#| fig-width: 7
+#| fig-height: 3.6
+ggplot(cg, aes(w, sharpe)) +
+  geom_line(color = "steelblue", linewidth = 1) +
+  geom_point(data = three_cg, color = "steelblue", size = 2.5) +
+  geom_point(data = slice_max(cg, sharpe, n = 1), color = "darkorange", size = 3) +
+  annotate("text", x = w_maxsharpe_cg, y = max(cg$sharpe) + 0.012, size = 3.2,
+           color = "darkorange", label = paste0("maximum (", percent(w_maxsharpe_cg), " conservative)")) +
+  scale_x_continuous(labels = percent) +
+  labs(x = "Weight on the conservative stock", y = "Sharpe ratio")
+```
+
+The Sharpe ratio is not the only way to pick a point on the curve, but it is a common and practical one, and we'll use it to compare portfolios built from real funds next.
+
+## Choosing between two diversifiers {#sec-portfolio-data}
+
+Back to the three funds. Suppose your entire portfolio is currently the U.S. market --- all `SPY` --- and you've decided to diversify by adding exactly one of the other two funds. Which one? @fig-asset-returns plots the three return series, and the summary table follows.
+
+```{r}
+#| label: fig-asset-returns
+#| fig-cap: "Weekly returns on the three funds over the two years ending September 2025. The three series are about equally volatile --- similar-sized swings around zero --- but they differ in average level and, less visibly, in how they move together."
+#| fig-width: 8
+#| fig-height: 5.5
+portfolios |>
+  pivot_longer(all_of(funds), names_to = "fund", values_to = "return") |>
+  mutate(fund = factor(fund, levels = funds)) |>
+  ggplot(aes(date, return, color = fund)) +
+  geom_hline(yintercept = 0, color = "grey80") +
+  geom_line(linewidth = 0.4) +
+  facet_wrap(~fund, ncol = 1) +
+  scale_y_continuous(labels = percent) +
+  scale_color_manual(values = asset_cols, guide = "none") +
+  labs(x = NULL, y = "Weekly return")
+```
+
+Returns are usually quoted at annual rates, so from here on we annualize: the weekly mean gets multiplied by 52, and the weekly standard deviation by $\sqrt{52}$. Variances, not standard deviations, add across the 52 roughly independent weeks of a year. This extends the two-variable rule from @sec-lincom-rules to 52 variables; the general rule appears in @sec-sums-averages.
+
+```{r}
+#| label: tbl-asset-summary
+#| tbl-cap: "Annualized expected return and risk for the three funds, estimated from two years of weekly returns."
+#| echo: false
+tibble(Fund = funds,
+       Holds = c("U.S. stocks (S&P 500)",
+                 "International developed-market stocks",
+                 "Long-term U.S. Treasury bonds"),
+       `Expected return (annualized)` = percent(ann_mean, accuracy = 0.1),
+       `Standard deviation (annualized)` = percent(ann_sd, accuracy = 0.1)) |>
+  knitr::kable(align = c("l", "l", "r", "r"))
+```
+
+The table looks decisive. All three funds carried nearly identical risk over this window --- about 15% a year --- so the comparison between the two candidates comes down to expected return, and `EFA`'s `r percent(ann_mean["EFA"], accuracy = 0.1)` is more than three times `TLT`'s `r percent(ann_mean["TLT"], accuracy = 0.1)`. Same risk, triple the return. Is there anything left to decide?
+
+Pause on that question, because the table is answering a different one. The mean and standard deviation describe each fund *held on its own*. You aren't going to hold either fund on its own --- you're going to mix it with `SPY`, and the portfolio variance formula needs an input the table doesn't show: the covariance between each candidate and the fund you already hold. @fig-scatter-spy supplies it.
+
+```{r}
+#| label: fig-scatter-spy
+#| fig-cap: !expr paste0("Each candidate fund's weekly return plotted against SPY's, over the same 104 weeks. EFA tracks the U.S. market closely (correlation ", number(cor_mat["SPY", "EFA"], accuracy = 0.01), "); TLT moves essentially on its own (correlation ", number(cor_mat["SPY", "TLT"], accuracy = 0.01), ").")
+#| fig-width: 8
+#| fig-height: 4.2
+lims <- range(c(portfolios$SPY, portfolios$EFA, portfolios$TLT))
+
+p_efa <- ggplot(portfolios, aes(SPY, EFA)) +
+  geom_hline(yintercept = 0, color = "grey85") +
+  geom_vline(xintercept = 0, color = "grey85") +
+  geom_point(color = asset_cols["EFA"], alpha = 0.7) +
+  scale_x_continuous(labels = percent, limits = lims) +
+  scale_y_continuous(labels = percent, limits = lims) +
+  labs(x = "SPY weekly return", y = "EFA weekly return",
+       subtitle = paste0("Corr = ", number(cor_mat["SPY", "EFA"], accuracy = 0.01)))
+
+p_tlt <- ggplot(portfolios, aes(SPY, TLT)) +
+  geom_hline(yintercept = 0, color = "grey85") +
+  geom_vline(xintercept = 0, color = "grey85") +
+  geom_point(color = asset_cols["TLT"], alpha = 0.7) +
+  scale_x_continuous(labels = percent, limits = lims) +
+  scale_y_continuous(labels = percent, limits = lims) +
+  labs(x = "SPY weekly return", y = "TLT weekly return",
+       subtitle = paste0("Corr = ", number(cor_mat["SPY", "TLT"], accuracy = 0.01)))
+
+p_efa + p_tlt
+```
+
+The two candidates could hardly be more different on this dimension. `EFA` is a stock fund, and international stocks catch most of the same news that moves U.S. stocks: a week that's bad for `SPY` is usually bad for `EFA` too. Its correlation with the market is `r number(cor_mat["SPY", "EFA"], accuracy = 0.01)`. `TLT`'s correlation is `r number(cor_mat["SPY", "TLT"], accuracy = 0.01)` --- Treasury bonds respond to interest rates and inflation news, not corporate earnings, and over this window their moves were almost uncorrelated with the stock market's.
+
+Now run both candidate portfolios through the rules of @sec-lincom-rules, using the sample means, standard deviations, and covariances as inputs. @fig-weight-curves shows the expected return and risk of each mix as the weight on `SPY` sweeps from 0 to 1.
+
+```{r}
+#| label: weight-curves-setup
+#| include: false
+mix_stats <- function(other) {
+  tibble(w = seq(0, 1, by = 0.005)) |>
+    mutate(mean = w * ann_mean["SPY"] + (1 - w) * ann_mean[other],
+           sd = sqrt(w^2 * ann_sd["SPY"]^2 + (1 - w)^2 * ann_sd[other]^2 +
+                       2 * w * (1 - w) * ann_cov["SPY", other]),
+           sharpe = (mean - rf_ann) / sd,
+           pair = paste0("SPY + ", other))
+}
+curves <- bind_rows(mix_stats("EFA"), mix_stats("TLT"))
+
+efa_curve <- filter(curves, pair == "SPY + EFA")
+tlt_curve <- filter(curves, pair == "SPY + TLT")
+
+efa_minvar <- slice_min(efa_curve, sd, n = 1)
+tlt_minvar <- slice_min(tlt_curve, sd, n = 1)
+
+# Best TLT mix at the EFA pair's minimum achievable risk
+target_sd <- efa_minvar$sd
+tlt_matched <- tlt_curve |> filter(sd <= target_sd) |> slice_max(mean, n = 1)
+
+spy_only <- tibble(mean = ann_mean["SPY"], sd = ann_sd["SPY"],
+                   sharpe = (ann_mean["SPY"] - rf_ann) / ann_sd["SPY"])
+```
+
+```{r}
+#| label: fig-weight-curves
+#| fig-cap: "Expected return (left) and risk (right) of the two candidate portfolios as the weight on SPY varies, computed from the sample moments. The two mixes' expected returns both fall as SPY's weight falls, EFA's much more slowly. But mixing in EFA barely reduces risk, while mixing in TLT cuts it to about 11% at an even split."
+#| fig-width: 9
+#| fig-height: 4
+pair_cols <- c("SPY + EFA" = "#66C2A5", "SPY + TLT" = "#FC8D62")
+curve_labs <- curves |> filter(near(w, 0.3))
+
+p_mean <- ggplot(curves, aes(w, mean, color = pair)) +
+  geom_line(linewidth = 1) +
+  geom_text(data = curve_labs, aes(label = pair), vjust = -1, size = 3.2) +
+  scale_color_manual(values = pair_cols, guide = "none") +
+  scale_x_continuous(labels = percent) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Weight on SPY", y = "Expected return (annualized)")
+
+p_sd <- ggplot(curves, aes(w, sd, color = pair)) +
+  geom_line(linewidth = 1) +
+  geom_text(data = curve_labs |> mutate(vjust = if_else(pair == "SPY + EFA", -1, 2)),
+            aes(label = pair, vjust = vjust), size = 3.2) +
+  scale_color_manual(values = pair_cols, guide = "none") +
+  scale_x_continuous(labels = percent) +
+  scale_y_continuous(labels = percent, limits = c(0, NA)) +
+  labs(x = "Weight on SPY", y = "Standard deviation (annualized)")
+
+p_mean + p_sd
+```
+
+The left panel shows that at every weight below 100% `SPY`, the `EFA` mix has the higher expected return, as expected. The right panel is more interesting. The `SPY + EFA` curve barely bends. The high degree of correlation means that the two ETFs tend to move together and the only diversification benefit comes from the weeks they don't. No weighting of `SPY` and `EFA` gets the portfolio's risk below about `r percent(efa_minvar$sd, accuracy = 0.1)`. The `SPY + TLT` curve declines faster and bottoms out lower, near `r percent(tlt_minvar$sd, accuracy = 0.1)` at roughly an even split. The two funds are often moving in opposite directions, and the additional diversification lets us better control risk.
+
+There is no universally right portfolio. The right choice depends on what we are optimizing for, but whatever the goal, the comparison should account for both expected return and risk. For the Sharpe ratios we also need a risk-free rate; the `portfolios` data include the weekly T-bill rate, which averaged `r percent(rf_ann, accuracy = 0.1)` annualized over this window. One way to compare the options is to fix a risk target and ask what expected return each can deliver. For example, take `r percent(target_sd, accuracy = 0.1)` --- the lowest risk the `EFA` pairing can reach at any weight. The best `EFA` mix at that risk earns `r percent(efa_minvar$mean, accuracy = 0.1)`. The `TLT` mix that hits the same risk holds `r percent(tlt_matched$w)` `SPY` and earns `r percent(tlt_matched$mean, accuracy = 0.1)`:
+
+```{r}
+#| label: tbl-portfolio-compare
+#| tbl-cap: !expr paste0("Candidate portfolios compared at the same risk level, with Sharpe ratios computed against the sample-average T-bill rate (", percent(rf_ann, accuracy = 0.1), " annualized).")
+#| echo: false
+tibble(Portfolio = c("100% SPY",
+                     paste0("Best SPY + EFA mix at ", percent(target_sd, accuracy = 0.1),
+                            " risk (", percent(efa_minvar$w), " SPY)"),
+                     paste0("SPY + TLT mix at the same risk (", percent(tlt_matched$w), " SPY)")),
+       `Expected return` = percent(c(spy_only$mean, efa_minvar$mean, tlt_matched$mean), accuracy = 0.1),
+       `Standard deviation` = percent(c(spy_only$sd, efa_minvar$sd, tlt_matched$sd), accuracy = 0.1),
+       `Sharpe ratio` = number(c(spy_only$sharpe, efa_minvar$sharpe, tlt_matched$sharpe), accuracy = 0.01)) |>
+  knitr::kable(align = c("l", "r", "r", "r"))
+```
+
+At the same level of risk, the `TLT` portfolio delivers about `r number((tlt_matched$mean - efa_minvar$mean) * 100, accuracy = 0.1)` percentage points more expected return, and the higher Sharpe ratio to match. And if you want *less* risk than `r percent(target_sd, accuracy = 0.1)`, only the `TLT` portfolio can get there --- all the way down to `r percent(tlt_minvar$sd, accuracy = 0.1)` if you like.
+
+The 100% `SPY` row has the highest estimated Sharpe ratio in the table, although only barely. That does not make diversification a mistake. The Sharpe ratio compares return per unit of risk; it does not decide how much risk you should take. Holding `SPY` alone means accepting an estimated `r percent(spy_only$sd, accuracy = 0.1)` annual risk, while mixing in `TLT` is what makes lower-risk portfolios possible. The small Sharpe advantage also depends on `SPY`'s estimated `r percent(spy_only$mean, accuracy = 0.1)` annual return over this two-year window, so we should not treat the ranking as a permanent feature of the funds.
+
+Held on its own, `TLT` was the obviously inferior asset to `EFA`: the same risk as `EFA` for a third of the expected return. Mixed with the market, it can be the better addition, because it diversifies the portfolio more effectively.
+
+## Sums and averages of independent random variables {#sec-sums-averages}
+
+The two-asset rules extend directly to any number of random variables: means add term by term, and for *uncorrelated* variables, so do variances (each scaled by its squared weight). The most important special case is $n$ random variables that are **independent and identically distributed** (iid) --- independent draws, all from the same distribution. The simplest case would be a coin flip, repeated $n$ times, but the rules hold for any iid random variables.
+
+::: {.callout-note}
+## Sums and averages of iid random variables
+
+Let $X_1, X_2, \dots, X_n$ be independent random variables, each with the same distribution, with mean $\mu$ and variance $\sigma^2$. Their sum $S = X_1 + X_2 + \dots + X_n$ has
+
+$$
+E[S] = n\mu, \qquad \text{Var}(S) = n\sigma^2, \qquad SD(S) = \sqrt{n}\,\sigma,
+$$
+
+and their average $\bar{X} = S / n$ has
+
+$$
+E[\bar{X}] = \mu, \qquad \text{Var}(\bar{X}) = \sigma^2 / n, \qquad SD(\bar{X}) = \sigma / \sqrt{n}.
+$$
+:::
+
+In words: the sum's mean grows in proportion to $n$, but its standard deviation grows only like $\sqrt{n}$ --- the total becomes more predictable *relative to its size* as $n$ grows. Equivalently, the average of $n$ iid random variables has the same mean as a single random variable but only $1/\sqrt{n}$ of its standard deviation. Independence is what makes the variances simply add; there are no covariance terms to carry. In the next chapter we'll use this result to quantify uncertainty in statistical estimates.
+
+For now, let's look at a story about how aggregation quantifiably mitigates risk. In his book *Misbehaving*, the economist Richard Thaler recounted a meeting with the CEO of a large company and the 23 executives who ran its divisions. In the meeting he offered the executives a hypothetical investment. The project would either earn a profit of \$2 million, with probability 0.5, or lose \$1 million, with probability 0.5. Thaler asked for a show of hands: who would take it? Three of the twenty-three executives raised their hands. Working out the payoff's mean and standard deviation shows what the other twenty were weighing.
+
+Let $X$ be the payoff of one project, in millions:
+
+$$
+E[X] = 0.5(2) + 0.5(-1) = 0.5,
+$$
+
+an expected profit of \$500,000. So taking on the project leads to positive expected profits, meaning the opportunity is at least worth considering. It is, however, quite risky *for the individual executives*, who get one shot at the project each. We can read that right off the distribution, or by computing the variance of profits:
+
+$$
+\text{Var}(X) = 0.5(2 - 0.5)^2 + 0.5(-1 - 0.5)^2 = 2.25,
+$$
+
+giving $SD(X) = 1.5$, or \$1.5 million. The expected value is positive and substantial. The problem is the downside: each project loses money with probability 0.5, and a \$1 million loss might end a division head's career. Twenty of twenty-three executives judged the risk not worth it.
+
+Then Thaler turned to the CEO: if the projects' outcomes were independent across divisions --- one project's success unrelated to another's --- how many would *he* want to take on? His answer: all of them. The rules above quantify why the CEO correctly saw this as a very safe bet. The total payoff $S = X_1 + X_2 + \dots + X_{23}$ has
+
+$$
+E[S] = 23 \times 0.5 = 11.5, \qquad \text{Var}(S) = 23 \times 2.25 = 51.75, \qquad SD(S) = \sqrt{51.75} \approx 7.19.
+$$
+
+The firm expects to make \$11.5 million, with a standard deviation of about \$7.2 million. The standard deviation grew relative to a single project, but the expected value grew much more.
+
+We can also do the analysis per-project. Define $\bar X = (X_1 + X_2 + \dots + X_{23})/23$ as the average payoff per project. Per project, the average profit $\bar{X}$ still has mean \$0.5 million --- bundling doesn't change the expected return per project --- but its standard deviation drops from \$1.5 million to $1.5/\sqrt{23} \approx `r number(1.5 / sqrt(23), accuracy = 0.01)`$ million. 
+
+The CEO is presumably interested in one additional number: $\Pr(S < 0)$. The mean and standard deviation alone can't deliver that probability. We need the *distribution* of $S$.
+
+## The Central Limit Theorem {#sec-clt}
+
+We could work out the distribution of $S$ exactly by listing every possible sequence of successes and failures across the 23 projects. The projects are independent and each succeeds with probability 0.5, so every sequence has probability $(1/2)^{23}$. The probability of a particular total is that number times the number of sequences producing it. @fig-thaler-dist does the counting for portfolios of 1, 5, and 23 projects.
+
+```{r}
+#| label: fig-thaler-dist
+#| fig-cap: "The exact distribution of the total payoff for portfolios of 1, 5, and 23 independent projects, each paying +$2M or −$1M with equal probability. The orange curve is the normal distribution with the matching mean and variance."
+#| fig-width: 9
+#| fig-height: 3.6
+thaler_ns <- c(1, 5, 23)
+thaler_exact <- map_dfr(thaler_ns, function(n) {
+  tibble(n = n, k = 0:n) |>
+    mutate(total = 3 * k - n, prob = dbinom(k, n, 0.5))
+}) |>
+  mutate(panel = factor(paste0("n = ", n), levels = paste0("n = ", thaler_ns)))
+
+thaler_norm <- map_dfr(thaler_ns, function(n) {
+  mu <- 0.5 * n; s <- sqrt(2.25 * n)
+  tibble(n = n, x = seq(mu - 3.5 * s, mu + 3.5 * s, length.out = 300),
+         y = 3 * dnorm(x, mu, s))
+}) |>
+  mutate(panel = factor(paste0("n = ", n), levels = paste0("n = ", thaler_ns)))
+
+ggplot(thaler_exact, aes(total, prob)) +
+  geom_col(fill = "steelblue", alpha = 0.8, width = 2) +
+  geom_line(data = thaler_norm, aes(x, y), color = "darkorange", linewidth = 0.9) +
+  facet_wrap(~panel, scales = "free") +
+  labs(x = "Total payoff ($M)", y = "Probability")
+```
+
+Each individual project has one of the least normal distributions imaginable: two spikes, nothing in between. Add five of them and the total already starts to take a bell shape. Add 23 and the exact distribution is quite close to the normal distribution with the same mean and variance. This is not a coincidence of this example, it's one of the most important results in probability and statistics: the **Central Limit Theorem**.
+
+::: {.callout-note}
+## The Central Limit Theorem
+
+Let $X_1, X_2, \dots, X_n$ be iid random variables with mean $\mu$ and variance $\sigma^2$. Then for large $n$, their sum is approximately normal,
+
+$$
+X_1 + X_2 + \dots + X_n \;\approx\; N(n\mu,\; n\sigma^2),
+$$
+
+and so is their average:
+
+$$
+\bar{X} \;\approx\; N(\mu,\; \sigma^2/n).
+$$
+:::
+
+In words: add up enough independent draws from the same distribution and the total follows a normal distribution, *no matter what that distribution looks like*. The mean and variance follow the rules in @sec-sums-averages; the Central Limit Theorem specifies the rest of the distribution, in the limit. How large $n$ must be depends on the distribution of each variable, but it's often surprisingly small. In this example, $n = 23$ is enough to make the normal approximation quite accurate.
+
+```{r}
+#| label: thaler-probs
+#| include: false
+p_norm  <- pnorm(0, 11.5, sqrt(51.75))
+p_exact <- pbinom(7, 23, 0.5)
+```
+
+Now we can compute the probability of a loss. Approximating $S \approx N(11.5,\, 51.75)$, we get
+
+$$
+\Pr(S < 0)  \approx `r number(p_norm, accuracy = 0.001)`.
+$$
+
+An individual project will lose money half the time, but with a portfolio of many independent projects that risk is spread out and the chance of a loss declines. Independence is important here! If the projects were dependent (say because they are all affected by the same economic factor), our probability calculation would be wildly misleading.
+
+## Data used in this section {.unnumbered}
+
+- [Three-Asset Portfolio Series](appendix_data.qmd#sec-data-portfolios-2025)

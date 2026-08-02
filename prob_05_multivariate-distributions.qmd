@@ -1,0 +1,551 @@
+---
+title: "Probability Distributions for Multiple Random Variables"
+---
+
+```{r}
+#| label: setup
+#| include: false
+#| echo: false
+library(tidyverse)
+library(scales)
+
+lending_subs <- read_csv("data/lending_club/data/df_subs.csv",
+                         show_col_types = FALSE) |>
+  mutate(default = as.integer(loan_status == "Charged Off"))
+
+# Historical LendingClub counts and the resulting probability model for a
+# future loan. All loan calculations below derive from this single crosstab.
+loan_counts <- lending_subs |>
+  count(purpose, loan_status) |>
+  pivot_wider(names_from = loan_status, values_from = n, values_fill = 0) |>
+  transmute(purpose,
+            repaid = `Fully Paid`,
+            default = `Charged Off`,
+            Total = repaid + default) |>
+  arrange(desc(Total))
+
+loan_n <- sum(loan_counts$Total)
+
+loan_joint <- loan_counts |>
+  transmute(purpose,
+            repaid = repaid / loan_n,
+            default = default / loan_n)
+
+loan_small <- loan_counts |> filter(purpose == "small_business")
+loan_debt <- loan_counts |> filter(purpose == "debt_consolidation")
+loan_default_n <- sum(loan_counts$default)
+
+stopifnot(
+  isTRUE(all.equal(sum(loan_joint$repaid) + sum(loan_joint$default), 1)),
+  isTRUE(all.equal(rowSums(loan_joint[-1]),
+                   loan_counts$Total / loan_n)),
+  isTRUE(all.equal(sum(loan_joint$default),
+                   loan_default_n / loan_n)),
+  isTRUE(all.equal(
+    loan_small$default / loan_small$Total,
+    (loan_small$default / loan_n) / (loan_small$Total / loan_n)
+  ))
+)
+
+# CME FedWatch joint distribution for the July 29 / September 16, 2026
+# meetings (retrieved 2026-07-09). Midpoints stand in for ranges.
+cme_joint <- tribble(
+  ~july,          ~sept,          ~july_mid, ~sept_mid, ~prob,
+  "3.50--3.75%",  "3.50--3.75%",  3.625,     3.625,     0.366,
+  "3.50--3.75%",  "3.75--4.00%",  3.625,     3.875,     0.393,
+  "3.75--4.00%",  "3.75--4.00%",  3.875,     3.875,     0.116,
+  "3.75--4.00%",  "4.00--4.25%",  3.875,     4.125,     0.125
+)
+
+cme_july_marg <- cme_joint |>
+  summarise(prob = sum(prob), .by = c(july, july_mid))
+cme_sept_marg <- cme_joint |>
+  summarise(prob = sum(prob), .by = c(sept, sept_mid))
+
+mu_july <- sum(cme_july_marg$july_mid * cme_july_marg$prob)
+mu_sept <- sum(cme_sept_marg$sept_mid * cme_sept_marg$prob)
+sd_july <- sqrt(sum(cme_july_marg$prob * (cme_july_marg$july_mid - mu_july)^2))
+sd_sept <- sqrt(sum(cme_sept_marg$prob * (cme_sept_marg$sept_mid - mu_sept)^2))
+cov_cme <- sum(cme_joint$prob * (cme_joint$july_mid - mu_july) * (cme_joint$sept_mid - mu_sept))
+cor_cme <- cov_cme / (sd_july * sd_sept)
+```
+
+Perhaps more often than not we're interested in how multiple random variables move together; this section introduces *joint* probability distributions for multiple random variables, sticking to the bivariate case for now. 
+
+Every object here --- joint, marginal, and conditional probabilities --- has an exact analog to the proportions we computed from data in @sec-joint-marginal-conditional, and the arithmetic is the same. Many students find these calculations natural when looking at a table of counts, but more difficult when the table represents an abstract probability distribution. If that's you, it may be helpful to work through the examples in @sec-joint-marginal-conditional in parallel with the examples below. 
+
+## Joint probability distributions {#sec-joint-distributions}
+
+For two discrete random variables, a **joint probability distribution** assigns a probability to every *pair* of outcomes. Laid out as a table --- one variable in the rows, the other in the columns --- it follows the same rules as any distribution: every cell is non-negative, and all the cells together sum to one (as they represent all the possible outcomes). 
+
+The LendingClub data from @sec-joint-marginal-conditional recorded whether each loan was fully paid or charged off. The table below contains the historical counts for the three purposes we examined there.
+
+```{r}
+#| label: tbl-loan-counts
+#| tbl-cap: "Historical LendingClub loan counts by purpose and final status."
+#| echo: false
+loan_counts |>
+  bind_rows(summarise(loan_counts, purpose = "**Total**",
+                      across(where(is.numeric), sum))) |>
+  mutate(purpose = str_replace_all(purpose, "_", " "),
+         purpose = str_to_sentence(purpose),
+         across(where(is.numeric), comma)) |>
+  rename(Purpose = purpose, `Repaid` = repaid,
+         `Defaulted` = default) |>
+  knitr::kable(align = c("l", "r", "r", "r"))
+```
+
+Let $P$ code the purpose of a future loan: $P=1$ for debt consolidation, $P=2$ for home improvement, and $P=3$ for small business. The numbers are labels, not quantities; they let us represent a categorical outcome with a numerical random variable. Let $D$ be the loan's eventual default indicator. We will use the historical relative frequencies as a probability model for that loan: the probability assigned to each purpose--outcome pair is its count divided by `r comma(loan_n)`. For example,
+
+$$
+\Pr(\text{small business and default})
+= \Pr(P = 3 \text{ and } D = 1)
+= \frac{`r comma(loan_small$default)`}{`r comma(loan_n)`}
+= `r number(loan_small$default / loan_n, accuracy = 0.001)`.
+$$
+
+Dividing each of the six interior counts by `r comma(loan_n)` produces the complete joint distribution:
+
+```{r}
+#| label: tbl-loan-joint
+#| tbl-cap: "A probability model for a future loan's purpose and outcome, based on the historical relative frequencies. Interior cells are joint probabilities and sum to one; the margins are the probability distributions of purpose and default on their own."
+#| echo: false
+loan_joint |>
+  mutate(Total = repaid + default) |>
+  bind_rows(summarise(loan_joint |> mutate(Total = repaid + default),
+                      purpose = "**Total**",
+                      across(where(is.numeric), sum))) |>
+  mutate(purpose = str_replace_all(purpose, "_", " "),
+         purpose = str_to_sentence(purpose),
+         across(where(is.numeric), \(x) number(x, accuracy = 0.001))) |>
+  rename(Purpose = purpose, `Repaid (D = 0)` = repaid,
+         `Default (D = 1)` = default) |>
+  knitr::kable(align = c("l", "r", "r", "r"))
+```
+
+Read this table exactly as you read the joint proportions in @sec-joint-marginal-conditional. The interior cells answer "and" questions about a future loan. The margins are the one-variable distributions, and they come from Rule 3 in @sec-prob-rules. Adding the small-business counts, or the corresponding model probabilities, gives
+
+$$
+\Pr(P = 3)
+= \frac{`r comma(loan_small$Total)`}{`r comma(loan_n)`}
+= `r number(loan_small$Total / loan_n, accuracy = 0.001)`.
+$$
+
+This is the **marginal probability** of a small-business purpose under the model. Summing the default column gives the marginal default probability:
+
+$$
+\Pr(D = 1)
+= \frac{`r comma(loan_default_n)`}{`r comma(loan_n)`}
+= `r number(loan_default_n / loan_n, accuracy = 0.001)`.
+$$
+
+The marginal distribution of $D$ answers "what is the default probability for a future loan before we know its purpose?" But it deliberately averages over purposes, and we know from the data chapters that purpose matters. The sharper question is conditional: *given* that the loan is for a small business, what is the chance it defaults?
+
+## Conditional probability {#sec-conditional-probability}
+
+::: {.callout-note}
+## Definition: Conditional probability
+
+For events $A$ and $B$ with $\Pr(B) > 0$, the **conditional probability of $A$ given $B$** is
+
+$$
+\Pr(A \mid B) = \frac{\Pr(A \text{ and } B)}{\Pr(B)}.
+$$
+
+The bar "$\mid$" reads "given that" or "conditional on."
+:::
+
+In words: to condition on $B$, keep only the probability that is consistent with $B$, and rescale it so it sums to one again. The formula is the joint probability of both events divided by the marginal probability of the thing you're conditioning on --- exactly the joint-over-marginal arithmetic we did with proportions in @sec-joint-marginal-conditional, now stated as a definition.
+
+On the table, conditioning is a two-step procedure: keep the row or column consistent with the condition, then *renormalize* the remaining probabilities by dividing by their total. Conditioning on "small business" keeps only that row. Dividing its default count by its row total gives
+
+$$
+\Pr(D = 1 \mid P = 3)
+= \frac{`r comma(loan_small$default)`}{`r comma(loan_small$Total)`}
+= `r number(loan_small$default / loan_small$Total, accuracy = 0.001)`.
+$$
+
+The joint-over-marginal calculation from the probability model gives the same answer:
+
+$$
+\frac{`r comma(loan_small$default)` / `r comma(loan_n)`}
+     {`r comma(loan_small$Total)` / `r comma(loan_n)`}
+= \frac{`r comma(loan_small$default)`}{`r comma(loan_small$Total)`}
+= `r number(loan_small$default / loan_small$Total, accuracy = 0.001)`.
+$$
+
+The common grand total cancels. Count over count and joint probability over marginal probability are two forms of the same calculation.
+
+Unlike joint probabilities, conditional probabilities are asymmetric: in general, $\Pr(A \mid B) \neq \Pr(B \mid A)$. For example, the probability you're a professional basketball player given that you're taller than average is minuscule. But the probability you're taller than average given that you're in the (W)NBA is close to one. Most tall people aren't in the NBA, but most people in the NBA are tall, and that difference in *base rates* (marginal probabilities) produces the difference. Mathematically,
+$$
+\Pr(\text{NBA} \mid \text{tall}) = \frac{\Pr(\text{NBA and tall})}{\Pr(\text{tall})},
+\qquad
+\Pr(\text{tall} \mid \text{NBA}) = \frac{\Pr(\text{NBA and tall})}{\Pr(\text{NBA})}.
+$$
+
+Roughly half of people are taller than average in most populations, so the first conditional divides a tiny joint probability by about 0.5 and stays tiny. The second divides that same joint probability by the vanishingly small chance of being in the NBA at all, producing a conditional probability near 1.
+
+Revisiting our loan example, $\Pr(D = 1 \mid P = 3) = `r number(loan_small$default / loan_small$Total, accuracy = 0.001)`$ is larger than the marginal default probability of `r number(loan_default_n / loan_n, accuracy = 0.001)`. The reverse conditioning is much smaller:
+
+$$
+\Pr(P = 3 \mid D = 1)
+= \frac{`r comma(loan_small$default)`}{`r comma(loan_default_n)`}
+= `r number(loan_small$default / loan_default_n, accuracy = 0.001)`.
+$$
+
+Small-business loans account for only `r percent(loan_small$Total / loan_n, accuracy = 0.1)` of the loans, so even though they default at a higher rate than the other types, they account for a small fraction of the defaulted loans. For the same reason, most defaults are debt-consolidation loans:
+
+$$
+\Pr(P = 1 \mid D = 1)
+= \frac{`r comma(loan_debt$default)`}{`r comma(loan_default_n)`}
+= `r number(loan_debt$default / loan_default_n, accuracy = 0.001)`,
+$$
+
+even though their default rate is lower:
+
+$$
+\Pr(D = 1 \mid P = 1)
+= \frac{`r comma(loan_debt$default)`}{`r comma(loan_debt$Total)`}
+= `r number(loan_debt$default / loan_debt$Total, accuracy = 0.001)`.
+$$
+
+### The Fed's two meetings, jointly {#sec-cme-joint}
+
+In the introduction we drew a branching tree to represent the different paths the FOMC could take over two meetings under the CME FedWatch probabilities. Each branch represented a pair of future outcomes (the target rate after the July and September meetings), and each path has a probability attached to it. These are *joint* probabilities; the table below lists them.
+Let $X$ be the target-range midpoint after July and $Y$ the midpoint after September.
+
+```{r}
+#| label: tbl-cme-joint
+#| tbl-cap: "The market-implied joint distribution of the FOMC target range after the July and September 2026 meetings (CME FedWatch, July 9, 2026). The FedWatch model assigns zero probability to some paths under its assumptions. Margins recover the single-meeting distributions."
+#| echo: false
+cme_wide <- tibble(
+  july = c("3.50--3.75%", "3.75--4.00%"),
+  `3.50--3.75%` = c(0.366, 0),
+  `3.75--4.00%` = c(0.393, 0.116),
+  `4.00--4.25%` = c(0, 0.125)
+) |>
+  mutate(`July marginal` = `3.50--3.75%` + `3.75--4.00%` + `4.00--4.25%`)
+
+cme_wide |>
+  bind_rows(summarise(cme_wide, july = "**September marginal**",
+                      across(where(is.numeric), sum))) |>
+  mutate(across(where(is.numeric), \(x) number(x, accuracy = 0.001))) |>
+  rename(`July \\\\ September` = july) |>
+  knitr::kable(align = c("l", "r", "r", "r", "r"))
+```
+
+The margins are the two single-meeting distributions we have used since the introduction. They are *marginal* probabilities. The marginal probabilities for each possible target after the September meeting come from summing the probabilities attached to every path that gets us there. For example, the market can arrive at a September target range of 3.75--4.00% two ways: hold in July then hike in September (probability 0.393), or hike in July then hold in September (probability 0.116). Summing over both paths,
+
+$$
+\Pr(Y = 3.875) = 0.393 + 0.116 = 0.509.
+$$
+
+
+Applying the definition across a whole row gives a **conditional distribution**. Fix a July outcome, then renormalize its row to produce a complete probability distribution for September. Given a July hold, the September distribution is the top row divided by 0.759: probability $0.366 / 0.759 = `r number(0.366 / 0.759, accuracy = 0.001)`$ of holding again and $0.393 / 0.759 = `r number(0.393 / 0.759, accuracy = 0.001)`$ of a hike. Given a July hike, dividing the bottom row by 0.241 gives $`r number(0.116 / 0.241, accuracy = 0.001)`$ for holding and $`r number(0.125 / 0.241, accuracy = 0.001)`$ for a second hike. If those four numbers look familiar, they should: they are precisely the September branch labels on the tree we first saw as @fig-cme-tree in @sec-what-is-probability:
+
+```{r}
+#| label: fig-cme-tree-joint
+#| fig-cap: "The tree from the introduction, reproduced. The first fan of branches carries the July marginal probabilities; the September branches carry the conditional probabilities just computed from the joint table. Multiplying along any path gives back that path's joint probability."
+#| fig-width: 8.5
+#| fig-height: 6
+#| echo: false
+
+# Marginal July probabilities (the conditioning denominators)
+p_july_hold <- cme_july_marg$prob[cme_july_marg$july == "3.50--3.75%"]
+p_july_hike <- cme_july_marg$prob[cme_july_marg$july == "3.75--4.00%"]
+
+# Joint P(July = j, Sept = s); 0 when the market rules the path out
+joint_p <- function(j, s) {
+  v <- cme_joint |> filter(july == j, sept == s) |> pull(prob)
+  if (length(v) == 0) 0 else v
+}
+
+# Every July state fans out to ALL THREE September ranges, including the
+# ruled-out (zero-probability) transitions.
+transitions <- tribble(
+  ~from_lab,      ~from_y,  ~to_lab,        ~leaf_y,  ~action,
+  "3.50--3.75%",   1.5,     "3.50--3.75%",   2.6,     "hold",
+  "3.50--3.75%",   1.5,     "3.75--4.00%",   1.5,     "hike",
+  "3.50--3.75%",   1.5,     "4.00--4.25%",   0.4,     "hike",
+  "3.75--4.00%",  -1.5,     "3.50--3.75%",  -0.4,     "cut",
+  "3.75--4.00%",  -1.5,     "3.75--4.00%",  -1.5,     "hold",
+  "3.75--4.00%",  -1.5,     "4.00--4.25%",  -2.6,     "hike"
+) |>
+  mutate(
+    denom = if_else(from_lab == "3.50--3.75%", p_july_hold, p_july_hike),
+    cond  = map2_dbl(from_lab, to_lab, joint_p) / denom,
+    zero  = cond == 0
+  )
+
+# Conditional Sept probabilities used in the surrounding prose
+cond_hold_hike <- transitions$cond[transitions$from_lab == "3.50--3.75%" &
+                                     transitions$to_lab == "3.75--4.00%"]
+cond_hike_hike <- transitions$cond[transitions$from_lab == "3.75--4.00%" &
+                                     transitions$to_lab == "4.00--4.25%"]
+
+# Nodes: root, two July states, six September leaves (leaves may be zero-prob)
+nodes <- tribble(
+  ~x, ~y,    ~lab,                       ~zero,
+  0,  0,     "3.50--3.75%\n(current)",   FALSE,
+  1,  1.5,   "3.50--3.75%",              FALSE,
+  1, -1.5,   "3.75--4.00%",              FALSE
+) |>
+  bind_rows(transmute(transitions, x = 2, y = leaf_y, lab = to_lab, zero = zero))
+
+# Edges: root -> July, then each July state -> all three September ranges
+edges <- bind_rows(
+  tibble(x = 0, y = 0, xend = 1, yend = c(1.5, -1.5), zero = FALSE),
+  transmute(transitions, x = 1, y = from_y, xend = 2, yend = leaf_y, zero = zero)
+)
+
+branch_labels <- bind_rows(
+  tibble(x = 0.5, y = c(0.9, -0.9),
+         lab = c(paste0("hold\n", number(p_july_hold, accuracy = 0.001)),
+                 paste0("hike\n", number(p_july_hike, accuracy = 0.001))),
+         zero = FALSE),
+  transmute(transitions,
+            x = 1.62, y = from_y + 0.6 * (leaf_y - from_y),
+            lab = if_else(zero, "0",
+                          paste0(action, "\n", number(cond, accuracy = 0.001))),
+            zero = zero)
+)
+
+ggplot() +
+  geom_segment(data = filter(edges, !zero),
+               aes(x = x, y = y, xend = xend, yend = yend),
+               color = "grey40") +
+  geom_segment(data = filter(edges, zero),
+               aes(x = x, y = y, xend = xend, yend = yend),
+               color = "grey70", linetype = "dashed") +
+  geom_label(data = nodes, aes(x = x, y = y, label = lab, color = zero),
+             fill = "white", label.size = 0.25, size = 3.3) +
+  geom_label(data = branch_labels, aes(x = x, y = y, label = lab, color = zero),
+             fill = "white", alpha = 0.9, size = 2.9) +
+  annotate("text", x = 0, y = 3.2, label = "Today (July 9)",
+           fontface = "bold", size = 3.6) +
+  annotate("text", x = 1, y = 3.2, label = "July 29 meeting",
+           fontface = "bold", size = 3.6) +
+  annotate("text", x = 2, y = 3.2, label = "September 16 meeting",
+           fontface = "bold", size = 3.6) +
+  scale_color_manual(values = c(`FALSE` = "black", `TRUE` = "grey60")) +
+  guides(color = "none") +
+  theme_void() +
+  xlim(-0.3, 2.3) +
+  ylim(-3.0, 3.5)
+```
+
+A probability tree is a joint distribution organized by conditioning, with marginal probabilities on the first fan of branches and conditional probabilities after. Multiplying down the branches recovers the joint probabilities above --- the connection between branches and totals promised back in the introduction. The joint probability table and the tree above represent the same information organized in different ways, and we can always move back and forth between them.
+
+## Independence {#sec-independence}
+
+We have introduced correlation and covariance as measures of *linear* association --- dependence --- but we haven't explicitly defined what we mean by "dependence" in the first place. We define *independence* in terms of the joint distribution of two variables. Any pair of variables that don't satisfy the property below are *dependent* in some way.
+
+::: {.callout-note}
+## Definition: Independent random variables
+
+Random variables $X$ and $Y$ are **independent** if
+
+$$
+\Pr(X = x \text{ and } Y = y) = \Pr(X = x) \times \Pr(Y = y)
+$$
+
+for *every* pair of outcomes $x$ and $y$ --- the joint distribution is the product of the marginals. Equivalently, 
+$$
+\Pr(X = x \mid Y = y) = \Pr(X = x)\text{ and } \Pr(Y = y \mid X = x) = \Pr(Y = y)
+$$
+
+whenever the conditioning event has positive probability.
+:::
+
+Intuitively, the marginal distribution of $X$ tells us about which values of $X$ are more or less likely, before we know anything else. The conditional probability $\Pr(X=x\mid Y=y)$ tells us how likely $X=x$ is *after* we learn that $Y=y$. If the two are independent, learning $Y$'s outcome changes nothing about $X$'s distribution, and vice versa, so the conditionals match the marginals.
+
+We saw this empirically in @sec-independence-preview: household income told us almost nothing about national economic outlook --- the distribution of the economic outlook variable was almost the same for participants in each income level as it was overall.
+
+The Fed meetings fail this definition decisively, largely because of how CME constructs its probability tree. The only way to reach the 4.00--4.25% range by September is two successive hikes, so learning that September landed there pins July down completely. The product form fails wherever the joint table has a zero --- under independence, the July-hold, September-4.00--4.25% cell would be $0.759 \times 0.125 = `r number(0.759 * 0.125, accuracy = 0.001)`$, not zero.
+
+## Covariance and correlation for random variables {#sec-rv-correlation}
+
+For quantitative random variables we can use the same two summaries we used for paired data columns --- covariance and correlation --- rebuilt with probability weights.
+
+Like their data counterparts, the covariance and correlation of random variables measure *linear* association between two variables. Their formulas replace empirical averages with expected values, just like the mean and variance calculations in @sec-rv-mean and @sec-rv-variance.
+
+::: {.callout-note}
+## Definition: Covariance and correlation of random variables
+
+For random variables $X$ and $Y$ with means $\mu_X$ and $\mu_Y$, the **covariance** is the expected product of their deviations:
+
+$$
+\text{Cov}(X, Y) = E\big[(X - \mu_X)(Y - \mu_Y)\big] = \sum_{\text{pairs } (x,\, y)} \Pr(X = x \text{ and } Y = y)\,(x - \mu_X)(y - \mu_Y),
+$$
+
+and the **correlation** rescales it to a unitless number between $-1$ and $+1$:
+
+$$
+\text{Corr}(X, Y) = \frac{\text{Cov}(X, Y)}{SD(X)\,SD(Y)}.
+$$
+:::
+
+In words: for every possible pair of outcomes, ask whether $X$ and $Y$ land on the same side of their respective means, multiply the two deviations, and average with probability weights. The quadrant logic from the scatterplot chapter transfers wholesale --- pairs that agree (both above or both below their means) push the covariance up, pairs that disagree pull it down.
+
+As an example let's compute the correlation between rates at the July and September meeting under the CME FedWatch model. The means are the expected rates from the parameters chapter, $\mu_X = `r number(mu_july, accuracy = 0.001)`$ and $\mu_Y = `r number(mu_sept, accuracy = 0.001)`$. Four cells carry probability, and each contributes a signed product:
+
+```{r}
+#| label: tbl-cme-cov
+#| tbl-cap: "Computing the covariance of the July and September target-range midpoints. Each nonzero cell of the joint distribution contributes its probability times the product of deviations from the two means; agreeing deviations (same sign) contribute positively."
+#| echo: false
+cme_joint |>
+  mutate(
+    dev_x = july_mid - mu_july,
+    dev_y = sept_mid - mu_sept,
+    contrib = prob * dev_x * dev_y,
+    Path = paste(july, "then", sept)
+  ) |>
+  transmute(Path,
+            Probability = number(prob, accuracy = 0.001),
+            `July deviation` = number(dev_x, accuracy = 0.001),
+            `September deviation` = number(dev_y, accuracy = 0.001),
+            Contribution = number(contrib, accuracy = 0.00001)) |>
+  bind_rows(tibble(Path = "**Covariance (sum)**", Probability = "",
+                   `July deviation` = "", `September deviation` = "",
+                   Contribution = number(cov_cme, accuracy = 0.00001))) |>
+  knitr::kable(align = c("l", "r", "r", "r", "r"))
+```
+
+Three of the four paths agree --- hold-then-hold sits below both means, and the two hike paths sit above both --- while the hold-then-hike path splits the difference and contributes the lone negative term. The sum is positive. Applying the variance formula from @sec-rv-variance to the two marginal distributions gives $SD(X) = `r number(sd_july, accuracy = 0.001)`$ and $SD(Y) = `r number(sd_sept, accuracy = 0.001)`$. Rescaling by those standard deviations gives
+
+$$
+\text{Corr}(X, Y) = `r number(cor_cme, accuracy = 0.01)`.
+$$
+
+A correlation of `r number(cor_cme, accuracy = 0.01)` is a strong positive linear relationship, and it has a clean economic reading: rate changes *persist*. A July hike raises the floor under every path that follows, pulling September up with it. The correlation and the standard deviations answer different questions: the correlation says July and September move together tightly; the standard deviations say how much each meeting's outcome varies on its own.
+
+Independence and correlation connect the way you would hope: if $X$ and $Y$ are independent and their correlation is defined, their correlation is exactly zero. Independence lets the expected product split into the product of two expected deviations, and both are zero. The reverse implication fails --- zero correlation does not guarantee independence --- but manufacturing a counterexample takes a contrivance we'll save for later.
+
+<!---
+## Continuous joint distributions {#sec-continuous-joint}
+
+Two continuous random variables --- a house's size and its sale price, two stocks' returns --- have too many outcome pairs for any table. Their joint distribution is described by a **density surface**: the two-variable analogue of the density curve, with probability given by *volume* underneath rather than area. The probability that the pair $(X, Y)$ lands in any region of the plane is the volume between the base plane and the surface, sitting above that region. @fig-bivariate-volume shows one such probability as a solid block.
+
+```{r}
+#| label: fig-bivariate-volume
+#| fig-cap: "A joint density surface for two continuous random variables. The probability that the pair of outcomes lands in the highlighted rectangular region is the volume of the orange solid --- the space between the base plane and the surface, above that region. The total volume under the whole surface is one."
+#| fig-width: 7
+#| fig-height: 5.5
+rho    <- 0.5
+grid_n <- 40
+xg <- seq(-3, 3, length.out = grid_n)
+yg <- seq(-3, 3, length.out = grid_n)
+
+dens <- function(x, y) {
+  exp(-(x^2 - 2 * rho * x * y + y^2) / (2 * (1 - rho^2))) /
+    (2 * pi * sqrt(1 - rho^2))
+}
+zg <- outer(xg, yg, dens)
+
+# A rectangular region on the front slope, off the ridge, so the block's top
+# stays clearly below the crest of the surface.
+x0 <- 0;    x1 <- 1.4
+y0 <- -2.1; y1 <- -0.6
+
+lid_fill   <- adjustcolor("#e08214", alpha.f = 0.95)
+wall_fill  <- adjustcolor("#e08214", alpha.f = 0.55)
+vol_border <- "#8a4504"
+
+par(mar = c(0.5, 0.5, 0.5, 0.5))
+
+# Draw the density surface as a transparent wireframe (no facet fill) so the
+# solid orange volume beneath it shows through the mesh.
+pm <- persp(xg, yg, zg,
+            theta = 30, phi = 20, expand = 0.65,
+            col = NA, border = "grey70", lwd = 0.5,
+            xlab = "x", ylab = "y", zlab = "",
+            box = TRUE, axes = TRUE, ticktype = "simple")
+
+proj <- function(x, y, z) {
+  tr <- cbind(x, y, z, 1) %*% pm
+  list(x = tr[, 1] / tr[, 4], y = tr[, 2] / tr[, 4], depth = tr[, 3] / tr[, 4])
+}
+
+n_edge <- 30
+make_wall <- function(xs, ys) {
+  zt   <- dens(xs, ys)
+  top  <- proj(xs, ys, zt)
+  base <- proj(xs, ys, rep(0, length(xs)))
+  cen  <- proj(mean(xs), mean(ys), mean(zt) / 2)
+  list(x = c(base$x, rev(top$x)), y = c(base$y, rev(top$y)), depth = cen$depth)
+}
+
+walls <- list(
+  make_wall(seq(x0, x1, length.out = n_edge), rep(y0, n_edge)),
+  make_wall(seq(x0, x1, length.out = n_edge), rep(y1, n_edge)),
+  make_wall(rep(x0, n_edge), seq(y0, y1, length.out = n_edge)),
+  make_wall(rep(x1, n_edge), seq(y0, y1, length.out = n_edge))
+)
+base_rect <- proj(c(x0, x1, x1, x0), c(y0, y0, y1, y1), c(0, 0, 0, 0))
+ord <- order(sapply(walls, `[[`, "depth"))
+draw_wall <- function(w) polygon(w$x, w$y, col = wall_fill, border = vol_border, lwd = 2)
+
+# Base and back-to-front walls first ...
+polygon(base_rect$x, base_rect$y, col = wall_fill, border = vol_border, lwd = 2)
+for (k in ord) draw_wall(walls[[k]])
+
+# ... then the lid (the surface over the region) LAST, so the cap stays crisp.
+lx <- seq(x0, x1, length.out = n_edge)
+ly <- seq(y0, y1, length.out = n_edge)
+for (i in 1:(n_edge - 1)) {
+  for (j in 1:(n_edge - 1)) {
+    px <- c(lx[i], lx[i + 1], lx[i + 1], lx[i])
+    py <- c(ly[j], ly[j], ly[j + 1], ly[j + 1])
+    pr <- proj(px, py, dens(px, py))
+    polygon(pr$x, pr$y, col = lid_fill,
+            border = adjustcolor("#a35406", 0.6), lwd = 0.4)
+  }
+}
+top_edge <- rbind(cbind(lx, y0), cbind(x1, ly), cbind(rev(lx), y1), cbind(x0, rev(ly)))
+te <- proj(top_edge[, 1], top_edge[, 2], dens(top_edge[, 1], top_edge[, 2]))
+lines(te$x, te$y, col = vol_border, lwd = 2)
+```
+
+Every idea from this chapter carries over to surfaces. Marginal distributions come from flattening the surface onto one axis; conditional distributions come from slicing it at a fixed value of one variable and renormalizing the slice; independence means the surface factors into a product of two curves. And correlation shows up directly in the surface's *shape*. @fig-bivariate-gallery draws three joint densities that differ only in their correlation --- the 3D counterparts of the simulated scatterplots in @fig-corr-panels.
+
+```{r}
+#| label: fig-bivariate-gallery
+#| fig-cap: "Three joint density surfaces that differ only in correlation. At zero the density is a symmetric round hill; positive correlation stretches it into a ridge along the agreeing diagonal (both variables above or below their means together); negative correlation aligns the ridge along the disagreeing diagonal."
+#| fig-width: 10
+#| fig-height: 3.8
+dens_rho <- function(rho) {
+  outer(xg, yg, function(x, y) {
+    exp(-(x^2 - 2 * rho * x * y + y^2) / (2 * (1 - rho^2))) /
+      (2 * pi * sqrt(1 - rho^2))
+  })
+}
+
+# Tint each facet by its height so the crest --- and thus the ridge's
+# orientation --- reads at a glance.
+blue_ramp <- colorRampPalette(c("#f7fbff", "#c6dbef", "#6baed6", "#2171b5", "#08306b"))
+facet_cols <- function(z) {
+  fz <- (z[-1, -1] + z[-nrow(z), -1] + z[-1, -ncol(z)] + z[-nrow(z), -ncol(z)]) / 4
+  blue_ramp(120)[cut(fz, breaks = 120, labels = FALSE)]
+}
+
+par(mfrow = c(1, 3), mar = c(0.5, 0.5, 2, 0.5))
+for (r in c(0, 0.7, -0.7)) {
+  z <- dens_rho(r)
+  persp(xg, yg, z,
+        theta = 45, phi = 45, expand = 0.6,
+        col = facet_cols(z), border = "grey55", lwd = 0.25,
+        xlab = "x", ylab = "y", zlab = "",
+        box = TRUE, axes = TRUE, ticktype = "simple",
+        main = paste("correlation =", r))
+}
+```
+
+At correlation 0 the hill is round: no direction is special, and a slice through the surface looks the same wherever you take it. At $+0.7$ the probability piles up along the diagonal where both variables run above or below their means together --- the surface version of an upward-tilting point cloud. At $-0.7$ the ridge flips to the other diagonal. When we eventually model pairs like a stock's return and the market's, surfaces like these are the objects doing the work, and the correlation parameter controls exactly how sharply the ridge is drawn.
+
+With distributions for single variables and for several, parameters to summarize them, and independence and correlation to describe how variables move together, the probability toolkit is assembled. What remains is to put it to work --- on portfolios of random variables, and on the question that started this part of the book: what can a sample of data tell us about the distribution it came from?
+
+-->
+
+## Data used in this section {.unnumbered}
+
+- [LendingClub Accepted Loans](appendix_data.qmd#sec-data-lendingclub-kaggle)

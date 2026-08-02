@@ -1,0 +1,4 @@
+interface:
+  display_name: "Draft from Brief"
+  short_description: "Draft a chapter from an approved brief"
+  default_prompt: "Use $draft-from-brief to draft this chapter from the approved brief."

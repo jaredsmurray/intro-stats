@@ -1,0 +1,609 @@
+---
+title: "Two Quantitative Variables"
+---
+
+```{r}
+#| label: setup
+#| include: false
+#| echo: false
+library(tidyverse)
+library(scales)
+library(patchwork)
+
+# Figures render at their intrinsic size (fig-width x 96px), capped by the
+# ~702px content column -- they are never upscaled to fill it. So axis text
+# lands at its true point size, and base_size, not fig-width, is what makes it
+# legible next to 17px body text. At 13, tick labels are ~14px.
+theme_set(theme_minimal(base_size = 13))
+
+austin <- read_csv("data/austin_houses/austin_houses_subset.csv",
+                   show_col_types = FALSE)
+
+mincer <- read_csv("data/mincer/cps_asec_2023.csv",
+                   show_col_types = FALSE)
+
+returns <- read_csv("data/returns/returns.csv",
+                    show_col_types = FALSE) |>
+  mutate(date = as.Date(date))
+
+load1 <- read_csv("data/ercot/ercotproject/Data/load_1.csv",
+                  show_col_types = FALSE)
+load2 <- read_csv("data/ercot/ercotproject/Data/load_2.csv",
+                  show_col_types = FALSE)
+load3 <- read_csv("data/ercot/ercotproject/Data/load_3.csv",
+                  show_col_types = FALSE)
+ercot <- bind_rows(load1, load2, load3) |>
+  filter(LOCATION == "North Central (DFW)") |>
+  mutate(datetime = parse_date_time(DATEHOUR, orders = c("ymd HM", "ymd HMS")),
+         year = year(datetime),
+         date = as.Date(datetime)) |>
+  filter(year >= 2016, year <= 2020) |>
+  summarize(LOAD = mean(LOAD, na.rm = TRUE),
+            date = first(date),
+            .by = c(datetime, LOCATION))
+rm(load1, load2, load3)
+
+weather <- read_csv("data/ercot/ercotproject/Data/weather_ncent.csv",
+                    show_col_types = FALSE) |>
+  mutate(datetime = parse_date_time(DATEHOUR, orders = c("ymd HM", "ymd HMS")),
+         year = year(datetime)) |>
+  filter(year >= 2016, year <= 2020) |>
+  summarize(HourlyDryBulbTemperature = mean(HourlyDryBulbTemperature, na.rm = TRUE),
+            .by = c(datetime, LOCATION))
+
+ercot_temp <- ercot |>
+  inner_join(weather, by = c("datetime", "LOCATION")) |>
+  filter(!is.na(HourlyDryBulbTemperature), !is.na(LOAD))
+
+ercot_daily <- ercot_temp |>
+  summarize(temp = mean(HourlyDryBulbTemperature, na.rm = TRUE),
+            load = mean(LOAD, na.rm = TRUE),
+            .by = date)
+rm(weather)
+```
+
+For pairs of quantitative variables, our first step is usually to visualize them in a *scatterplot*, possibly adding a visual guide like a line or curve that describes how the two variables tend to move together. Relationships that are linear, or at least close to linear, invite additional numeric summaries of their data. We'll see some of these here, and again later on when we build linear *models* from data like this.
+
+## Scatterplots {#sec-scatterplots}
+
+A **scatterplot** puts one variable on each axis and draws a point for every observation.  @fig-austin-price-sqft plots `r comma(nrow(austin))` Austin home sales from three ZIP codes (78721, 78723, and 78731), the same homes whose ages we plotted in @fig-austin-bimodal, with living area on the x-axis and sale price on the y-axis.
+
+```{r}
+#| label: fig-austin-price-sqft
+#| fig-cap: "Sale price versus living area for Austin homes in three ZIP codes. Each point is one home. Prices tend to rise with size, but homes of the same size sell for a wide range of prices."
+#| fig-width: 7
+#| fig-height: 5
+ggplot(austin, aes(x = living_area_sq_ft, y = latest_price)) +
+  geom_point(alpha = 0.3, color = "steelblue") +
+  scale_x_continuous(labels = comma_format()) +
+  scale_y_continuous(labels = dollar_format(scale = 1e-3, suffix = "K")) +
+  labs(x = "Living area (sq ft)", y = "Sale price")
+```
+
+A scatterplot gives us a quick visual description of how the two variables tend to move *together*. We see here a positive relationship --- larger houses tend to sell for more --- that is close to *linear* (well-described by a straight line, rather than a U or some other shape) and strong. We see some evidence that the variability in prices is larger for bigger houses --- the range of prices for houses around 1,000 sqft is narrower than the range of prices for houses around 3,000 sqft, for example. 
+
+When the sample size is large a scatterplot can turn into an unreadable blob. Even when the sample size is small, if one or both variables have many ties it can be difficult to read the scatterplot. For example, the CPS data from @sec-symmetric-skewed has both problems. The sample size is large (`r comma(nrow(mincer))` workers) and one of the key variables --- years of education, `educ_years` --- takes only a handful of distinct values.  A naive scatterplot (@fig-mincer-wage-educ, left panel) piles tens of thousands of workers onto a few vertical lines. To fix the ties we can apply **jitter**, which adds a little random horizontal shake to the reported years of education so identical x-values spread apart (@fig-mincer-wage-educ, middle panel). Even then we see wider but mostly dark strips. The right panel of @fig-mincer-wage-educ adds **transparency (`alpha`)**, so densely-packed areas appear darker than less-dense areas. (@fig-austin-price-sqft also uses a little transparency if you look closely.) Another viable option is to treat years of education as an ordinal categorical variable when we create our plots. Either approach works; the best option depends on the purpose of the visualization and the audience.
+
+```{r}
+#| label: fig-mincer-wage-educ
+#| fig-cap: "Hourly wage versus years of education for full-time U.S. workers (2023 CPS; wages under $150/hr shown). Left: the raw scatterplot stacks thousands of workers onto a few vertical lines. Middle: jitter spreads the ties apart, but the strips stay solid. Right: adding transparency, so that darker regions hold more workers, makes the plot readable."
+#| fig-width: 10
+#| fig-height: 4
+mincer_sub <- mincer |> filter(hrly_wage <= 150)
+
+mincer_panel <- function(geom_layer, title, show_y_title = FALSE) {
+  ggplot(mincer_sub, aes(x = educ_years, y = hrly_wage)) +
+    geom_layer +
+    scale_y_continuous(labels = dollar_format()) +
+    labs(x = "Years of education",
+         y = if (show_y_title) "Hourly wage" else NULL,
+         title = title) +
+    theme_minimal(base_size = 10)
+}
+
+p1 <- mincer_panel(
+  geom_point(alpha = 1, size = 0.8, color = "steelblue"),
+  "Raw", show_y_title = TRUE
+)
+
+p2 <- mincer_panel(
+  geom_jitter(width = 0.2, height = 0, size = 0.8, alpha = 1, color = "steelblue"),
+  "Jittered"
+)
+
+p3 <- mincer_panel(
+  geom_jitter(width = 0.2, height = 0, size = 0.8, alpha = 0.05, color = "steelblue"),
+  "Jittered + transparency"
+)
+
+p1 | p2 | p3
+```
+
+Here we see wages that tend to increase with years of education, but following a more complicated trend (flat at low levels, increasing rapidly in the middle, and flattening out again at the top). The spread of wages seems to increase with education as well.
+
+
+## Covariance and correlation {#sec-cov-cor}
+
+The scatterplot is an excellent start, but numeric summaries are also very useful for understanding and communicating our analyses (when they don't obscure important features of the data). We'll start by building measures of **linear** relationships. Loosely, two variables have a linear relationship if we can draw a straight line through the points on a scatterplot. (We'll make this more precise later.)
+
+Our first measure is the **covariance**. For paired observations $(x_i, y_i)$ it is given by
+
+$$
+s_{xy} = \frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y}),
+$$
+
+the average product of the two variables' deviations from their means. In words: for each observation, ask whether $x$ and $y$ are on the same side of their respective averages, and how far. When a bigger-than-average house also has a bigger-than-average price, both deviations are positive and the product is positive; when both are below average, two negatives again multiply to a positive. Points that are above average on one variable and below on the other contribute negative products. 
+
+```{r}
+#| label: fig-cov-quadrants
+#| fig-cap: "The price--size scatterplot divided into quadrants at the mean point."
+#| fig-width: 7
+#| fig-height: 5
+xbar <- mean(austin$living_area_sq_ft)
+ybar <- mean(austin$latest_price)
+
+ggplot(austin, aes(x = living_area_sq_ft, y = latest_price)) +
+  annotate("rect", xmin = xbar, xmax = Inf, ymin = ybar, ymax = Inf,
+           fill = "darkgreen", alpha = 0.08) +
+  annotate("rect", xmin = -Inf, xmax = xbar, ymin = -Inf, ymax = ybar,
+           fill = "darkgreen", alpha = 0.08) +
+  annotate("rect", xmin = -Inf, xmax = xbar, ymin = ybar, ymax = Inf,
+           fill = "darkred", alpha = 0.08) +
+  annotate("rect", xmin = xbar, xmax = Inf, ymin = -Inf, ymax = ybar,
+           fill = "darkred", alpha = 0.08) +
+  geom_point(alpha = 0.3, color = "steelblue") +
+  geom_vline(xintercept = xbar, linetype = "dashed", color = "grey40") +
+  geom_hline(yintercept = ybar, linetype = "dashed", color = "grey40") +
+  annotate("label", x = max(austin$living_area_sq_ft), y = max(austin$latest_price),
+           label = "positive products", hjust = 1, vjust = 1,
+           size = 3.6, color = "darkgreen", fill = "white", alpha = 0.9, label.size = 0.25) +
+  annotate("label", x = min(austin$living_area_sq_ft), y = min(austin$latest_price),
+           label = "positive products", hjust = 0, vjust = 0,
+           size = 3.6, color = "darkgreen", fill = "white", alpha = 0.9, label.size = 0.25) +
+  annotate("label", x = min(austin$living_area_sq_ft), y = max(austin$latest_price),
+           label = "negative products", hjust = 0, vjust = 1,
+           size = 3.6, color = "darkred", fill = "white", alpha = 0.9, label.size = 0.25) +
+  annotate("label", x = max(austin$living_area_sq_ft), y = min(austin$latest_price),
+           label = "negative products", hjust = 1, vjust = 0,
+           size = 3.6, color = "darkred", fill = "white", alpha = 0.9, label.size = 0.25) +
+  scale_x_continuous(labels = comma_format()) +
+  scale_y_continuous(labels = dollar_format(scale = 1e-3, suffix = "K")) +
+  labs(x = "Living area (sq ft)", y = "Sale price")
+```
+
+The figure below gives the covariance a more nuanced geometric interpretation, detailed in the caption.
+
+```{r}
+#| label: fig-cov-rectangles
+#| fig-cap: "The covariance as signed areas, drawn for two homes. Each rectangle runs from the mean point to one observation; its area is the size of that observation's product of deviations. The green rectangle counts positively (above average on both size and price), the red one negatively (smaller than average but pricier than average)."
+#| fig-width: 7
+#| fig-height: 5
+sd_x <- sd(austin$living_area_sq_ft)
+sd_y <- sd(austin$latest_price)
+
+pos_target_x <- quantile(austin$living_area_sq_ft, 0.85, names = FALSE)
+pos_target_y <- quantile(austin$latest_price, 0.94, names = FALSE)
+
+pos_point <- austin |>
+  filter(living_area_sq_ft > xbar, latest_price > ybar) |>
+  mutate(dist = ((living_area_sq_ft - pos_target_x) / sd_x)^2 +
+                ((latest_price - pos_target_y) / sd_y)^2) |>
+  slice_min(dist, n = 1, with_ties = FALSE)
+
+neg_target_x <- quantile(austin$living_area_sq_ft, 0.25, names = FALSE)
+neg_target_y <- quantile(austin$latest_price, 0.90, names = FALSE)
+
+neg_point <- austin |>
+  filter(living_area_sq_ft < xbar, latest_price > ybar) |>
+  mutate(dist = ((living_area_sq_ft - neg_target_x) / sd_x)^2 +
+                ((latest_price - neg_target_y) / sd_y)^2) |>
+  slice_min(dist, n = 1, with_ties = FALSE)
+
+ggplot(austin, aes(x = living_area_sq_ft, y = latest_price)) +
+  geom_point(alpha = 0.15, color = "steelblue") +
+  geom_vline(xintercept = xbar, linetype = "dashed", color = "grey40") +
+  geom_hline(yintercept = ybar, linetype = "dashed", color = "grey40") +
+  annotate("rect",
+           xmin = min(pos_point$living_area_sq_ft, xbar),
+           xmax = max(pos_point$living_area_sq_ft, xbar),
+           ymin = min(pos_point$latest_price, ybar),
+           ymax = max(pos_point$latest_price, ybar),
+           fill = "darkgreen", alpha = 0.25, color = "darkgreen", linewidth = 0.4) +
+  annotate("rect",
+           xmin = min(neg_point$living_area_sq_ft, xbar),
+           xmax = max(neg_point$living_area_sq_ft, xbar),
+           ymin = min(neg_point$latest_price, ybar),
+           ymax = max(neg_point$latest_price, ybar),
+           fill = "darkred", alpha = 0.25, color = "darkred", linewidth = 0.4) +
+  geom_point(data = pos_point, aes(x = living_area_sq_ft, y = latest_price),
+             color = "darkgreen", size = 2.5) +
+  geom_point(data = neg_point, aes(x = living_area_sq_ft, y = latest_price),
+             color = "darkred", size = 2.5) +
+  scale_x_continuous(labels = comma_format()) +
+  scale_y_continuous(labels = dollar_format(scale = 1e-3, suffix = "K")) +
+  labs(x = "Living area (sq ft)", y = "Sale price")
+```
+
+The covariance has unhelpful units, unfortunately. For the Austin data it comes to `r comma(round(cov(austin$living_area_sq_ft, austin$latest_price)))` "square-foot-dollars," a number whose size depends entirely on the units we happened to measure in. This complicates matters if we want to compare the strength of the linear relationship between price and size to the strength of the relationship between wages and education, for example. 
+
+The **correlation** solves that problem by computing the covariance *of z-scored variables*:
+
+$$
+r = \frac{s_{xy}}{s_x \, s_y}
+$$
+
+Dividing by $s_x s_y$ does the same job as z-scoring both variables before taking the covariance: each deviation gets measured in standard deviations rather than raw units, so the units cancel.
+
+The correlation is always between $-1$ and $+1$, and it doesn't change if you re-measure size in square meters or price in pesos. Its magnitude has a consistent meaning across datasets. A correlation of $+1$ means the points fall exactly on an upward-sloping line, $-1$ exactly on a downward-sloping one, and 0 means no *linear* association at all.
+
+For the Austin home sales, $r = `r number(cor(austin$living_area_sq_ft, austin$latest_price), accuracy = 0.01)`$ --- a strong positive relationship. For wages and education, $r = `r number(cor(mincer_sub$educ_years, mincer_sub$hrly_wage), accuracy = 0.01)`$: the same direction, much weaker, which matches the fanned-out cloud we saw.
+
+Here are some synthetic datasets to illustrate what various levels of correlation may look like when relationships are truly linear:
+
+```{r}
+#| label: fig-corr-panels
+#| fig-cap: "Simulated datasets illustrating correlations from +1 to -1. At the extremes the points fall exactly on a line; in between, the cloud loosens gradually."
+#| fig-width: 10
+#| fig-height: 3.6
+set.seed(42)
+rs <- c(1, 0.9, 0.7, 0.5, 0.3, 0.1, 0, -0.1, -0.3, -0.5, -0.7, -0.9, -1)
+n <- 150
+
+corr_panels <- map_dfr(rs, function(r) {
+  x <- rnorm(n)
+  y <- r * x + sqrt(1 - r^2) * rnorm(n)
+  tibble(x = x, y = y, label = paste0("r = ", r))
+}) |>
+  mutate(label = factor(label, levels = paste0("r = ", rs)))
+
+ggplot(corr_panels, aes(x = x, y = y)) +
+  geom_point(size = 0.5, alpha = 0.6, color = "steelblue") +
+  facet_wrap(~label, nrow = 2) +
+  coord_equal() +
+  theme_minimal(base_size = 9) +
+  theme(axis.text = element_blank(), axis.ticks = element_blank(),
+        panel.grid = element_blank()) +
+  labs(x = NULL, y = NULL)
+```
+
+## Take care with correlation {#sec-corr-limits}
+
+Correlation is a useful measure, but like any one-number summary of a dataset it can obscure important features of the data. We need to ensure it's an appropriate choice for any given problem.
+
+### Correlation only measures linear relationships {#sec-corr-strength}
+
+Take a look at the two scatterplots below. On the left, weekly returns on Tesla stock --- from the `returns` data we met in @sec-symmetric-skewed --- are plotted against weekly returns on the S&P 500 index. On the right is a scatterplot of daily average load on the Dallas-Fort Worth-area power grid, from ERCOT, the Texas grid operator, versus that day's average temperature. Would you say there's a stronger relationship between Tesla and S&P 500 returns, or between load on the grid and temperature?
+
+```{r}
+#| label: fig-corr-linear-only
+#| fig-cap: "Two relationships with nearly identical correlations. Left: Tesla versus S&P 500 weekly returns. Right: daily average electricity demand versus daily average temperature in the DFW region. "
+#| fig-width: 9
+#| fig-height: 4.2
+p_tsla <- ggplot(returns, aes(x = market, y = TSLA)) +
+  geom_point(alpha = 0.7, color = "steelblue") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey60") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey60") +
+  annotate("label", x = -Inf, y = Inf,
+           label = sprintf("r = %.2f", cor(returns$market, returns$TSLA)),
+           hjust = -0.1, vjust = 1.5, size = 3.85, fill = "white", alpha = 0.9, label.size = 0.25) +
+  scale_x_continuous(labels = percent_format(accuracy = 1)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(x = "S&P 500 weekly return", y = "Tesla weekly return")
+
+p_ercot <- ggplot(ercot_daily, aes(x = temp, y = load)) +
+  geom_point(alpha = 0.3, size = 0.8, color = "steelblue") +
+  scale_y_continuous(labels = comma_format()) +
+  annotate("label", x = -Inf, y = Inf,
+           label = sprintf("r = %.2f", cor(ercot_daily$temp, ercot_daily$load)),
+           hjust = -0.1, vjust = 1.5, size = 3.85, fill = "white", alpha = 0.9, label.size = 0.25) +
+  labs(x = expression("Temperature ("*degree*"F)"), y = "Load (MW)")
+
+p_tsla | p_ercot
+```
+
+You almost surely picked the load-temperature relationship: load moves more predictably with temperature than Tesla does with the S&P 500. However, the two correlations are nearly identical: `r number(cor(returns$market, returns$TSLA), accuracy = 0.01)` for Tesla and S&P 500 and `r number(cor(ercot_daily$temp, ercot_daily$load), accuracy = 0.01)` for load and temperature.
+
+Correlation only measures linear relationships, but the load-temperature relationship is highly nonlinear. Electricity demand is highest when it's very hot or very cold, producing the U-shaped cloud in the right panel of @fig-corr-linear-only.
+
+### Correlation is sensitive to extreme observations {#sec-anscombe}
+
+Like the standard deviation and variance, correlation and covariance can be sensitive to outliers and extreme observations. A single extreme point can drag the correlation down, or manufacture a large correlation out of nothing. [Anscombe's quartet](https://en.wikipedia.org/wiki/Anscombe%27s_quartet), four small synthetic datasets that share the correlation $r = 0.82$, shows both failures in its bottom two panels:
+
+```{r}
+#| label: fig-anscombe
+#| fig-cap: "Anscombe's quartet: four datasets with identical correlation but very different relationships."
+#| fig-width: 6
+#| fig-height: 5
+data(anscombe)
+
+anscombe_long <- tibble(
+  set = rep(1:4, each = nrow(anscombe)),
+  x = c(anscombe$x1, anscombe$x2, anscombe$x3, anscombe$x4),
+  y = c(anscombe$y1, anscombe$y2, anscombe$y3, anscombe$y4)
+) |>
+  mutate(
+    set = factor(set, levels = 1:4, labels = paste("Set", 1:4)),
+    r = cor(x, y),
+    .by = set
+  )
+
+label_data <- anscombe_long |>
+  distinct(set, r) |>
+  mutate(
+    x = -Inf,
+    y = Inf,
+    label = sprintf("r = %.2f", r)
+  )
+
+ggplot(anscombe_long, aes(x = x, y = y)) +
+  geom_point(color = "steelblue", alpha = 0.8) +
+  geom_smooth(method = "lm", se = FALSE, color = "darkorange", linewidth = 0.8) +
+  geom_label(
+    data = label_data,
+    aes(x = x, y = y, label = label),
+    hjust = -0.1, vjust = 1.2, size = 3.85, fill = "white", alpha = 0.9, label.size = 0.25, inherit.aes = FALSE
+  ) +
+  facet_wrap(~set, ncol = 2) +
+  labs(x = "x", y = "y")
+```
+
+The top left panel shows a nice, tidy dataset where a linear relationship seems like a good approximation.
+In the top right panel is an extreme version of what we saw for the ERCOT data: correlation is misleading when the true relationship is nonlinear.
+In the bottom left panel, a single extreme observation obscures a perfectly linear trend among the other data points. In the bottom right panel, a single extreme observation creates the illusion of a linear trend where none exists. 
+
+### Correlation is not the slope {#sec-corr-linear-only}
+
+Correlation measures the *strength* and *direction* of a linear relationship, but not its *nature*. That is, it measures how close the points are to a straight line, and whether that line slopes up or down, but not the actual *value* of the slope or the intercept. Two datasets can have identical correlations but exhibit rather different linear relationships between the $x$ and $y$ variables on their natural scale.
+
+Let's see a real-data example. A common problem in finance is assessing how the returns on an individual stock move with the market as a whole. Correlation is one natural measure here, as the relationships tend to be close to linear and it answers the question "how tightly do these two assets move together?" in a way that is independent of the individual volatility (standard deviation) of the stock returns or the market index.
+
+The `returns` data cover `r nrow(returns)` weeks of returns on a couple dozen individual assets alongside the S&P 500. @fig-returns-f-vs-market plots Ford and Tesla returns against the market returns, as measured by the S&P 500.
+
+```{r}
+#| label: fig-returns-f-vs-market
+#| fig-cap: "Weekly returns on Ford (left) and Tesla (right) against the S&P 500, October 2023 to September 2025, drawn on identical axes. The two stocks are about equally coupled to the market --- the correlations are nearly the same --- but Tesla's cloud stretches much further in every direction."
+#| fig-width: 9
+#| fig-height: 4.6
+lim <- max(abs(c(returns$F, returns$TSLA, returns$market))) * 1.05
+
+returns_panel <- function(yvar, yname) {
+  r_val <- cor(returns$market, returns[[yvar]])
+  ggplot(returns, aes(x = market, y = .data[[yvar]])) +
+    geom_point(alpha = 0.7, color = "steelblue") +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "grey60") +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "grey60") +
+    geom_abline(intercept = 0, slope = 1, linetype = "dotted", color = "darkorange") +
+    annotate("label", x = -0.1, y = lim, label = sprintf("r = %.2f", r_val),
+             hjust = 0, vjust = 1, size = 3.85, fill = "white", alpha = 0.9, label.size = 0.25) +
+    scale_x_continuous(labels = percent_format(accuracy = 1)) +
+    scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(-lim, lim)) +
+    labs(x = "S&P 500 weekly return", y = paste(yname, "weekly return"))
+}
+
+returns_panel("F", "Ford") | returns_panel("TSLA", "Tesla")
+```
+
+Since the relationships are apparently close to linear, correlation gives us a way to measure how tightly each stock's returns are coupled to the market, irrespective of each stock's own volatility. In this case, the two correlations are nearly identical: `r number(cor(returns$market, returns$F), accuracy = 0.01)` for Ford and S&P 500 and `r number(cor(returns$market, returns$TSLA), accuracy = 0.01)` for Tesla and S&P 500. That is, the *strength* of the linear relationship between each stock's returns and the S&P 500 is essentially identical.
+
+The correlation doesn't tell us whether each stock's returns tend to be more or less extreme than the market return in any given week. That is radically different between the two stocks: the dotted diagonal line is the line $y=x$; a stock whose returns exactly tracked the market would have a scatterplot concentrated on this line. A stock whose returns were *usually* about the same as market returns would have a scatterplot concentrated around this line with some variability above and below. That's essentially what we see for Ford. Tesla, by contrast, tends to have returns that are very high when the market is high, and very low when the market is low --- not perfectly, not deterministically, but on average.
+
+We will see later on that Tesla's returns are much more volatile than Ford's, even though market returns account for a similar share of the week-to-week variation in each stock's returns. Correlation told us how tightly each stock tracks the market. If we want to know how big each stock's moves tend to be for a given market move, we need to look at the line of best fit.
+
+
+## The line of best fit {#sec-best-fit-line}
+
+An apparent linear relationship invites an obvious summary: draw the line. There is a standard recipe for choosing it --- the **line of best fit**, also called the least-squares line because it makes the average squared vertical distance from the points to the line as small as possible. We'll work with that criterion directly when we [build regression models later in these notes](regression_01_intro.qmd#sec-least-squares); here we simply note some of its properties. The best-fit line for predicting $y$ from $x$ has slope
+
+$$
+b = r \, \frac{s_y}{s_x}.
+$$
+
+In words, the slope is given by the correlation --- the strength of the linear relationship --- times an adjustment factor that accounts for the individual spread (and units) of the two variables. You'll remember from algebra that a slope is "rise over run": how much the *line* rises or falls for every one-unit increase in $x$.
+
+The line of best fit also predicts the average $y$ value at the average $x$ value, so it passes through the point $(\bar{x}, \bar{y})$. That pins down the intercept as 
+
+$$
+a = \bar{y} - b\,\bar{x}.
+$$
+
+```{r}
+#| label: austin-line-stats
+#| include: false
+r_austin <- cor(austin$living_area_sq_ft, austin$latest_price)
+b_austin <- r_austin * sd(austin$latest_price) / sd(austin$living_area_sq_ft)
+a_austin <- mean(austin$latest_price) - b_austin * mean(austin$living_area_sq_ft)
+b_lm <- coef(lm(latest_price ~ living_area_sq_ft, data = austin))[2]
+stopifnot(isTRUE(all.equal(unname(b_lm), b_austin)))
+
+#dollar(round(mean(austin$latest_price[austin$living_area_sq_ft >= 1675 & austin$living_area_sq_ft <= 1725])))
+
+```
+
+```{r}
+#| label: fig-austin-price-sqft-lm
+#| fig-cap: "The Austin price--size scatterplot with its line of best fit. The dashed lines mark the two sample means, and the fitted line passes exactly through their crossing point: at the average size, the line predicts the average price."
+#| fig-width: 7
+#| fig-height: 5
+xbar <- mean(austin$living_area_sq_ft)
+ybar <- mean(austin$latest_price)
+
+ggplot(austin, aes(x = living_area_sq_ft, y = latest_price)) +
+  geom_point(alpha = 0.3, color = "steelblue") +
+  geom_smooth(method = "lm", se = FALSE, color = "darkorange", linewidth = 1) +
+  geom_vline(xintercept = xbar, linetype = "dashed", color = "grey40") +
+  geom_hline(yintercept = ybar, linetype = "dashed", color = "grey40") +
+  annotate("label", x = xbar, y = 0,
+           label = paste0('bar(x) == "', comma(round(xbar)), ' sq ft"'),
+           parse = TRUE,
+           hjust = -0.05, vjust = 0, size = 3.6, color = "grey30", fill = "white", alpha = 0.9, label.size = 0.25) +
+  annotate("label", x = max(austin$living_area_sq_ft), y = ybar,
+           label = paste0('bar(y) == "', dollar(round(ybar)), '"'),
+           parse = TRUE,
+           hjust = 1, vjust = -0.5, size = 3.6, color = "grey30", fill = "white", alpha = 0.9, label.size = 0.25) +
+  annotate("label", x = min(austin$living_area_sq_ft), y = max(austin$latest_price),
+           hjust = 0, vjust = 1, size = 3.85, fill = "white", alpha = 0.9, label.size = 0.25,
+           label = sprintf("predicted price = %s + %s per sq ft",
+                            dollar(round(a_austin)), dollar(round(b_austin)))) +
+  scale_x_continuous(labels = comma_format()) +
+  scale_y_continuous(labels = dollar_format(scale = 1e-3, suffix = "K")) +
+  labs(x = "Living area (sq ft)", y = "Sale price")
+```
+
+When the relationship is close to linear, the points will appear randomly scattered above and below the line in about equal measure, and we can think about each point on the line as approximating the average sale price of all houses *of that size*. For example, the line predicts that a 1,700-square-foot house will sell for about `r dollar(round(a_austin + b_austin * 1700))`. There are only so many houses of that exact size in the data --- perhaps none in fact --- but if we take the average sale price of houses that are close to 1,700 sqft, say between 1675 and 1725, we get `r dollar(round(mean(austin$latest_price[austin$living_area_sq_ft >= 1675 & austin$living_area_sq_ft <= 1725])))` --- within about 4% of the prediction, and well inside the house-to-house variation among those `r sum(austin$living_area_sq_ft >= 1675 & austin$living_area_sq_ft <= 1725)` homes.
+
+Now let's return to the Ford and Tesla example. Here are the data again, this time with the line of best fit overlaid and annotated:
+
+```{r}
+#| label: fig-returns-f-vs-market-line
+#| fig-cap: "The Ford and Tesla panels again, now with each stock's line of best fit (solid orange) alongside the dotted y = x line. Both intercepts sit near zero, but the slopes differ sharply: Ford's fitted line hugs y = x while Tesla's is nearly twice as steep."
+#| fig-width: 9
+#| fig-height: 4.6
+lim <- max(abs(c(returns$F, returns$TSLA, returns$market))) * 1.05
+
+returns_panel <- function(yvar, yname) {
+  r_val <- cor(returns$market, returns[[yvar]])
+  b_val <- coef(lm(returns[[yvar]] ~ returns$market))[2]
+  ggplot(returns, aes(x = market, y = .data[[yvar]])) +
+    geom_point(alpha = 0.7, color = "steelblue") +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "grey60") +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "grey60") +
+    geom_abline(intercept = 0, slope = 1, linetype = "dotted", color = "darkorange") +
+    geom_smooth(method = "lm", se = FALSE, color = "darkorange") +
+    annotate("label", x = -0.1, y = lim, label = sprintf("r = %.2f", r_val),
+             hjust = 0, vjust = 1, size = 3.85, fill = "white", alpha = 0.9, label.size = 0.25) +
+    annotate("label", x = -0.1, y = lim * 0.82, label = sprintf("slope = %.2f", b_val),
+             hjust = 0, vjust = 1, size = 3.85, fill = "white", alpha = 0.9, label.size = 0.25) +
+    scale_x_continuous(labels = percent_format(accuracy = 1)) +
+    scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(-lim, lim)) +
+    labs(x = "S&P 500 weekly return", y = paste(yname, "weekly return"))
+}
+
+returns_panel("F", "Ford") | returns_panel("TSLA", "Tesla")
+```
+
+Both fitted lines have near-zero intercepts: on average, when the market is flat (0% return), so are Ford and Tesla. The slopes are very different, however: Ford's slope is very close to one, meaning on average we should expect its return to be about the market return. Tesla's slope is much steeper, meaning that on average we should expect its return to be nearly twice the market return. Tesla has high *market risk* --- it tends to exaggerate the overall market's movements. It also has much higher overall risk (volatility) than Ford (the standard deviation of Ford's weekly returns is `r percent(sd(returns$F), accuracy = 0.1)`, while Tesla's is `r percent(sd(returns$TSLA), accuracy = 0.1)`). If you have a background in finance, the slope of this line is (more or less) the "beta" ($\beta$) you already know (and "alpha" ($\alpha$) is --- roughly --- the intercept).
+
+What's going on? We'll see later that correlation tells us what share of the week-to-week variation in a stock's returns is accounted for by its linear relationship with the market. Tesla has both higher market risk (slope, $b$, or $\beta$) and greater overall volatility than Ford, but that share is about the same for the two stocks.
+
+## Visualizing nonlinear trends {#sec-nonlinear}
+
+When the relationship between the two variables is close to linear, the line of best fit is useful both as a numeric summary and as a visual guide. We'll see some examples of ways to construct numeric summaries of some special nonlinear relationships later, but for now we'll introduce a visual tool that can help us see the shape of a relationship without committing to any particular formula: a **smoother**. Here's an example using the ERCOT data:
+
+```{r}
+#| label: fig-ercot-load-temp
+#| fig-cap: "Daily average electricity demand versus daily average temperature in the DFW region, 2016--2020, with a smooth curve. At every temperature the curve passes through the middle of the nearby data; it is built by fitting straight lines to narrow temperature windows and stitching the results together."
+#| fig-width: 7
+#| fig-height: 5
+# Windowed running-line smoother. Keep h and the grid IDENTICAL to
+# working/loess_animation.R, which animates this exact construction.
+h <- 8
+x_grid <- seq(min(ercot_daily$temp) + h, max(ercot_daily$temp) - h, length.out = 80)
+
+local_fit <- function(x0) {
+  window <- filter(ercot_daily, abs(temp - x0) <= h)
+  fit <- lm(load ~ temp, data = window)
+  predict(fit, newdata = tibble(temp = x0))
+}
+smooth_df <- tibble(temp = x_grid, load = map_dbl(x_grid, local_fit))
+
+ggplot(ercot_daily, aes(x = temp, y = load)) +
+  geom_point(alpha = 0.3, size = 0.8, color = "grey50") +
+  geom_line(data = smooth_df, color = "steelblue", linewidth = 1.1) +
+  scale_y_continuous(labels = comma_format()) +
+  labs(x = expression("Temperature ("*degree*"F)"), y = "Load (MW)")
+```
+
+Here we see a smooth *curve* constructed such that it passes through the "middle" of the data --- the data points are roughly evenly scattered above and below the curve. There are many ways to construct such a curve, but a simple one is to fit lines or simple polynomials to small sections of data and then stitch them together. The mathematics aren't important here --- the animation below shows the process of constructing the smooth curve above:
+
+![Constructing the smooth curve. The shaded window slides across the temperature range; at each stop a straight line is fit to only the data inside the window (orange), and the height of that line at the window's center becomes one point on the curve. Stitching those points together traces out the smooth curve.](images/loess_construction.gif){#fig-loess-anim}
+
+It can be useful to overlay a smooth curve on a scatterplot even when the relationship is close to linear, because it can reveal subtle nonlinearities that the line of best fit misses. But we must be careful, particularly in small samples, to avoid over-reading apparent "wiggles" in the smooth curve. Here's the housing data again, with a smooth fit alongside the line of best fit:
+
+
+```{r}
+#| label: fig-austin-price-sqft-lm-smooth
+#| fig-cap: "The Austin price--size scatterplot again, with the line of best fit (orange) and a smooth curve (green)."
+#| fig-width: 7
+#| fig-height: 5
+xbar <- mean(austin$living_area_sq_ft)
+ybar <- mean(austin$latest_price)
+
+ggplot(austin, aes(x = living_area_sq_ft, y = latest_price)) +
+  geom_point(alpha = 0.3, color = "steelblue") +
+  geom_smooth(method = "lm", se = FALSE, color = "darkorange", linewidth = 1) +
+  geom_smooth(method = "loess", se = FALSE, color = "darkgreen", linewidth = 1) +
+  geom_vline(xintercept = xbar, linetype = "dashed", color = "grey40") +
+  geom_hline(yintercept = ybar, linetype = "dashed", color = "grey40") +
+  annotate("label", x = xbar, y = 0,
+           label = paste0('bar(x) == "', comma(round(xbar)), ' sq ft"'),
+           parse = TRUE,
+           hjust = -0.05, vjust = 0, size = 3.6, color = "grey30", fill = "white", alpha = 0.9, label.size = 0.25) +
+  annotate("label", x = max(austin$living_area_sq_ft), y = ybar,
+           label = paste0('bar(y) == "', dollar(round(ybar)), '"'),
+           parse = TRUE,
+           hjust = 1, vjust = -0.5, size = 3.6, color = "grey30", fill = "white", alpha = 0.9, label.size = 0.25) +
+  annotate("label", x = min(austin$living_area_sq_ft), y = max(austin$latest_price),
+           hjust = 0, vjust = 1, size = 3.85, fill = "white", alpha = 0.9, label.size = 0.25,
+           label = sprintf("predicted price = %s + %s per sq ft",
+                            dollar(round(a_austin)), dollar(round(b_austin)))) +
+  scale_x_continuous(labels = comma_format()) +
+  scale_y_continuous(labels = dollar_format(scale = 1e-3, suffix = "K")) +
+  labs(x = "Living area (sq ft)", y = "Sale price")
+```
+
+The smoother more or less traces the line of best fit, with deviations at either end where the data are a little sparser. These small deviations aren't necessarily evidence against a truly linear relationship; we'll cover diagnostics for nonlinearities later in these notes. For now: 1) the smooth curve can help your reader see the nature of the relationship between the two variables without making any particularly strong assumptions about what the relationship is, and 2) the smooth curve will generally not be a straight line, even for truly linear relationships --- it's best thought of as a visual aid.
+
+<!---
+## Time as the x-variable: time series {#sec-time-series}
+
+One scatterplot is so common it has its own name and conventions: put time on the horizontal axis and you have a **time series plot**. Because the observations arrive in order --- hour after hour, week after week --- we connect consecutive points with a line, and the line is the point. @fig-ercot-load-daily shows daily average demand on the DFW grid over five years.
+
+```{r}
+#| label: fig-ercot-load-daily
+#| fig-cap: "Daily average electricity demand, DFW region, 2016--2020. The annual rhythm --- summer peaks, mild-season troughs, and a secondary winter bump --- is invisible in a histogram of the same values."
+#| fig-width: 8
+#| fig-height: 4.5
+ercot |>
+  summarize(avg_load = mean(LOAD, na.rm = TRUE), .by = date) |>
+  ggplot(aes(x = date, y = avg_load)) +
+  geom_line(linewidth = 0.3, color = "steelblue") +
+  scale_y_continuous(labels = comma_format()) +
+  labs(x = NULL, y = "Load (MW)")
+```
+
+This is the same variable whose histogram we drew in @sec-symmetric-skewed, and the comparison is instructive. The histogram showed right skew --- most days moderate, some days extreme --- but said nothing about *when* the extremes happen. The time series shows they aren't scattered at random at all: demand peaks every summer like clockwork, bottoms out in spring and fall, and bumps up again each winter. Ordering the observations in time reveals structure that summarizing their distribution destroys. Whenever data come with timestamps, plot them in time order at least once.
+
+Time series also come with a transformation question we've been circling since @sec-returns: should you plot the *level* of a series or its *changes*? The weekly returns we've used all along are percent changes of an underlying price. Going the other direction, we can rebuild the price path from the returns --- start an index at 100 and compound it week by week --- and compare the two views of the same history. @fig-sp500-level-vs-returns stacks them.
+
+```{r}
+#| label: fig-sp500-level-vs-returns
+#| fig-cap: "Two views of the same two years of the S&P 500. Top: the price level (indexed to 100 at the start), showing the trend and cumulative outcome. Bottom: weekly returns, showing volatility --- including the sharp drawdown and rebound in spring 2025 that the level plot compresses into a dip."
+#| fig-width: 7.5
+#| fig-height: 7
+sp <- returns |>
+  arrange(date) |>
+  mutate(price_index = 100 * cumprod(1 + market))
+
+p_level <- ggplot(sp, aes(x = date, y = price_index)) +
+  geom_line(color = "steelblue", linewidth = 0.6) +
+  labs(x = NULL, y = "Price index (start = 100)")
+
+p_ret <- ggplot(sp, aes(x = date, y = market)) +
+  geom_line(color = "steelblue", linewidth = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(x = NULL, y = "Weekly return")
+
+p_level / p_ret
+```
+
+Each panel makes something easy that the other makes hard. The level plot answers the investor's bottom-line questions at a glance: the index ends near `r number(tail(sp$price_index, 1), accuracy = 1)`, so a dollar invested at the start grew about `r percent(tail(sp$price_index, 1)/100 - 1, accuracy = 1)` over the two years, and you can see when the growth came. But it compresses the drama --- the spring 2025 drawdown reads as a modest dip. The returns plot stretches that dip into what it was: the worst week in the sample, a drop of `r percent(min(sp$market), accuracy = 0.1)`, surrounded by weeks of unusually violent swings in both directions. The returns view also makes different eras comparable. A 50-point move means something entirely different at index level 100 than at 150, but a 3% week is a 3% week anywhere in the series, which is why statistical analysis of financial data almost always works with returns rather than prices. Levels for the trend and the destination; changes for the volatility and the comparisons.
+
+-->
+
+## Data used in this section {.unnumbered}
+
+- [Austin House Listings](appendix_data.qmd#sec-data-housing-kaggle)
+- [CPS ASEC Earnings](appendix_data.qmd#sec-data-earnings-cps)
+- [Weekly Asset Returns (2023–2025)](appendix_data.qmd#sec-data-returns-2025)
+- [ERCOT Hourly Load and Temperature Panel](appendix_data.qmd#sec-data-ercot-shaffer)

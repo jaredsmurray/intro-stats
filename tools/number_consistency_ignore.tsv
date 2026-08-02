@@ -1,0 +1,25 @@
+# Adjudicated-as-fine precision differences, read by tools/check_number_consistency.R.
+#
+# A quantity shown at two precisions is usually drift, but not always: an
+# equation may carry more decimals than the sentence that paraphrases it, on
+# purpose. Once a pair has been ruled on, record it here and it stays quiet.
+#
+# The file also silences RECONSTRUCTIBLE FIGURE VALUE findings, which flag a
+# risk rather than a proven mismatch: the checker reads source and never
+# evaluates, so it cannot tell whether the arithmetic closes at the displayed
+# precision. Suppress one only after checking the rendered numbers, and say in
+# the note what they were -- if the data behind them is ever refreshed, that
+# record is the only way to know the closure still holds.
+#
+# file	the repo-relative .qmd
+# expr	the expression exactly as the checker prints it after PRECISION DRIFT:
+#     	or RECONSTRUCTIBLE FIGURE VALUE:
+# note	why this one is deliberate -- required, so a future reader can re-open it
+#
+# Tab-separated. Lines starting with # are ignored.
+file	expr	note
+regression_01_intro.qmd	pb[[2]]	The equation and the 0.133-to-0.134 comparison need three decimals (the point is that the coefficient barely moves); the prose bullet says "about 0.13" to match the regression table.
+slides/08_regression.qmd	pb[[2]]	Same passage as regression_01_intro.qmd, same reason.
+prob_04_normal.qmd	1 - pnorm(0, mu_r, sd_r)	fig-returns-normal-probs. Verified 2026-07-29: Pr(R<0) = 0.412387 shows as 0.41, Pr(R>=0) = 0.587613 shows as 0.59, and 1 - 0.41 = 0.59. Closes.
+prob_04_normal.qmd	pnorm(0.015, mu_r, sd_r) - pnorm(-0.015, mu_r, sd_r)	fig-interval-two-ways, top row. Verified 2026-07-29: 0.687067 shows as 0.69, 0.176090 as 0.18, difference 0.510977 as 0.51, and 0.69 - 0.18 = 0.51. Closes. This is the old Figure 13.4 mismatch, fixed by moving the interval from 2% to 1.5%.
+prob_04_normal.qmd	pnorm(-0.015, mu_r, sd_r) + 1 - pnorm(0.015, mu_r, sd_r)	fig-interval-two-ways, bottom row. Verified 2026-07-29: the two tails total 0.489023 and show as 0.49, and 1 - 0.49 = 0.51, matching the top row's shaded middle. Closes.

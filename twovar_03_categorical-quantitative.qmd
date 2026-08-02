@@ -1,0 +1,298 @@
+---
+title: "A Quantitative Variable Across Groups"
+---
+
+```{r}
+#| label: setup
+#| include: false
+#| echo: false
+library(tidyverse)
+library(scales)
+library(patchwork)
+
+# Figures render at their intrinsic size (fig-width x 96px), capped by the
+# ~702px content column -- they are never upscaled to fill it. So axis text
+# lands at its true point size, and base_size, not fig-width, is what makes it
+# legible next to 17px body text. At 13, tick labels are ~14px.
+theme_set(theme_minimal(base_size = 13))
+
+austin <- read_csv("data/austin_houses/austin_houses_subset.csv",
+                   show_col_types = FALSE) |>
+  mutate(zipcode = factor(zipcode))
+
+austin_full <- read_csv("data/austin_houses/austin_houses.csv",
+                        show_col_types = FALSE)
+austin_full_display <- austin_full |>
+  add_count(zipcode) |>
+  filter(n >= 30)
+austin_trim_count <- sum(austin_full_display$latest_price >= 2.5e6)
+
+kroger <- read_csv("data/kroger_cheese/kroger.csv",
+                   show_col_types = FALSE)
+
+mincer <- read_csv("data/mincer/cps_asec_2023.csv",
+                   show_col_types = FALSE) |>
+  mutate(educ_bin = case_when(
+    educ_years < 12  ~ "Less than HS",
+    educ_years == 12 ~ "HS diploma",
+    educ_years >= 13 & educ_years <= 15 ~ "Some college",
+    educ_years == 16 ~ "Bachelor's",
+    educ_years > 16  ~ "Graduate"
+  ) |> factor(levels = c("Less than HS", "HS diploma", "Some college",
+                         "Bachelor's", "Graduate")))
+
+codelines <- read_csv("data/bloom_wfh/codelines.csv",
+                      show_col_types = FALSE) |>
+  mutate(treatment = factor(treat, levels = c(0, 1),
+                            labels = c("Control", "Hybrid WFH")))
+```
+
+One combination of variable types remains: a quantitative variable paired with a categorical one. House prices across ZIP codes, wages across education levels, output across the arms of an experiment --- in each case the categorical variable splits the data into groups, and the question is typically how the quantitative variable's distribution differs from group to group. Every tool from the single-variable chapters --- means, medians, standard deviations, histograms, density plots --- still applies; the move is to compute them *within each group* and put the results side by side in a way that preserves meaningful interpretations.
+
+## Summary statistics by group {#sec-group-summaries}
+
+For computing numeric summaries, we calculate the same statistics as in @sec-measures-center and report them by group. @tbl-austin-price-by-zip does this for sale prices in the three-ZIP Austin subset.
+
+```{r}
+#| label: tbl-austin-price-by-zip
+#| tbl-cap: "Sale price by ZIP code in the Austin subset. Each row summarizes one group's distribution: its center (mean and median), its spread (standard deviation), and its size. The final row pools all three ZIPs."
+#| echo: false
+zip_stats <- austin |>
+  group_by(zipcode) |>
+  summarise(mean = mean(latest_price),
+            median = median(latest_price),
+            sd = sd(latest_price),
+            n = n())
+
+zip_stats |>
+  mutate(zipcode = as.character(zipcode)) |>
+  bind_rows(austin |>
+              summarise(zipcode = "**Overall**",
+                        mean = mean(latest_price),
+                        median = median(latest_price),
+                        sd = sd(latest_price),
+                        n = n())) |>
+  mutate(across(c(mean, median, sd), \(x) dollar(round(x))),
+         n = comma(n)) |>
+  rename(`ZIP code` = zipcode, Mean = mean, Median = median,
+         `Std. dev.` = sd, Homes = n) |>
+  knitr::kable(align = c("l", "r", "r", "r", "r"))
+```
+
+If possible, we want to use a meaningful ordering in a table like this. Here it happens to be that sorting by the mean, median, or standard deviation all give the same order as simply sorting by ZIP code. Were this not the case, we would want to choose an order that is meaningful, just like in @sec-viz-two-cat.
+
+<!--
+## The overall mean is a weighted average of group means {#sec-weighted-mean}
+
+Group means and the overall mean are linked by a piece of arithmetic that looks minor and turns out to be load-bearing. If group $g$ contains $n_g$ of the $n$ observations and has mean $\bar{x}_g$, then
+
+$$
+\bar{x} = \sum_{g} \frac{n_g}{n} \, \bar{x}_g.
+$$
+
+In words: the overall mean is the average of the group means, with each group weighted by its share of the data. The check on the Austin numbers takes one line. The three ZIPs hold `r percent(zip_stats$n[1] / sum(zip_stats$n), accuracy = 0.1)`, `r percent(zip_stats$n[2] / sum(zip_stats$n), accuracy = 0.1)`, and `r percent(zip_stats$n[3] / sum(zip_stats$n), accuracy = 0.1)` of the homes, and weighting each group's mean by those shares gives `r dollar(round(sum(zip_stats$mean * zip_stats$n) / sum(zip_stats$n)))` --- exactly the overall mean, `r dollar(round(mean(austin$latest_price)))`.
+
+The formula explains why the overall mean of `r dollar(round(mean(austin$latest_price)))` sits so far below the expensive ZIP's mean of `r dollar(round(zip_stats$mean[zip_stats$zipcode == "78731"]))`: the two cheaper ZIPs hold nearly two-thirds of the homes, and their weight drags the overall figure toward them. A big group pulls the average its way regardless of how the small groups behave, which is worth remembering any time someone quotes a single overall number for data you know is a mix of very different groups. It is also worth filing away the *shape* of this formula --- a weighted average of values, weighted by how frequently each occurs. When we get to probability, the expected value of a random variable will be built from exactly this template.
+-->
+
+<!-- TODO: Downey's "old optimists / young pessimists" Simpson's-paradox example
+     (https://www.allendowney.com/blog/2021/04/27/old-optimists-and-young-pessimists/)
+     Fits here: the weighted-average decomposition is exactly why pooled and
+     within-group comparisons can disagree when group shares shift. -->
+
+## Box plots and violin plots by group {#sec-box-violin-by-group}
+
+A table is most useful if precise numeric values are important, but often we are trying to communicate broader, overall patterns and in that case there's no substitute for plots. This is where box and violin plots are most useful --- their compactness makes it relatively easy to compare many groups at once. Here are the box plots for each ZIP code:
+
+```{r}
+#| label: fig-austin-price-zip-box
+#| fig-cap: "Sale price by ZIP code. Each box shows one group's median, quartiles, and outliers on a common scale; across ZIPs the boxes shift upward and widen."
+#| fig-width: 7
+#| fig-height: 4.5
+ggplot(austin, aes(x = zipcode, y = latest_price)) +
+  geom_boxplot(fill = "steelblue", alpha = 0.5, outlier.alpha = 0.3) +
+  scale_y_continuous(labels = dollar_format(scale = 1e-3, suffix = "K")) +
+  labs(x = "ZIP code", y = "Sale price")
+```
+
+And here are violin plots, which convey more detailed information about the distribution of prices in each ZIP code (at the cost of a busier visual display):
+
+```{r}
+#| label: fig-austin-price-zip-violin
+#| fig-cap: "The same comparison as violin plots, with a compact box plot inside each violin. The violins add the density shape the boxes hide --- 78723's long right tail, for instance."
+#| fig-width: 7
+#| fig-height: 4.5
+ggplot(austin, aes(x = zipcode, y = latest_price)) +
+  geom_violin(fill = "steelblue", alpha = 0.3) +
+  geom_boxplot(width = 0.1, fill = "white", outlier.alpha = 0.3) +
+  scale_y_continuous(labels = dollar_format(scale = 1e-3, suffix = "K")) +
+  labs(x = "ZIP code", y = "Sale price")
+```
+
+
+The full housing dataset has `r n_distinct(austin_full$zipcode)` ZIP codes; with a large number of groups it can be useful to flip the axes and sort by a meaningful summary statistic, like the median price (given the apparent skew):
+
+```{r}
+#| label: fig-austin-price-allzips-box
+#| fig-cap: !expr 'paste0("Sale price by ZIP code across the full Austin dataset, sorted by median price. ZIP codes with fewer than 30 sales are dropped, and ", comma(austin_trim_count), " sales at or above $2.5 million are trimmed so the axis stays readable.")'
+#| fig-width: 7.5
+#| fig-height: 8
+austin_full_display |>
+  filter(latest_price < 2.5e6) |>
+  mutate(zipcode = fct_reorder(factor(zipcode), latest_price, .fun = median)) |>
+  ggplot(aes(x = zipcode, y = latest_price)) +
+  geom_boxplot(fill = "steelblue", alpha = 0.5, outlier.alpha = 0.2,
+               outlier.size = 0.6) +
+  coord_flip() +
+  scale_y_continuous(labels = dollar_format(scale = 1e-3, suffix = "K")) +
+  labs(x = NULL, y = "Sale price")
+```
+
+If some groups are very small, the box and violin plots can be misleading. Before reading too much into strange-looking distributions for any group, check the group size. In the full Austin data, `r sum(count(austin_full, zipcode)$n < 20)` of the `r n_distinct(austin_full$zipcode)` ZIP codes have fewer than 20 sales (and `r sum(count(austin_full, zipcode)$n == 1)` have exactly one). For this crowded display, 30 is a practical cutoff rather than a general rule. Another option is to combine the small groups into an "Other" category; this option makes the most sense when the collapsed categories are similar in some way other than their small sample size.
+
+## Small multiples {#sec-small-multiples}
+
+Boxes and violins compress each group's distribution to fit many on one axis. The alternative is to give every group its own small panel --- a layout called **small multiples** --- drawing the same plot in miniature, once per group. Here are the three ZIP codes included in the small Austin houses dataset:
+
+```{r}
+#| label: fig-austin-price-zip-density
+#| fig-cap: "Density of sale price by ZIP code as small multiples. Every panel uses the same horizontal axis, so shifts in location and spread read as shifts in position and width."
+#| fig-width: 8
+#| fig-height: 3.2
+ggplot(austin, aes(x = latest_price)) +
+  geom_density(fill = "steelblue", alpha = 0.5) +
+  facet_wrap(vars(zipcode)) +
+  scale_x_continuous(labels = dollar_format(scale = 1e-3, suffix = "K")) +
+  labs(x = "Sale price", y = "Density")
+```
+
+And again, in the full dataset:
+
+```{r}
+#| label: fig-austin-price-allzips-density
+#| fig-cap: !expr 'paste0("Density of sale price by ZIP code across the full Austin dataset, with panels ordered from highest median price to lowest. The same restrictions as the sorted box plot apply: ZIP codes with fewer than 30 sales are dropped and ", comma(austin_trim_count), " sales at or above $2.5 million are trimmed.")'
+#| fig-width: 9
+#| fig-height: 8
+austin_full_display |>
+  filter(latest_price < 2.5e6) |>
+  mutate(zipcode = fct_reorder(factor(zipcode), latest_price,
+                               .fun = median, .desc = TRUE)) |>
+  ggplot(aes(x = latest_price)) +
+  geom_density(fill = "steelblue", alpha = 0.5) +
+  facet_wrap(vars(zipcode), ncol = 6, scales = "free_y") +
+  scale_x_continuous(labels = dollar_format(scale = 1e-3, suffix = "K"),
+                     breaks = c(0, 1e6, 2e6)) +
+  labs(x = "Sale price", y = "Density") +
+  theme_minimal(base_size = 9) +
+  theme(axis.text.y = element_blank())
+```
+
+As in the stacked bar and box plots we've already seen, it's a good idea to apply a meaningful order to the panels.
+
+Let's see another example: The `kroger` data records weekly sales of packaged, sliced American cheese at Kroger grocery stores in 11 U.S. cities --- Atlanta, Birmingham, Cincinnati, Columbus, Dallas, Detroit, Houston, Indianapolis, Louisville, Nashville, and Roanoke. We have `r comma(nrow(kroger))` store-week observations with four variables: the sales volume `vol` (packages sold that week), the retail `price` per package, whether the store ran an in-store promotional display that week (`disp`), and the `city`. A retailer's first question is how sales differ across its markets, and that is a quantitative-by-categorical question with 11 groups. @tbl-kroger-vol-by-city starts with the numbers.
+
+```{r}
+#| label: tbl-kroger-vol-by-city
+#| tbl-cap: "Weekly cheese sales volume by city, sorted by median."
+#| echo: false
+kroger |>
+  group_by(city) |>
+  summarise(mean = mean(vol), median = median(vol), sd = sd(vol), n = n()) |>
+  arrange(desc(median)) |>
+  mutate(across(c(mean, median, sd), \(x) comma(round(x)))) |>
+  rename(City = city, Mean = mean, Median = median,
+         `Std. dev.` = sd, Weeks = n) |>
+  knitr::kable(align = c("l", "r", "r", "r", "r"))
+```
+
+```{r}
+#| label: fig-kroger-vol-city-box
+#| fig-cap: "Weekly sales volume by city, sorted by median volume. With 11 groups, horizontal boxes keep the city labels readable --- the same trick we used for long category lists in bar charts."
+#| fig-width: 7.5
+#| fig-height: 5.5
+kroger |>
+  mutate(city = fct_reorder(city, vol, .fun = median)) |>
+  ggplot(aes(x = city, y = vol)) +
+  geom_boxplot(fill = "steelblue", alpha = 0.5, outlier.alpha = 0.3) +
+  coord_flip() +
+  scale_y_continuous(labels = comma_format()) +
+  labs(x = NULL, y = "Weekly volume (packages)")
+```
+
+The boxes rank the markets cleanly, but 11 compressed boxes start to hide shape. @fig-kroger-vol-city-hist spreads the same groups into small multiples, this time using histograms:
+
+```{r}
+#| label: fig-kroger-vol-city-hist
+#| fig-cap: "Weekly sales volume by city as small multiples, on a shared horizontal axis. Beyond the location differences, the shapes differ: Birmingham is a narrow spike, while Columbus and Dallas are wide and lumpy."
+#| fig-width: 9
+#| fig-height: 7
+kroger |>
+  mutate(city = fct_reorder(city, vol, .fun = median, .desc = TRUE)) |>
+  ggplot(aes(x = vol)) +
+  geom_histogram(bins = 25, fill = "steelblue", color = "white") +
+  facet_wrap(vars(city), scales = "free_y") +
+  scale_x_continuous(labels = comma_format()) +
+  labs(x = "Weekly volume (packages)", y = "Count")
+```
+
+The small multiples idea extends to any plot type; small multiples of scatter plots, for example, provide a quick look at how associations between two variables change across groups. We'll see that in the next chapter, along with other techniques for visualizing more than two variables at once.
+
+<!---
+## Two more examples {#sec-quant-cat-examples}
+
+Wages and education gave us a scatterplot in the last chapter, with years of education on the horizontal axis. Grouping offers a second view of the same relationship: bin the years into five familiar credentials --- less than high school, a high-school diploma, some college, a bachelor's degree, a graduate degree --- and wage-by-education becomes a quantitative variable across five groups.
+
+```{r}
+#| label: tbl-mincer-wage-by-educ
+#| tbl-cap: "Hourly wages of full-time U.S. workers by education level (2023 CPS). Both the center and the spread of wages rise with education."
+#| echo: false
+educ_stats <- mincer |>
+  group_by(educ_bin) |>
+  summarise(mean = mean(hrly_wage), median = median(hrly_wage),
+            sd = sd(hrly_wage), n = n())
+
+educ_stats |>
+  mutate(across(c(mean, median, sd), \(x) dollar(x, accuracy = 0.01)),
+         n = comma(n)) |>
+  rename(Education = educ_bin, Mean = mean, Median = median,
+         `Std. dev.` = sd, Workers = n) |>
+  knitr::kable(align = c("l", "r", "r", "r", "r"))
+```
+
+```{r}
+#| label: fig-mincer-wage-educ-box
+#| fig-cap: "Hourly wage by education level, trimmed to wages under $150/hr for legibility. The whole distribution --- median, quartiles, and the reach of the upper tail --- shifts upward with each credential."
+#| fig-width: 7.5
+#| fig-height: 4.5
+mincer |>
+  filter(hrly_wage <= 150) |>
+  ggplot(aes(x = educ_bin, y = hrly_wage)) +
+  geom_boxplot(fill = "steelblue", alpha = 0.5, outlier.alpha = 0.1) +
+  scale_y_continuous(labels = dollar_format()) +
+  labs(x = NULL, y = "Hourly wage")
+```
+
+The march upward is steady and steep: median wages run from `r dollar(educ_stats$median[educ_stats$educ_bin == "Less than HS"], accuracy = 0.01)` an hour for workers without a high-school diploma to `r dollar(educ_stats$median[educ_stats$educ_bin == "Graduate"], accuracy = 0.01)` for those with graduate degrees. The spread marches with it --- the standard deviation among graduate-degree holders (`r dollar(round(educ_stats$sd[educ_stats$educ_bin == "Graduate"]))`) is nearly double that among high-school graduates (`r dollar(round(educ_stats$sd[educ_stats$educ_bin == "HS diploma"]))`). That is the fanning-out we saw in the last chapter's scatterplot, reappearing as a row of growing standard deviations. Education raises the middle of the wage distribution and widens the range of outcomes around it; what it buys, statistically, is a better draw from a more variable deck.
+
+The work-from-home experiment supplies a last example, and it completes a story. Two chapters ago we found that hybrid work cut attrition sharply. The natural worry --- the reason firms resist remote work --- is that the retention gain comes at the cost of output. The `codelines` file records a direct output measure for the engineers in the experiment: lines of code written, tracked daily, for `r comma(nrow(codelines))` engineer-days. Following the original study we work with `log2_codelines_1`, the (log-transformed) daily line count, which tames the extreme right skew that raw production counts always carry --- the same move we made for wages in @sec-logarithms.
+
+```{r}
+#| label: fig-bloom-codelines-treat
+#| fig-cap: "Daily coding output (log scale) by experimental group. The tall bar at zero in both panels is days with no code committed --- meetings, reviews, leave. The two distributions are nearly indistinguishable."
+#| fig-width: 8
+#| fig-height: 3.8
+codelines |>
+  ggplot(aes(x = log2_codelines_1)) +
+  geom_histogram(aes(y = after_stat(density)),
+                 bins = 30, fill = "steelblue", color = "white") +
+  facet_wrap(vars(treatment)) +
+  labs(x = "log2(lines of code + 1)", y = "Density")
+```
+
+To my eye the two panels are the same picture: the same tall spike at zero (days with no commits are a normal part of an engineer's week in both groups), the same hump of productive days, the same right edge. The group means confirm it --- `r number(mean(codelines$log2_codelines_1[codelines$treat == 1], na.rm = TRUE), accuracy = 0.01)` for the hybrid group against `r number(mean(codelines$log2_codelines_1[codelines$treat == 0], na.rm = TRUE), accuracy = 0.01)` for the control, a difference of `r number(mean(codelines$log2_codelines_1[codelines$treat == 1], na.rm = TRUE) - mean(codelines$log2_codelines_1[codelines$treat == 0], na.rm = TRUE), accuracy = 0.01)` on a log scale, if anything slightly *favoring* the hybrid group. Taken together with the attrition result, the experiment's headline writes itself: hybrid work retained more employees and cost nothing measurable in output. Whether a difference this small is distinguishable from zero --- and how sure we can be --- is precisely the kind of question the inference chapters ahead are built to answer.
+--->
+
+## Data used in this section {.unnumbered}
+
+- [Austin House Listings](appendix_data.qmd#sec-data-housing-kaggle)
+- [Kroger Packaged Cheese Sales](appendix_data.qmd#sec-data-kroger-cheese)

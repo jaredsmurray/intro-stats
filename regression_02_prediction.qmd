@@ -1,0 +1,317 @@
+---
+title: "Measuring Prediction Error"
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(scales)
+library(patchwork)
+
+# Figures render at their intrinsic size (fig-width x 96px), capped by the
+# ~702px content column -- they are never upscaled to fill it. So axis text
+# lands at its true point size, and base_size, not fig-width, is what makes it
+# legible next to 17px body text. At 13, tick labels are ~14px.
+theme_set(theme_minimal(base_size = 13))
+
+source("R/pkg/model_table.R")
+
+austin <- read_csv("data/austin_houses/austin_houses_subset.csv", show_col_types = FALSE)
+profs <- read_csv("data/hamermesh_evals/hamermesh_evals.csv", show_col_types = FALSE)
+
+fit <- lm(latest_price ~ living_area_sq_ft, data = austin)
+fit_beds <- lm(latest_price ~ num_of_bedrooms, data = austin)
+fit_both <- lm(latest_price ~ living_area_sq_ft + num_of_bedrooms, data = austin)
+
+# Two low-R^2 examples used in the discussion below, tabulated at the end of the
+# chapter
+fit_age <- lm(latest_price ~ age, data = austin)
+fit_beauty <- lm(eval ~ beauty, data = profs)
+r2_age <- summary(fit_age)$r.squared
+r2_beauty <- summary(fit_beauty)$r.squared
+beauty_slope_ci <- confint(fit_beauty)["beauty", ]
+
+austin_model <- austin |>
+  mutate(
+    fitted = predict(fit),
+    residual = resid(fit),
+    null_fitted = mean(latest_price),
+    null_residual = latest_price - null_fitted
+  )
+
+rse <- summary(fit)$sigma
+r2 <- summary(fit)$r.squared
+r2_beds <- summary(fit_beds)$r.squared
+r2_both <- summary(fit_both)$r.squared
+rse_both <- summary(fit_both)$sigma
+sd_price <- sd(austin_model$latest_price)
+resid_var <- var(austin_model$residual)
+price_var <- var(austin_model$latest_price)
+slope_area <- coef(fit)[["living_area_sq_ft"]]
+slope_area_both <- coef(fit_both)[["living_area_sq_ft"]]
+
+# The R^2 bookkeeping identities used in prose, computed and asserted here so
+# the text can never drift from the numbers.
+adj_r2 <- summary(fit)$adj.r.squared
+r2_rse_ratio <- 1 - (rse / sd_price)^2
+sse <- sum(austin_model$residual^2)
+sst <- sum((austin_model$latest_price - mean(austin_model$latest_price))^2)
+r2_plain <- 1 - sse / sst
+r2_corr <- cor(austin_model$latest_price, austin_model$fitted)^2
+stopifnot(
+  isTRUE(all.equal(r2_rse_ratio, adj_r2)),
+  isTRUE(all.equal(r2_plain, r2)),
+  isTRUE(all.equal(r2_corr, r2))
+)
+
+positive_house <- austin_model |>
+  filter(residual > 0) |>
+  slice_max(residual, n = 1, with_ties = FALSE)
+
+negative_house <- austin_model |>
+  filter(residual < 0) |>
+  slice_min(residual, n = 1, with_ties = FALSE)
+
+example_houses <- bind_rows(
+  positive_house |> mutate(residual_type = "Positive residual"),
+  negative_house |> mutate(residual_type = "Negative residual")
+)
+
+line_data <- tibble(
+  living_area_sq_ft = seq(
+    quantile(austin$living_area_sq_ft, 0.02, na.rm = TRUE),
+    quantile(austin$living_area_sq_ft, 0.98, na.rm = TRUE),
+    length.out = 200
+  )
+) |>
+  mutate(latest_price = predict(fit, newdata = pick(everything())))
+```
+
+The residuals of the last chapter measure prediction error one house at a time. This chapter summarizes them into overall measures of how well a regression predicts.
+
+Two measures are commonly used to quantify how well a linear regression predicts the outcome variable: the residual standard error (RSE) and $R^2$. The RSE is an absolute measure of prediction error, while $R^2$ is a relative measure. We outline each below, and compare them along the way.
+
+## The typical prediction error: Residual standard error {#sec-rse}
+
+A single residual tells us how wrong one prediction was. Most statistical software summarizes their typical size as the **residual standard error (RSE)**.
+
+:::: {.Definition #defn-rse}
+## Residual standard error
+
+The residual standard error is the standard deviation of the residuals --- the typical size of a prediction error, in the outcome's original units.
+::::
+
+Software computes the RSE with a slightly different divisor than the $n-1$ in the ordinary standard deviation: it subtracts the number of estimated coefficients instead. The difference never matters. When $n$ is much larger than the number of coefficients both divisors agree, and when it isn't, no estimate of the error variance is reliable anyway.
+
+::: {.callout-note}
+## Key idea: Three kinds of "typical" error
+
+A standard deviation is the typical departure of a value from its mean. A [standard error](inference_01_sampling-distributions.qmd#sec-sampling-ci) is the typical size of an *estimation* error --- how far a statistic like $\bar{x}$ lands from the parameter it estimates. A residual standard error is the typical size of a *prediction* error --- how far outcomes land from the model's predictions. The names are similar; the questions are different. A standard error shrinks toward zero as $n$ grows, because estimates improve with more data. The RSE does not, because more data doesn't make individual sale prices any less variable.
+:::
+
+For the Austin model, the RSE is `r dollar(rse, accuracy = 1)`. Predictions from area alone therefore miss the observed sale prices by about `r dollar(rse, accuracy = 1000)` in a typical case. The direction varies; the RSE describes error size. Any statistical software will report the RSE (sometimes under a different name, like "residual standard deviation" or "sigma") alongside the fitted coefficients, as in @tbl-rse-price-area.
+
+```{r}
+#| label: tbl-rse-price-area
+#| tbl-cap: "The Austin model of price on living area. The residual standard error appears below the coefficients."
+
+coef_table(
+  fit,
+  fmt = label_dollar(accuracy = 1),
+  coef_map = c(
+    "(Intercept)" = "Intercept",
+    "living_area_sq_ft" = "Living area (sq ft)"
+  )
+)
+```
+
+@fig-residual-distribution connects that number to the residuals themselves. The left panel shows two houses' vertical prediction errors, and the right panel shows the distribution of all errors.
+
+```{r}
+#| label: fig-residual-distribution
+#| fig-cap: !expr paste0("Prediction errors from the area model. The residual standard error is ", dollar(rse, accuracy = 1000), ".")
+#| fig-width: 10
+#| fig-height: 4.5
+
+p_fit <- ggplot(austin_model, aes(living_area_sq_ft, latest_price)) +
+  geom_point(color = "gray60", alpha = 0.25) +
+  geom_smooth(method = "lm", se = FALSE, color = "steelblue", linewidth = 1) +
+  geom_segment(
+    data = example_houses,
+    aes(xend = living_area_sq_ft, yend = fitted),
+    color = "darkorange",
+    linewidth = 1
+  ) +
+  scale_x_continuous(labels = comma) +
+  scale_y_continuous(labels = dollar) +
+  labs(x = "Living area (square feet)", y = "Sale price")
+
+p_resid <- ggplot(austin_model, aes(residual)) +
+  geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_vline(xintercept = c(-rse, rse), color = "darkorange", linewidth = 0.9) +
+  annotate("text", x = rse, y = Inf, label = "RSE", vjust = 1.5, hjust = -0.1, color = "darkorange") +
+  scale_x_continuous(labels = dollar) +
+  labs(x = "Residual", y = "Number of homes")
+
+p_fit + p_resid
+```
+
+## The proportion of variance "explained": $R^2$ {#sec-r-squared}
+
+The RSE gives us a direct, absolute measurement of the size of a typical prediction error. $R^2$ gives us a *relative* measure instead, by comparing the RSE to the standard deviation of the outcome variable. Remember, the standard deviation of prices measures how unpredictable the sale price is when we don't know anything about the house at all. The RSE --- the standard deviation of the residuals --- measures how unpredictable the sale price is *after* we know the house's living area, provided the relationship is close to linear. Comparing the two gives us a measure of how strong the linear relationship is; the stronger the linear relationship, the smaller the RSE is *relative to* the standard deviation of prices.
+
+Comparing the two is actually equivalent to comparing the residuals from two linear models: One where the slope is artificially set to zero, so there is only an intercept --- the **null model** --- and one where the slope is estimated from the data. @fig-r2-comparison shows both.
+
+```{r}
+#| label: fig-r2-comparison
+#| fig-cap: !expr 'paste0("Two sets of prediction errors. Left: the null model, predicting every house at the mean price; the standard deviation of the prediction errors is the ordinary standard deviation of prices, ", dollar(sd_price, accuracy = 1000), ". Right: predicting from the fitted line; the standard deviation of the prediction errors shrinks to the RSE, ", dollar(rse, accuracy = 1000), ".")'
+#| fig-width: 10
+#| fig-height: 4.5
+
+p_null <- ggplot(austin_model, aes(living_area_sq_ft, latest_price)) +
+  geom_segment(aes(xend = living_area_sq_ft, yend = null_fitted),
+               color = "darkorange", alpha = 0.25, linewidth = 0.3) +
+  geom_point(color = "gray50", alpha = 0.4, size = 0.9) +
+  geom_hline(aes(yintercept = null_fitted), color = "steelblue", linewidth = 1) +
+  scale_x_continuous(labels = comma) +
+  scale_y_continuous(labels = dollar) +
+  labs(x = "Living area (square feet)", y = "Sale price",
+       subtitle = "Predicting with the mean alone")
+
+p_reg <- ggplot(austin_model, aes(living_area_sq_ft, latest_price)) +
+  geom_segment(aes(xend = living_area_sq_ft, yend = fitted),
+               color = "darkorange", alpha = 0.25, linewidth = 0.3) +
+  geom_point(color = "gray50", alpha = 0.4, size = 0.9) +
+  geom_smooth(method = "lm", se = FALSE, color = "steelblue", linewidth = 1) +
+  scale_x_continuous(labels = comma) +
+  scale_y_continuous(labels = dollar) +
+  labs(x = "Living area (square feet)", y = "Sale price",
+       subtitle = "Predicting with the fitted line")
+
+p_null + p_reg
+```
+
+Mathematically, $R^2$ is defined as
+$$
+R^2 = \frac{s_y^2 - s_e^2}{s_y^2} = 1 - \left[\frac{s_e}{s_y}\right]^2,
+$$
+where $s_y$ is the standard deviation of the outcome --- sale price --- and $s_e$ is the standard deviation of the residuals, both computed with the ordinary $n-1$ divisor. The smaller the RSE is relative to the standard deviation of prices, the closer $R^2$ is to 1. This represents a strong linear relationship; after making the best prediction we can with a line, a large proportion of the total unpredictability in prices goes away. If the RSE is comparable to the standard deviation of prices, $R^2$ is close to 0. This represents a weak linear relationship; after making the best prediction we can with a line, most of the total unpredictability in prices remains.
+
+That ratio can be computed with two different bookkeeping choices, and regression software reports both. Plugging the software's RSE in for $s_e$ gives $1 - (\text{RSE}/s_y)^2 = `r number(r2_rse_ratio, accuracy = 0.001)`$, the value @tbl-rse-price-area reports as adjusted $R^2$. Computing the two standard deviations with matching divisors instead gives `r number(r2_plain, accuracy = 0.001)`, the value the table reports as $R^2$. The divisor bookkeeping is the only difference between the two versions, so we'll write $R^2$ for both and tell them apart only when reading them off a table. When the two disagree by more than a little, either the signal is very weak or the model has too many coefficients for the data in hand. Neither version deserves your trust then.
+
+::: {.Notation #not-sample-population}
+## Samples in Latin, populations in Greek
+
+We use Latin letters for quantities computed from data: $\bar{x}$ for a sample mean, $s$ for a sample standard deviation, $r$ for a sample correlation, and now $s_e$ for the standard deviation of the residuals. Operator and Greek notation --- $\text{Var}(\cdot)$, $\sigma^2$, $\epsilon$ --- is reserved for random variables and for population or model parameters, like the model error and its standard deviation arriving in the next chapter.
+:::
+
+### What is $R^2$ measuring?
+
+Most textbooks will refer to $R^2$ as the "proportion of variance explained" by the predictors (or covariates, in other books' vocabulary). For a simple linear regression fit via ordinary least squares, we can show that
+
+$$
+s_y^2 = s_{\hat{y}}^2 + s_e^2,
+$$
+
+where $s_{\hat{y}}^2$ is the variance of the fitted values, $s_e^2$ is the variance of the residuals, and all three variances share one divisor. There is no covariance term from the variance rules of @sec-lincom-rules because least-squares residuals are uncorrelated with the fitted values. Then
+
+$$
+R^2 = \frac{s_y^2 - s_e^2}{s_y^2} = \frac{s_{\hat y}^2}{s_y^2}
+$$
+
+is literally the proportion of variability in $y$ that is "soaked up" by the line.
+
+It's important to keep in mind, however, that explaining and predicting aren't the same thing. [The ancient Mayans could accurately predict eclipses far out into the future](https://www.science.org/doi/10.1126/sciadv.adt9039), but explained them as conflicts between Gods rather than the result of the Earth and Moon's orbits. $R^2$ is a measure of how predictable $y$ is from $x$ in a linear model. That doesn't mean it measures how well we can *explain* changes in $y$ from changes in $x$. You can see this plainly yourself by predicting the size of a house from its price. You'll get the same $R^2$ value, but it would be crazy to say the price of a house "explains" its size.
+
+$R^2$ has one more equivalent form: it is the squared correlation between the outcome and the fitted values, $R^2 = \text{corr}(y, \hat{y})^2 = `r number(r2_corr, accuracy = 0.001)`$ for the Austin model. This generalizes the correlation between $y$ and one $x$ to the correlation between $y$ and the best linear combination of many $x$'s at once. In a simple regression the fitted values are a linear function of the single predictor, so $\text{corr}(y, \hat{y})^2 = r^2$ --- the squared correlation between $x$ and $y$ itself.
+
+::: {.TechnicalDetail #tech-r2-forms}
+## Aligning the forms of $R^2$
+
+The ratio form and the correlation form line up exactly once the divisors match. Write both variances with the same divisor --- $1/n$ or $1/(n-1)$, so long as they match --- and the divisors cancel in the ratio:
+$$
+1 - \frac{s_e^2}{s_y^2} = 1 - \frac{\sum_i e_i^2}{\sum_i (y_i - \bar y)^2},
+$$
+the sum-of-squares form other books write as $1 - \text{SSE}/\text{SST}$. That quantity equals $\text{corr}(y, \hat{y})^2$ exactly, and it is the $R^2$ row software reports. The adjusted version differs only by using the RSE's divisor in the numerator.
+:::
+
+And since it is correlation in disguise, $R^2$ inherits correlation's limits. In particular:
+
+- **$R^2$ is susceptible to extreme values/outliers.** The four datasets in [Anscombe's quartet](twovar_02_quantitative-quantitative.qmd#sec-anscombe) all produce the same $R^2$ value in a linear regression, including the two where an outlier manufactured a positive correlation or obscured a perfectly linear relationship.
+- **A low $R^2$ does not rule out a strong nonlinear relationship.** In our [Tesla/S&P 500 and electrical grid load/temperature example](twovar_02_quantitative-quantitative.qmd#sec-corr-strength), the two pairs had nearly identical correlations even though load was much more dependent on temperature than Tesla's returns were on market returns. Correlation understated the load--temperature relationship because that relationship is nonlinear. We'd see the same pattern comparing $R^2$ from linear models fit to each dataset.
+
+While we're talking about the limitations of $R^2$ let's clear up some other common misunderstandings:
+
+**$R^2$ doesn't "add up".** As we add variables to a regression model, the change in $R^2$ measures the amount of *new* predictive information we get. Take our three models from the last chapter: simple regressions on area and the number of bedrooms, and the multiple regression incorporating both. Area alone gives $R^2 =$ `r number(r2, accuracy = 0.001)`, and bedrooms alone gives $R^2 =$ `r number(r2_beds, accuracy = 0.001)`. Their sum is `r number(r2 + r2_beds, accuracy = 0.001)`, but the model with both predictors has $R^2 =$ `r number(r2_both, accuracy = 0.001)`.
+
+Why? Living area already carries much of the information in the number of bedrooms, since homes with more bedrooms also tend to be larger. Or, put another way, we can quite accurately predict the number of bedrooms a house has from its size, so the size "contains" a lot of the information about the number of bedrooms. Adding bedrooms after area therefore raises $R^2$ by only `r number(round(r2_both, 3) - round(r2, 3), accuracy = 0.001)`. @tbl-r2-three-models collects the three models and their fit statistics.
+
+```{r}
+#| label: tbl-r2-three-models
+#| tbl-cap: "The two simple regressions and the multiple regression, with the residual standard error and $R^2$ for each."
+
+reg_table(
+  list(
+    "Area" = fit,
+    "Bedrooms" = fit_beds,
+    "Area + bedrooms" = fit_both
+  ),
+  fmt = label_dollar(accuracy = 1),
+  coef_map = c(
+    "(Intercept)" = "Intercept",
+    "living_area_sq_ft" = "Living area (sq ft)",
+    "num_of_bedrooms" = "Bedrooms"
+  )
+)
+```
+
+::: {.callout-warning}
+## Warning: A high $R^2$ is not a small error
+
+A high value for $R^2$ doesn't mean the model is accurate enough to make good decisions. The Austin model has $R^2 =$ `r number(r2, accuracy = 0.001)`, which is a rather strong linear relationship. But its RSE is `r dollar(rse, accuracy = 1000)`, which is a large error in absolute terms. If we're trying to use the model to price our house, or to decide what to bid on a house we want to buy, the size of a typical prediction error --- the RSE --- is much more important than the strength of the linear relationship between price and the predictors --- $R^2$.
+:::
+
+::: {.callout-warning}
+## Warning: A low $R^2$ does not rule out a relationship
+
+A low $R^2$ does not rule out a linear relationship. For example, if we fit a linear model predicting the sale price of the house from its age alone, the $R^2$ value is small --- about `r number(r2_age, accuracy = 0.001)`. That doesn't mean there is no relationship between age and price; it means that the relationship is weak relative to the total variability in sale prices. That is as expected: there are many other factors which contribute much more to the variability in prices (like size, for example.)
+::: 
+
+Similarly, in the course evaluations data the simple linear regression of evaluation on beauty has $R^2 =$ `r number(r2_beauty, accuracy = 0.001)`. That doesn't mean there is no relationship between beauty and evaluation scores; it means that the relationship is weak relative to the total variability in evaluation scores. If you think about the course evaluations you've completed as an undergraduate, you were probably more concerned with other factors than the instructor's beauty, like how well they explained the material, how fair the grading was, and so on. All of those factors end up in the residuals, hence the low $R^2$ value.
+
+If we want to ask *whether* there's a linear relationship, the right question is about the slope: Is zero a plausible value for the slope, given the data in hand? We answer this with a confidence interval or hypothesis test about the slope, not by using $R^2$. In the course evaluation data, that confidence interval is [`r number(beauty_slope_ci[1], accuracy = 0.001)`, `r number(beauty_slope_ci[2], accuracy = 0.001)`], which does not include zero. Therefore, we conclude that there is a linear relationship between beauty and evaluation scores, even though the linear relationship is quite weak. Whether a relationship of this size matters in context is a separate question.
+
+## The two low-$R^2$ models
+
+@tbl-price-age and @tbl-eval-beauty-r2 give the fits behind the last two examples.
+
+```{r}
+#| label: tbl-price-age
+#| tbl-cap: "Predicting Austin sale prices from the age of the home."
+
+coef_table(
+  fit_age,
+  fmt = label_dollar(accuracy = 1),
+  coef_map = c(
+    "(Intercept)" = "Intercept",
+    "age" = "Age (years)"
+  )
+)
+```
+
+```{r}
+#| label: tbl-eval-beauty-r2
+#| tbl-cap: "Predicting average course evaluations from the instructor's beauty rating."
+
+coef_table(
+  fit_beauty,
+  fmt = 3,
+  coef_map = c(
+    "(Intercept)" = "Intercept",
+    "beauty" = "Beauty rating"
+  )
+)
+```

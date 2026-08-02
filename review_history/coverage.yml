@@ -1,0 +1,284 @@
+# Source-keyed review-coverage registry.
+#
+# One entry per root chapter source, ordered by chapter number. Records the
+# most recent completed student review under the `book-student-review`
+# workflow, the source blob it applies to, and the teaching-data pin it was
+# verified against.
+#
+# Evidence: sta380_2026@final-summer-2026:todo/book_student_review_plan.md
+# (per-chapter closure statuses and planned review modes), the gitignored
+# working/book_review_ch*/ packages in the pre-split repo, and the closure
+# commits in that repo's history.
+#
+# `source_hash` is the git blob SHA of the source in the pre-split repo
+# (sta380_2026) at the commit that recorded this coverage. Hashes are not
+# recomputed for this repo's fresh history; they identify the reviewed source
+# state at the frozen tag.
+#
+# `data_pin` is null throughout: coverage predates the teaching-data pin
+# recorded in this repo's `data_pin` file.
+
+schema_version: 1
+generated_at: 2026-08-01
+
+coverage:
+  - source: singlevar_01_visualizing-distributions.qmd
+    chapter: 1
+    status: reviewed
+    review: book_review_ch01_initial_20260730
+    review_type: deep
+    completed_at: 2026-07-30
+    source_hash: cb048f8159d46dd2774fc99827674d14882f9b78
+    scope: full
+    data_pin: null
+
+  - source: singlevar_02_describing-distributions.qmd
+    chapter: 2
+    status: reviewed
+    review: book_review_ch02_initial_20260730
+    review_type: deep
+    completed_at: 2026-07-31
+    source_hash: 3003b921318b22a52b116b2e3fbf5cb684f87801
+    scope: full
+    data_pin: null
+
+  - source: singlevar_03_location-and-spread.qmd
+    chapter: 3
+    status: reviewed
+    review: book_review_ch03_initial_20260730
+    review_type: deep
+    completed_at: 2026-07-31
+    source_hash: 56a5ca5dd4211d4acf869b4f54d56b69eee49ea1
+    scope: full
+    data_pin: null
+
+  - source: singlevar_04_transformations.qmd
+    chapter: 4
+    status: reviewed
+    review: book_review_ch04_initial_20260730_v2
+    review_type: standard
+    completed_at: 2026-07-31
+    source_hash: acc1818cf0d86e8dbfb84c5b6c6f9df5cdcf1d2b
+    scope: full
+    data_pin: null
+
+  - source: singlevar_05_categorical.qmd
+    chapter: 5
+    status: reviewed
+    review: book_review_ch05_initial_20260730
+    review_type: deep
+    completed_at: 2026-07-30
+    source_hash: 8dfe4fec796b35e9bc3cfab386b8ff3317738cd0
+    scope: full
+    data_pin: null
+
+  - source: twovar_01_categorical-categorical.qmd
+    chapter: 6
+    status: reviewed
+    review: book_review_ch06_initial_20260730
+    review_type: deep
+    completed_at: 2026-07-30
+    source_hash: e501c4354e609a9bf2e30253c266e8eacf99c428
+    scope: full
+    data_pin: null
+
+  - source: twovar_02_quantitative-quantitative.qmd
+    chapter: 7
+    status: reviewed
+    review: book_review_ch07_initial_20260730
+    review_type: standard
+    completed_at: 2026-07-31
+    source_hash: 14a29dd97e1543c72b244e446b4fafc5e7382466
+    scope: full
+    data_pin: null
+
+  - source: twovar_03_categorical-quantitative.qmd
+    chapter: 8
+    status: reviewed
+    review: book_review_ch08_initial_20260730
+    review_type: standard
+    completed_at: 2026-08-01
+    source_hash: b27e50b6c9372394d860f0a506354682592d107c
+    scope: full
+    data_pin: null
+
+  - source: twovar_04_multivariate.qmd
+    chapter: 9
+    status: held
+    review: null
+    review_type: null
+    completed_at: null
+    source_hash: 3651b37ce2b55a3e9108ec700d5f6667fe66c375
+    scope: null
+    data_pin: null
+    note: >-
+      Held: the current one-paragraph placeholder has no meaningful downstream
+      dependency; review when substantive authoring begins.
+
+  - source: prob_01_intro.qmd
+    chapter: 10
+    status: reviewed
+    review: book_review_ch10_initial_20260730
+    review_type: deep
+    completed_at: 2026-08-01
+    source_hash: c2e03288217621bcf249bb9304fdda801d0cb846
+    scope: full
+    data_pin: null
+
+  - source: prob_02_probability-basics.qmd
+    chapter: 11
+    status: reviewed
+    review: book_review_ch11_initial_20260730
+    review_type: deep
+    completed_at: 2026-08-01
+    source_hash: e59b3282877af323cf290b0a995250666a006c2b
+    scope: full
+    data_pin: null
+
+  - source: prob_03_distribution-parameters.qmd
+    chapter: 12
+    status: reviewed
+    review: book_review_ch12_initial_20260731
+    review_type: deep
+    completed_at: 2026-08-01
+    source_hash: b1e115a5539209214e0e7d3c7716f3c3fb891be4
+    scope: full
+    data_pin: null
+
+  - source: prob_04_normal.qmd
+    chapter: 13
+    status: reviewed
+    review: book_review_ch13_initial_20260731
+    review_type: standard
+    completed_at: 2026-08-01
+    source_hash: 63cc5da70ff9d32918aac0c51fb7a1cf03823e2b
+    scope: full
+    data_pin: null
+
+  - source: prob_05_multivariate-distributions.qmd
+    chapter: 14
+    status: reviewed
+    review: book_review_ch14_initial_20260731
+    review_type: deep
+    completed_at: 2026-08-01
+    source_hash: 0ded0be45f0df91e49cbf6bdf5b764688ce727f4
+    scope: full
+    data_pin: null
+
+  - source: prob_07_combining-random-variables.qmd
+    chapter: 15
+    status: reviewed
+    review: book_review_ch15_initial_20260731_thread
+    review_type: standard
+    completed_at: 2026-08-01
+    source_hash: b75b02ffa9bf9c8bc44125e2357025858e9aebaf
+    scope: full
+    data_pin: null
+
+  - source: inference_01_sampling-distributions.qmd
+    chapter: 16
+    status: reviewed
+    review: book_review_ch16_initial_20260731_thread
+    review_type: deep
+    completed_at: 2026-08-01
+    source_hash: 7e1caf1a87ed63200bab90dcfc5a87b6e9c117a0
+    scope: full
+    data_pin: null
+
+  - source: inference_02_hypothesis-tests.qmd
+    chapter: 17
+    status: reviewed
+    review: book_review_ch17_initial_20260731_thread
+    review_type: deep
+    completed_at: 2026-08-01
+    source_hash: 157f9e9073596c1dce8ec559a447411982fa2ebd
+    scope: full
+    data_pin: null
+
+  - source: inference_03_limits.qmd
+    chapter: 18
+    status: reviewed
+    review: book_review_ch18_initial_20260801_thread
+    review_type: deep
+    completed_at: 2026-08-01
+    source_hash: 83739545c25810f8c36040dfc26424d142aad10f
+    scope: full
+    data_pin: null
+
+  - source: regression_01_intro.qmd
+    chapter: 19
+    status: reviewed
+    review: book_review_ch19_initial_20260731_thread
+    review_type: deep
+    completed_at: 2026-08-01
+    source_hash: 93a0524039798864f1fda4ab10eaff1661755184
+    scope: full
+    data_pin: null
+
+  - source: regression_02_prediction.qmd
+    chapter: 20
+    status: reviewed
+    review: book_review_ch20_initial_20260731_thread_retry1
+    review_type: deep
+    completed_at: 2026-08-01
+    source_hash: 9b5108a8274cca81f476fec7f5d4f6bc4297c422
+    scope: full
+    data_pin: null
+
+  - source: regression_03_model.qmd
+    chapter: 21
+    status: reviewed
+    review: book_review_ch21_initial_20260731_thread
+    review_type: deep
+    completed_at: 2026-08-01
+    source_hash: ad6442a0327b3f4cf4b9793d354c7f81387368bb
+    scope: full
+    data_pin: null
+
+  - source: regression_04_categorical.qmd
+    chapter: 22
+    status: reviewed
+    review: book_review_ch22
+    review_type: deep
+    completed_at: 2026-08-01
+    source_hash: 7919f81827fd3c9b0eb1af9aba46b534c3c4e070
+    scope: full
+    data_pin: null
+    note: >-
+      Chapter 22 ran no separate dated review package. Its full-chapter review
+      is the round-4 package in working/book_review_ch22; the subsequent
+      reference-category redesign was applied, rendered, voice-cleared, and
+      targeted-verified under
+      working/ch22_reference_category_redesign_20260801. The negative controls
+      in working/ch22_negative_control and
+      working/ch22_sec221_negative_control confer no review coverage.
+
+  - source: regression_05_interactions.qmd
+    chapter: 23
+    status: reviewed
+    review: book_review_ch23_initial_20260801
+    review_type: deep
+    completed_at: 2026-08-01
+    source_hash: d4b6059a801d4937987fa34a26c03d0f302c605d
+    scope: full
+    data_pin: null
+
+  - source: regression_06_nonlinear.qmd
+    chapter: 24
+    status: reviewed
+    review: book_review_ch24_initial_20260731_thread
+    review_type: deep
+    completed_at: 2026-08-01
+    source_hash: 8b24489c80c4354386970cad5454c0b3592cd070
+    scope: full
+    data_pin: null
+
+  - source: prediction_01_error.qmd
+    chapter: 25
+    status: reviewed
+    review: book_review_ch25_initial_20260731_thread
+    review_type: deep
+    completed_at: 2026-08-01
+    source_hash: 0c033951c7fe3e4c9f32ea220ce1e6cab8d1641f
+    scope: full
+    data_pin: null

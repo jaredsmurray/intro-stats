@@ -1,0 +1,42 @@
+# Numeric conventions (e.g. the 95% multiplier is 2, never 1.96) are hardcoded
+# in check_terms.sh itself -- they must also apply inside code chunks and math,
+# which the rules below never see.
+# House terminology for the book's chapter prose. Read by tools/check_terms.sh,
+# which is wired into a PostToolUse hook (.claude/settings.json) so drift gets
+# caught in the same edit that introduces it.
+#
+# Format: TAB-separated. pattern <TAB> replacement <TAB> skip-line-if <TAB> note
+#   pattern        Perl regex. $1..$9 in the replacement refer to its captures.
+#   replacement    Literal text plus $N backreferences.
+#   skip-line-if   Perl regex; if the raw line matches, this rule is skipped
+#                  there. Usually left empty -- the structural exclusions below
+#                  already cover most false positives.
+#   note           Why. Shown in the checker's output.
+#
+# Leave skip-line-if empty by writing two tabs in a row. No non-empty field may
+# begin or end with a space, since an editor that trims trailing whitespace
+# would silently break the rule. Where a space is load-bearing, assert it with a
+# lookaround instead of consuming it -- see the dash rule.
+#
+# The checker never looks at fenced chunk bodies (except `#|` option lines,
+# which are prose), inline `code` spans, $math$, or HTML comments. That is what
+# keeps `zipcode` the column name, geom_boxplot, and the \text{small business}
+# table labels out of scope, so most rules need no skip-line-if of their own.
+#
+# Adding a rule: put it here, run `./tools/check_terms.sh --all` to see the
+# damage, then `--fix`. Do not add a convention a regex can't decide -- those
+# belong in the book-style skill, alongside the dollar-sign and probability-scale
+# rules.
+
+# Actively drifting terms (round-3 gate, 2026-07-18).
+(?<= )--(?= )	---		house em dash is ---, not --
+\b[Zz]ip ?code(s?)\b	ZIP code$1		ZIP code, never zipcode or zip code
+\bboxplot(s?)\b	box plot$1		box plot, two words
+\bZ-score(s?)\b	z-score$1	^#{1,6}\s	lowercase z-score; a heading may capitalize it sentence-initially
+\b([Ss])mall business (loan|rate)	$1mall-business $2		hyphenate as a compound modifier; standalone "small business" is fine
+
+# Settled proper nouns (round 1). Kept here as guards -- "settled" only holds if
+# something enforces it, and a live SP500 had already crept back in by 2026-07.
+\bSP ?500\b	S&P 500		the index is S&P 500
+\bLending Club\b	LendingClub		one word, camel case
+\bCME Fed Watch\b	CME FedWatch		the tool is CME FedWatch

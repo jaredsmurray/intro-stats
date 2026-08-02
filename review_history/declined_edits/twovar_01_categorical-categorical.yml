@@ -1,0 +1,14 @@
+schema_version: 1
+chapter_source: twovar_01_categorical-categorical.qmd
+declined_edits:
+  - id: retain-repeated-survey-rows-for-now
+    location: survey teaching example
+    declined_proposal: Block or qualify the current example because households or individuals contribute repeated observations.
+    author_rationale: The current treatment is acceptable as a teaching example; a later redesign can roll the data up to one observation per household or individual.
+    scope: Keep the current teaching example while the durable redesign remains outstanding.
+    reopen_if: The owned data redesign begins, the estimand changes, or the example is used for inference that depends on independent rows.
+    decided_at: 2026-07-30
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch06_initial_20260730/decisions.yml
+      - sta380_2026@final-summer-2026:todo/soc_single_observation_unit.md
+    tags: [teaching-example, repeated-observations, owned-redesign]

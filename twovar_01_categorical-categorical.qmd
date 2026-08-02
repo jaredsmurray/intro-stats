@@ -1,0 +1,243 @@
+---
+title: "Two Categorical Variables"
+---
+
+```{r}
+#| label: setup
+#| include: false
+#| echo: false
+library(tidyverse)
+library(scales)
+library(ggmosaic)
+
+# Figures render at their intrinsic size (fig-width x 96px), capped by the
+# ~702px content column -- they are never upscaled to fill it. So axis text
+# lands at its true point size, and base_size, not fig-width, is what makes it
+# legible next to 17px body text. At 13, tick labels are ~14px.
+theme_set(theme_minimal(base_size = 13))
+
+lending <- read_csv("data/lending_club/data/df_all.csv",
+                    show_col_types = FALSE) |>
+  mutate(default = as.integer(loan_status == "Charged Off"))
+
+lending_subs <- read_csv("data/lending_club/data/df_subs.csv",
+                         show_col_types = FALSE) |>
+  mutate(default = as.integer(loan_status == "Charged Off"))
+
+income_half_levels <- c("Bottom 50%", "Top 50%")
+soc <- read_csv("data/soc/soc_clean.csv", show_col_types = FALSE) |>
+  filter(survey_year >= 2015, survey_year <= 2025)
+```
+
+The last chapter ended with a question the frequency table could not answer: which loan purposes default most often? This is a question about the distribution of two categorical variables at once: the loan's original purpose and its ultimate outcome.
+
+## Cross-tabulations and contingency tables {#sec-crosstabs}
+
+We'll start with counts, because everything else in this chapter is a count divided by some total. A **cross-tabulation** (or **contingency table**, or **crosstab** for short) counts how many observations fall into each *combination* of categories: one row per category of the first variable, one column per category of the second, and a count in every cell. Fourteen purposes make for a bulky table. We want every calculation in this section small enough to check by hand, so we'll narrow to the `r comma(nrow(lending_subs))` loans with three of the more interesting purposes: debt consolidation, home improvement, and small business. @tbl-purpose-default-counts shows their crosstab with loan status.
+
+```{r}
+#| label: tbl-purpose-default-counts
+#| tbl-cap: "Cross-tabulation of loan purpose and final loan status for the three-purpose subset. Each cell counts the loans with that combination of purpose and outcome; the margins recover the one-variable frequency tables."
+#| echo: false
+purpose_counts <- lending_subs |>
+  count(purpose, loan_status) |>
+  pivot_wider(names_from = loan_status, values_from = n, values_fill = 0) |>
+  mutate(Total = `Fully Paid` + `Charged Off`) |>
+  arrange(desc(Total))
+
+purpose_counts |>
+  bind_rows(summarise(purpose_counts, purpose = "**Total**",
+                      across(where(is.numeric), sum))) |>
+  mutate(across(where(is.numeric), comma)) |>
+  rename(Purpose = purpose) |>
+  knitr::kable(align = c("l", "r", "r", "r"))
+```
+
+Look at the **margins** first, the row and column labeled `Total`. The `Total` column on the right is a frequency table of `purpose` --- the same one-variable summary we built last chapter, computed on this subset --- and the bottom row is the frequency table of loan status: `r comma(sum(lending_subs$default == 0))` fully paid, `r comma(sum(lending_subs$default))` charged off. A crosstab contains both one-variable summaries in its margins, plus something neither had alone: the interior cells, which record how the two variables tend to move **together**.
+
+## Joint, marginal, and conditional proportions {#sec-joint-marginal-conditional}
+
+Counts depend on the overall sample size, so it's often convenient to convert them to proportions. With two variables there are three different totals we could divide each count by, and each choice answers a different question. 
+
+### Joint proportions
+
+Divide every cell by the grand total and you get **joint proportions**: the share of *all* loans that have a particular combination of purpose and outcome. @tbl-purpose-default-joint shows the result of dividing every count in @tbl-purpose-default-counts by `r comma(nrow(lending_subs))`.
+
+```{r}
+#| label: tbl-purpose-default-joint
+#| tbl-cap: "Joint proportions of purpose and loan status: each count from the crosstab divided by the grand total. All interior cells together sum to 100%; the margins give each variable's own distribution."
+#| echo: false
+joint <- lending_subs |>
+  count(purpose, loan_status) |>
+  mutate(prop = n / sum(n)) |>
+  select(-n) |>
+  pivot_wider(names_from = loan_status, values_from = prop) |>
+  mutate(Total = `Fully Paid` + `Charged Off`) |>
+  arrange(desc(Total))
+
+joint |>
+  bind_rows(summarise(joint, purpose = "**Total**",
+                      across(where(is.numeric), sum))) |>
+  mutate(across(where(is.numeric), \(x) percent(x, accuracy = 0.1))) |>
+  rename(Purpose = purpose) |>
+  knitr::kable(align = c("l", "r", "r", "r"))
+```
+
+In words: a joint proportion answers "what share of *all* loans are debt-consolidation loans that charged off?" The crosstab counted `r comma(sum(lending_subs$purpose == "debt_consolidation" & lending_subs$default == 1))` such loans out of `r comma(nrow(lending_subs))` total, so the joint proportion is
+
+$$
+\frac{`r comma(sum(lending_subs$purpose == "debt_consolidation" & lending_subs$default == 1))`}{`r comma(nrow(lending_subs))`} = `r number(mean(lending_subs$purpose == "debt_consolidation" & lending_subs$default == 1), accuracy = 0.001)`,
+$$
+
+which the table reports as `r percent(mean(lending_subs$purpose == "debt_consolidation" & lending_subs$default == 1), accuracy = 0.1)`. A proportion and its percentage are the same number in different clothes --- 0.139 *is* 13.9% --- and we'll write our calculations as proportions while the tables stay in percent.
+
+A joint proportion answers an "and" combination: How often do we see a small-business loan *and* a default? How often do we see a home-improvement loan *and* a non-default? The **joint distribution** of two categorical variables is the collection of all joint proportions, and it is the two-variable analogue of a one-variable frequency table.
+
+### Marginal proportions
+
+The margins of this table --- the `Total` column and the bottom row --- are called **marginal proportions**, and they are nothing new. The marginal distribution of `purpose` is just the one-variable frequency table of purposes, expressed in proportions, and the marginal distribution of loan status is the overall default rate among these loans, `r percent(mean(lending_subs$default), accuracy = 0.1)`, and its complement.
+
+Remember that we get the marginal proportion for any category by adding up the joint proportions across the other variable. For example, the share of all loans that are debt-consolidation loans is the sum of the two joint proportions in that row:
+
+$$
+`r number(mean(lending_subs$purpose == "debt_consolidation" & lending_subs$default == 0), accuracy = 0.001)`
++ `r number(mean(lending_subs$purpose == "debt_consolidation" & lending_subs$default == 1), accuracy = 0.001)`
+= `r number(mean(lending_subs$purpose == "debt_consolidation"), accuracy = 0.001)`.
+$$
+
+In words: the fully-paid debt-consolidation loans and the charged-off debt-consolidation loans together account for `r percent(mean(lending_subs$purpose == "debt_consolidation"), accuracy = 0.1)` of all the loans in the table.
+
+### Conditional proportions
+
+Perhaps the most practical question we could answer with the crosstab is the one we started with: which purposes default most often? That is a question about default rates *within* each purpose: among small-business loans, what share charged off? Among home-improvement loans? To answer it we divide each cell by its **row total** rather than the grand total, which gives the **conditional proportions** of loan status given purpose --- the distribution of the outcome once we restrict attention to one row at a time.
+
+A *conditional* proportion answers an "if" or an "assuming that" question. *If* the loan is for a small business, *then* the default rate is `r percent(mean(lending_subs$default[lending_subs$purpose == "small_business"]), accuracy = 0.1)`. To answer this question, the only relevant information is about small-business loans, which is why we ignore the other rows and divide by the small-business loan total rather than the grand total. From the counts in @tbl-purpose-default-counts, `r comma(sum(lending_subs$purpose == "small_business" & lending_subs$default == 1))` of the `r comma(sum(lending_subs$purpose == "small_business"))` small-business loans charged off:
+
+$$
+\frac{`r comma(sum(lending_subs$purpose == "small_business" & lending_subs$default == 1))`}{`r comma(sum(lending_subs$purpose == "small_business"))`} = `r number(mean(lending_subs$default[lending_subs$purpose == "small_business"]), accuracy = 0.001)`.
+$$
+
+There is a second route to the same number. Divide the numerator and denominator each by the grand total and the counts become proportions --- the joint proportion of "small business *and* charged off" on top, the marginal proportion of small-business loans on the bottom:
+
+$$
+\frac{`r number(mean(lending_subs$purpose == "small_business" & lending_subs$default == 1), accuracy = 0.0001)`}{`r number(mean(lending_subs$purpose == "small_business"), accuracy = 0.0001)`} = `r number(mean(lending_subs$default[lending_subs$purpose == "small_business"]), accuracy = 0.001)`.
+$$
+
+In words: a conditional proportion is the joint proportion divided by the marginal proportion of the conditioning --- the "if" --- variable. Dividing count by count or proportion by proportion gives the same answer, because the grand total cancels. @tbl-default-rate-by-purpose collects the conditional default rates for all three purposes.
+
+```{r}
+#| label: tbl-default-rate-by-purpose
+#| tbl-cap: "Default rate by loan purpose: the conditional proportion of loans charged off, given each purpose. Purposes are sorted from highest to lowest default rate."
+#| echo: false
+lending_subs |>
+  group_by(purpose) |>
+  summarise(n = n(), default_rate = mean(default)) |>
+  arrange(desc(default_rate)) |>
+  mutate(n = comma(n),
+         default_rate = percent(default_rate, accuracy = 0.1)) |>
+  rename(Purpose = purpose, Loans = n, `Default rate` = default_rate) |>
+  knitr::kable(align = c("l", "r", "r"))
+```
+
+
+## Conditional proportions, marginal proportions, and (in)dependence {#sec-independence-preview}
+
+A natural question is whether default rates differ by loan purpose.
+
+Let's think through an example. Across all the loans in our three-purpose table, the default rate is `r percent(mean(lending_subs$default), accuracy = 0.1)`. That's a marginal proportion. We just computed the default rate for small-business loans, which was `r percent(mean(lending_subs$default[lending_subs$purpose == "small_business"]), accuracy = 0.1)`. By the same calculation, the default rate for home-improvement loans is `r percent(mean(lending_subs$default[lending_subs$purpose == "home_improvement"]), accuracy = 0.1)`. Those are both conditional proportions, and each sits well away from the marginal rate of `r percent(mean(lending_subs$default), accuracy = 0.1)` --- one above, one below. In these historical data, loan purpose and default are **dependent**: the conditional default rates differ by purpose. If purpose and default were **independent**, we would expect the conditional default rate for every purpose to be the same as that overall rate. Instead, we see that the conditional distributions differ quite a bit by purpose.
+
+The consumer survey provides a nice example of two variables which are closer to independent. Alongside the personal-finance question we saw last chapter, the Michigan survey asks respondents how they expect *business conditions in the country* to fare a year from now --- better, about the same, or worse. In the `soc` data this is `econ_expect_next_year`. The survey also records each household's income, which we'll split at the median into the bottom and top halves of the income distribution. Income says a lot about a household's own finances, so you might expect it to color the national outlook too. @tbl-econ-expect-by-income shows the conditional distributions --- one row for the poorer half of households, one for the richer.
+
+```{r}
+#| label: tbl-econ-expect-by-income
+#| tbl-cap: "Conditional distribution of expected national business conditions, given whether a household falls in the bottom or top half of the income distribution (Surveys of Consumers, 2015--2025). Each row sums to 100%; \"don't know\" responses are excluded."
+#| echo: false
+soc_ind <- soc |>
+  filter(!is.na(income_ptile_bottom50_label),
+         !is.na(econ_expect_next_year_label),
+         econ_expect_next_year_label != "Don't know") |>
+  mutate(income_half = factor(income_ptile_bottom50_label,
+                              levels = income_half_levels),
+         econ_expect_next_year_label = factor(econ_expect_next_year_label,
+                                              levels = c("Better", "Same", "Worse")))
+
+soc_ind |>
+  count(income_half, econ_expect_next_year_label) |>
+  group_by(income_half) |>
+  mutate(prop = percent(n / sum(n), accuracy = 0.1)) |>
+  ungroup() |>
+  select(-n) |>
+  pivot_wider(names_from = econ_expect_next_year_label, values_from = prop) |>
+  rename(`Income group` = income_half) |>
+  knitr::kable(align = c("l", "r", "r", "r"))
+```
+
+Read across the two rows and the numbers barely move. Whether a household sits in the poorer or the richer half of the country, about a third expects better times, a bit more than a third expects the same, and about 32% expects worse. Learning which half of the income distribution a household falls in tells you almost nothing about how it expects the national economy to perform. When knowing the value of one variable does not change the distribution of the other, we say the two variables are **independent**. @fig-econ-expect-by-income makes the sameness visible: the two clusters of bars are nearly interchangeable.
+
+```{r}
+#| label: fig-econ-expect-by-income
+#| fig-cap: "Expected national business conditions by income group, 2015--2025. Each cluster shows the conditional distribution for one half of the income distribution."
+#| fig-width: 6.5
+#| fig-height: 4.5
+soc_ind |>
+  count(income_half, econ_expect_next_year_label) |>
+  group_by(income_half) |>
+  mutate(prop = n / sum(n)) |>
+  ungroup() |>
+  ggplot(aes(x = income_half, y = prop,
+             fill = econ_expect_next_year_label)) +
+  geom_col(position = "dodge", width = 0.7) +
+  scale_y_continuous(labels = percent_format(accuracy = 1),
+                     expand = expansion(mult = c(0, 0.05))) +
+  scale_fill_manual(values = c("Better" = "steelblue",
+                               "Same" = "grey65",
+                               "Worse" = "darkorange")) +
+  labs(x = "Income group", y = "Proportion", fill = "Outlook")
+```
+
+Two caveats. First, conditional distributions in observed data are rarely exactly identical. In the table, the poorer half is a hair more likely to answer "same" (`r percent(with(filter(soc_ind, income_half == "Bottom 50%"), mean(econ_expect_next_year_label == "Same")), accuracy = 0.1)` against `r percent(with(filter(soc_ind, income_half == "Top 50%"), mean(econ_expect_next_year_label == "Same")), accuracy = 0.1)`). It is also a hair less likely to expect better times. Judging whether small gaps like that reflect a real pattern or just noise requires the inference tools we haven't built yet. Second, "independent" here is an empirical description of one dataset. The formal definition of independence belongs to probability theory, and when we get there you'll recognize it immediately: it is exactly the identical-conditional-distributions property in this table, restated in the language of random variables.
+
+## Visualizing two categorical variables {#sec-viz-two-cat}
+
+For a binary outcome, one conditional rate per group gives us the whole comparison because the other rate is its complement. When both variables have more than two categories, we need multiple bars for each group. @fig-econ-expect-by-income shows that arrangement: each income-group cluster is one conditional distribution, so its three bars sum to 100%.
+
+@fig-default-rate-by-purpose returns to all `r comma(nrow(lending))` loans and all loan purposes from Chapter 5. It shows the conditional default rate for each purpose, sorted from highest to lowest.
+
+```{r}
+#| label: fig-default-rate-by-purpose
+#| fig-cap: "Default rate by loan purpose for all LendingClub loans, sorted from highest to lowest. The dashed line marks the overall default rate across all loans."
+#| fig-width: 7
+#| fig-height: 5
+lending |>
+  group_by(purpose) |>
+  summarise(default_rate = mean(default)) |>
+  mutate(purpose = fct_reorder(purpose, default_rate)) |>
+  ggplot(aes(x = purpose, y = default_rate)) +
+  geom_col(fill = "steelblue") +
+  geom_hline(yintercept = mean(lending$default),
+             linetype = "dashed", color = "grey40") +
+  coord_flip() +
+  scale_y_continuous(labels = percent_format(accuracy = 1),
+                     expand = expansion(mult = c(0, 0.05))) +
+  labs(x = NULL, y = "Default rate")
+```
+
+Once again we have ordered the purposes by a meaningful value (the corresponding default rate) rather than alphabetically. The dashed line marks the overall default rate across all `r comma(nrow(lending))` loans, `r percent(mean(lending$default), accuracy = 0.1)`.
+
+
+<!-- TODO (FOR LATER, DON'T CLOSE): 
+
+Mosaic plots
+
+Simpson's paradox section. Candidate examples:
+  - Berkeley admissions (classic; gender x admission x department)
+  - Airline on-time performance (carrier x on-time rate x airport)
+  - COVID case fatality rates, Italy vs China (country x death x age group)
+  Structure: a marginal association reverses or vanishes upon conditioning on
+  a third variable; ties back to sec-joint-marginal-conditional. Also connects
+  to bloom treat x role three-way tables (see working/viz_examples/03_cat_by_cat.R). -->
+
+## Data used in this section {.unnumbered}
+
+- [LendingClub Accepted Loans](appendix_data.qmd#sec-data-lendingclub-kaggle)
+- [Surveys of Consumers](appendix_data.qmd#sec-data-consumer-soc)

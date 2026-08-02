@@ -1,0 +1,24 @@
+schema_version: 1
+chapter_source: twovar_02_quantitative-quantitative.qmd
+declined_edits:
+  - id: no-degrees-of-freedom-digression
+    location: covariance calculation and interpretation
+    declined_proposal: Add an explanation of the n-minus-one degrees-of-freedom convention.
+    author_rationale: Students do not compute these statistics by hand, so the convention does not advance the chapter's objective.
+    scope: Do not add a degrees-of-freedom detour to this treatment.
+    reopen_if: The course begins requiring manual covariance calculations or the convention becomes necessary for a visible comparison.
+    decided_at: 2026-07-31
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch07_initial_20260730/decisions.yml
+    tags: [scope, degrees-of-freedom, too-technical]
+  - id: unequal-variance-does-not-defeat-conditional-mean-line
+    location: conditional-mean interpretation of a linear relationship
+    declined_proposal: Qualify the fitted line on the ground that unequal conditional variance prevents it from estimating the conditional mean.
+    author_rationale: The review overread the claim. If the conditional relationship is linear, unequal variance does not prevent the line from estimating the conditional mean well.
+    scope: Preserve the existing conditional-mean interpretation.
+    reopen_if: The prose begins claiming constant variance, interval validity, or a linear conditional mean where the displayed relationship is materially nonlinear.
+    decided_at: 2026-07-31
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch07_initial_20260730/decisions.yml
+    tags: [reviewer-overread, heteroskedasticity, conditional-mean]
+

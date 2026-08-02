@@ -1,0 +1,24 @@
+schema_version: 1
+chapter_source: prob_03_distribution-parameters.qmd
+declined_edits:
+  - id: omit-degenerate-standardization-case
+    location: standardization rule
+    declined_proposal: Qualify the standardization rule for a constant variable with zero standard deviation.
+    author_rationale: The degenerate constant-variable exception would burden the introductory rule without advancing the objective.
+    scope: Keep the rule focused on ordinary positive-standard-deviation cases.
+    reopen_if: A constant variable appears in an example or students must diagnose failed standardization.
+    decided_at: 2026-07-31
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch12_initial_20260731/decisions.yml
+    tags: [scope, edge-case, too-technical]
+  - id: no-sample-variance-dof-bridge
+    location: bridge from probability variance to sample variance
+    declined_proposal: Add an n-minus-one degrees-of-freedom digression.
+    author_rationale: Students do not compute these quantities by hand, and the distinction does not advance this chapter's objective.
+    scope: Do not add a degrees-of-freedom explanation here.
+    reopen_if: Manual variance computation becomes an instructional objective or a displayed comparison depends on the denominator.
+    decided_at: 2026-07-31
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch12_initial_20260731/decisions.yml
+    tags: [scope, degrees-of-freedom, standing-preference]
+

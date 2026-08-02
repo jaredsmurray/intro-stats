@@ -1,0 +1,14 @@
+schema_version: 1
+chapter_source: singlevar_04_transformations.qmd
+declined_edits:
+  - id: disclose-hidden-display-filters
+    location: filtered transformation displays
+    declined_proposal: Add disclosure language to the existing figure captions for the hidden display filters.
+    author_rationale: Retain the existing filters and captions without additional disclosure.
+    scope: Leave the current filters and captions unchanged.
+    reopen_if: A filter changes the substantive pattern, excludes observations central to a prose claim, or the display itself is redesigned.
+    decided_at: 2026-07-31
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch04_initial_20260730_v2/decisions.yml
+    tags: [display-scope, no-added-qualifier]
+

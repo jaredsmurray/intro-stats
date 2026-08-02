@@ -1,0 +1,20 @@
+project:
+  output-dir: _output/pdf-full-formulas
+
+book:
+  output-file: callouts-full-formulas
+
+extensions:
+  details:
+    non-interactive:
+      display: show
+      summary-text: "Details"
+      callout-type: note
+
+format:
+  pdf:
+    documentclass: book
+    pdf-engine: xelatex
+    include-in-header: tex/callouts.tex
+    geometry:
+      - margin=1in

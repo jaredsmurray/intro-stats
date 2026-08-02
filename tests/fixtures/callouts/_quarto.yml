@@ -1,0 +1,66 @@
+project:
+  type: book
+  output-dir: _output/html
+
+book:
+  title: "Callout System Regression Fixture"
+  chapters:
+    - index.qmd
+    - chapter-two.qmd
+
+crossref:
+  chapters: true
+
+filters:
+  - details
+  - custom-numbered-blocks
+
+extensions:
+  details:
+    interactive:
+      open: false
+      show-controls: false
+    non-interactive:
+      display: remove
+      summary-text: "Details"
+      callout-type: note
+  custom-numbered-blocks:
+    appearances:
+      concept:
+        container: foldbox
+        boxstyle: foldbox.simple
+        collapse: false
+        colors: ['#F4EAF0', '#7C3F58']
+      reference:
+        container: foldbox
+        boxstyle: foldbox.simple
+        collapse: false
+        colors: ['#EEF1F3', '#5B6770']
+      practice:
+        container: foldbox
+        boxstyle: foldbox.simple
+        collapse: false
+        colors: ['#E7F4F5', '#147D85']
+    classes:
+      Definition:
+        appearance: concept
+      Notation:
+        appearance: reference
+      TechnicalDetail:
+        appearance: reference
+        label: "Technical detail"
+        collapse: true
+      Exercise:
+        appearance: practice
+
+format:
+  html:
+    theme: cosmo
+    css: styles/callouts.css
+    toc: true
+    number-sections: true
+
+execute:
+  echo: false
+  warning: false
+  message: false

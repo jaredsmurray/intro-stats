@@ -1,0 +1,96 @@
+# Standardized values
+
+The units rule for standard deviation and the notation in
+\longref{notation-sigma-s} help us interpret a standardized value. The
+definition in \longref{defn-sample-standard-deviation} supplies the measure of
+spread. The warning about the 68% rule limits what we can infer from the
+standard deviation.
+
+:::: {.Definition #defn-z-score}
+## Standardized value
+
+A **standardized value**, or **z-score**, measures how far an observation sits
+from the mean in standard-deviation units. Positive values sit above the mean,
+and negative values sit below it.
+
+::: {#formula-z-score .details .formula-details summary="Details and formulas"
+non-interactive-summary="Formula"}
+
+For an observation $x$, mean $\bar{x}$, and sample standard deviation $s$,
+
+$$
+z = \frac{x-\bar{x}}{s}.
+$$
+
+Subtracting the mean measures the observation's distance from the center.
+Dividing by the standard deviation expresses that distance in units of
+ordinary variation.
+
+:::
+::::
+
+::: {.callout-note}
+## Key idea: Comparable scales
+
+Standardizing removes the original measurement units. We can therefore compare
+relative positions for variables measured on different scales.
+:::
+
+:::: {.Exercise #exercise-z-score}
+## Delivery-time z-score
+
+A delivery took 20 minutes in a sample with mean 14 minutes and standard
+deviation 3 minutes. What is its z-score?
+
+::: {#solution-z-score .details .solution-details summary="Solution" display="show"
+non-interactive-summary="Solution"}
+
+The delivery is 6 minutes above the mean. Dividing that distance by the
+3-minute standard deviation gives $z=2$, so the delivery sits two standard
+deviations above the mean.
+
+:::
+::::
+
+::: {.TechnicalDetail #technical-long-page-break}
+## Sampling variability and the $n-1$ correction
+
+The sample mean comes from the same observations whose spread we want to
+measure. It follows the observations toward whichever values happened to enter
+the sample. That movement makes the observations look a little closer to their
+sample mean than they are to the population mean.
+
+Suppose repeated samples come from the same population. A sample containing
+several unusually high observations will usually have an unusually high sample
+mean. Those observations are far from the population mean, but the shifted
+sample mean moves toward them and shortens their measured deviations.
+
+The same pattern holds for an unusually low sample. Its sample mean shifts
+downward, again reducing the deviations measured inside that sample. Dividing
+the sum of squared deviations by $n$ preserves this systematic
+understatement.
+
+The $n-1$ denominator compensates for the mean's movement. Under independent
+sampling from a population with finite variance, the resulting sample variance
+has the correct population variance as its average across repeated samples.
+This is a statement about repeated sampling, not a promise about one dataset.
+
+The degrees-of-freedom explanation describes the same correction from another
+direction. The deviations from the sample mean add to zero. If a sample has
+five observations and we know four deviations, the fifth must balance the
+other four.
+
+Only four deviations can vary freely in that example. More generally, fitting
+the sample mean uses one degree of freedom and leaves $n-1$ for estimating
+spread. The correction matters most in small samples because $n$ and $n-1$
+become nearly identical as the sample size grows.
+
+This correction makes the sample variance unbiased for the population
+variance. Taking the square root does not preserve that exact unbiasedness, so
+the sample standard deviation can still be slightly low on average. In most
+introductory applications, using $n-1$ remains the standard calculation.
+:::
+
+The separate counters restart in this chapter: \longref{defn-z-score},
+\longref{exercise-z-score}, and \longref{technical-long-page-break} should each
+end in 2.1.

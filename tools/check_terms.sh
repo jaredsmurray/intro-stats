@@ -1,0 +1,1 @@
+checks/check_terms.sh

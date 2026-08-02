@@ -1,0 +1,24 @@
+schema_version: 1
+chapter_source: inference_03_limits.qmd
+declined_edits:
+  - id: stands-to-reason-marks-substantive-selection-argument
+    location: direction of selection bias
+    declined_proposal: Add a stronger qualification that the direction-of-selection claim is not statistically identified.
+    author_rationale: “Stands to reason” already marks the claim as a transparent substantive argument rather than an identified statistical fact.
+    scope: Preserve the existing epistemic marker.
+    reopen_if: The marker is removed or the passage begins presenting the direction as an empirical estimate.
+    decided_at: 2026-08-01
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch18_initial_20260801_thread/decisions.yml
+    tags: [already-qualified, substantive-argument, reviewer-overread]
+  - id: interval-limitations-already-explicit
+    location: confidence interval under selection and other nonsampling errors
+    declined_proposal: Add language denying actual-design 95 percent coverage or further qualifying the usefulness of sampling uncertainty.
+    author_rationale: The paragraph already says the interval omits selection bias and other errors; it argues only that quantified sampling variability remains useful alongside unquantified limitations.
+    scope: Keep the existing limitations framing.
+    reopen_if: The omissions sentence is removed or the passage begins claiming complete actual-design coverage.
+    decided_at: 2026-08-01
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch18_initial_20260801_thread/decisions.yml
+    tags: [already-covered, uncertainty, reviewer-overread]
+

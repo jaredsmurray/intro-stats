@@ -1,0 +1,24 @@
+schema_version: 1
+chapter_source: inference_01_sampling-distributions.qmd
+declined_edits:
+  - id: retain-one-mean-sap-analysis
+    location: SAP sampling-distribution example
+    declined_proposal: Replace or complicate the one-mean analysis with a paired comparison.
+    author_rationale: The one-mean analysis is a necessary simplification for exposition.
+    scope: Keep the existing Chapters 16–18 treatment and do not let the paired-comparison objection block downstream work.
+    reopen_if: The SAP example is structurally redesigned or the paired estimand becomes a declared objective.
+    decided_at: 2026-07-31
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch16_initial_20260731_thread/decisions.yml
+    tags: [teaching-simplification, scope, previously-repeated]
+  - id: existing-sampling-qualification-is-sufficient
+    location: Nucleus sample collection and temporary SRS assumption
+    declined_proposal: Add another qualifier explaining that the original sample was not randomly drawn.
+    author_rationale: The passage already describes the website-based collection and explicitly frames SRS as a temporary modeling assumption.
+    scope: Keep the existing qualification without another warning.
+    reopen_if: Either the collection description or temporary-assumption framing is removed, or the prose begins asserting actual random sampling.
+    decided_at: 2026-07-31
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch16_initial_20260731_thread/decisions.yml
+    tags: [already-covered, sampling, no-added-qualifier]
+

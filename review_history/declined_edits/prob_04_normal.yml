@@ -1,0 +1,14 @@
+schema_version: 1
+chapter_source: prob_04_normal.qmd
+declined_edits:
+  - id: empirical-rule-tail-step-is-recoverable
+    location: empirical-rule one-tail calculation
+    declined_proposal: Add another local explanation of the complement-and-symmetry step.
+    author_rationale: The normal curve's symmetry and the immediately preceding probability calculations already supply the reasoning.
+    scope: Preserve the current concise transfer step.
+    reopen_if: The preceding symmetry treatment is removed or a fresh reader cannot recover the one-tail calculation after using it.
+    decided_at: 2026-07-31
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch13_initial_20260731/decisions.yml
+    tags: [already-covered, recoverable-from-context]
+

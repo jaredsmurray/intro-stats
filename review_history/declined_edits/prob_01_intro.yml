@@ -1,0 +1,24 @@
+schema_version: 1
+chapter_source: prob_01_intro.qmd
+declined_edits:
+  - id: distributions-belong-to-random-variables
+    location: introduction of probability distributions
+    declined_proposal: Rewrite the passage as though assigning a probability distribution to a random variable creates a nominal-category problem.
+    author_rationale: Probability distributions are assigned to random variables, which are numbers; the Chapter 10–11 sequence establishes that object.
+    scope: Preserve the current object-level treatment.
+    reopen_if: The chapter changes the definition of random variable or introduces an example whose outcomes have not been numerically encoded.
+    decided_at: 2026-07-31
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch10_initial_20260730/decisions.yml
+    tags: [probability-semantics, reviewer-overread]
+  - id: preserve-population-distribution-equivalence-bridge
+    location: quoted equivalence between learning about a population and a probability distribution
+    declined_proposal: Replace the quoted bridge with prose that separates the objects but loses their role-level equivalence.
+    author_rationale: The quotation marks deliberately carry the equivalence, and the following summary keeps the objects distinct.
+    scope: Preserve the bridge and its quotation marks.
+    reopen_if: The surrounding summary no longer distinguishes the objects or the chapter's population framing changes.
+    decided_at: 2026-07-31
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch10_initial_20260730/decisions.yml
+    tags: [conceptual-bridge, quotation-marks, author-intent]
+

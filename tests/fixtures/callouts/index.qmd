@@ -1,0 +1,123 @@
+# Standard deviation
+
+The standard deviation describes how much the observed values vary around their
+mean. A larger standard deviation means that the values tend to sit farther
+from the mean.
+
+:::: {.Definition #defn-sample-standard-deviation}
+## Sample standard deviation
+
+The **sample standard deviation** measures the typical distance between the
+observed values and their sample mean. It uses the same units as the original
+variable.
+
+::: {#formula-sample-standard-deviation .details .formula-details summary="Details and formulas"
+non-interactive-summary="Formula"}
+
+For observations $x_1, x_2, \ldots, x_n$ with sample mean $\bar{x}$,
+
+$$
+s = \sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar{x})^2}.
+$$
+
+The formula finds each value's distance from the sample mean, squares those
+distances, adds them, divides by $n-1$, and takes the square root. The
+summation adds one squared deviation for each observation.
+
+:::
+::::
+
+::: {.callout-note}
+## Key idea: Units carry through
+
+Standard deviation uses the variable's original units. A standard deviation of
+4 for delivery time therefore means 4 minutes, not 4 minutes squared.
+:::
+
+::: {.Notation #notation-sigma-s}
+## $s$ and $\sigma$
+
+We use $s$ for a sample standard deviation and $\sigma$ for a population
+standard deviation. The symbols distinguish a statistic computed from observed
+data from a parameter describing a population or probability distribution.
+:::
+
+::: {.callout-tip}
+## Interpretation: A typical distance
+
+A standard deviation of 4 minutes says that delivery times commonly differ
+from their mean by about 4 minutes. It does not say that every delivery falls
+within exactly 4 minutes of the mean.
+:::
+
+::: {.callout-warning}
+## Warning / common mistake: No automatic 68% rule
+
+One standard deviation around the mean does not always contain 68% of the
+observations. That percentage comes from the normal distribution, so it need
+not hold for a skewed or irregular distribution.
+:::
+
+:::: {.Definition #defn-sample-variance}
+## Sample variance
+
+The **sample variance** measures spread using squared distances from the sample
+mean. Its units are the original units squared.
+
+::: {#formula-sample-variance .details .formula-details summary="Details and formulas"
+display="show" non-interactive-summary="Formula included in the default PDF"}
+
+For $n$ observations, the sample variance is
+
+$$
+s^2 = \frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar{x})^2.
+$$
+
+For the wait times 4, 6, and 8 minutes, the squared deviations from the mean of
+6 sum to 8. Dividing by $3-1$ gives a sample variance of 4 minutes squared.
+
+:::
+::::
+
+::: {.TechnicalDetail #technical-n-minus-one}
+## Why divide by $n-1$?
+
+The deviations from the sample mean must add to zero. Once we know $n-1$ of
+them, the final deviation is fixed, so only $n-1$ deviations can vary freely.
+
+Dividing by $n$ would also measure spread in this particular sample. Across
+repeated representative samples, however, that calculation tends to
+understate the population variance. Dividing by $n-1$ corrects that bias.
+:::
+
+:::: {.Exercise #exercise-standard-deviation-units}
+## Units of the answer
+
+Monthly revenue is measured in dollars. What units does its sample standard
+deviation use?
+
+::: {#solution-standard-deviation-units .details .solution-details summary="Solution"
+display="show" non-interactive-summary="Solution"}
+
+The sample standard deviation is measured in dollars. The variance uses
+dollars squared, but taking its square root returns the standard deviation to
+the original units.
+
+:::
+::::
+
+:::: {.Exercise #exercise-compute-standard-deviation}
+## Three delivery times
+
+Three deliveries took 10, 12, and 14 minutes. Their mean is 12 minutes.
+Compute the sample standard deviation.
+
+::: {#solution-compute-standard-deviation .details .solution-details summary="Solution"
+display="show" non-interactive-summary="Solution"}
+
+The deviations from 12 are $-2$, 0, and 2, so the squared deviations sum to
+8. Dividing by $3-1$ gives a sample variance of 4, and the sample standard
+deviation is 2 minutes.
+
+:::
+::::

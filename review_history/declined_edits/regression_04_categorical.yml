@@ -1,0 +1,15 @@
+schema_version: 1
+chapter_source: regression_04_categorical.qmd
+declined_edits:
+  - id: retain-course-section-teaching-example-for-now
+    location: course-evaluation gender and beauty models
+    declined_proposal: Re-adjudicate the section-weighting and repeated-instructor objections as immediate chapter edits.
+    author_rationale: Retain the current analysis as a teaching example for now and revisit the estimand and inference together with the coordinated beauty-data redesign.
+    scope: Do not reopen the same objection during ordinary chapter review while the owned redesign remains pending.
+    reopen_if: Work begins on the coordinated beauty-data and analysis-unit redesign, or the example's inferential claims materially expand.
+    decided_at: 2026-07-30
+    evidence:
+      - sta380_2026@final-summer-2026:todo/ch22_review_followups.md
+      - sta380_2026@final-summer-2026:todo/student_review_reconciliation/outstanding.yml
+    tags: [teaching-example, repeated-observations, clustered-inference, owned-redesign]
+

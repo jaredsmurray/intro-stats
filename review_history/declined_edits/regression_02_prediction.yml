@@ -1,0 +1,14 @@
+schema_version: 1
+chapter_source: regression_02_prediction.qmd
+declined_edits:
+  - id: no-early-r2-upward-bias-qualification
+    location: incremental R-squared as new predictive information
+    declined_proposal: Add the upward-bias qualification at the first introduction of the R-squared increment.
+    author_rationale: The qualification is too much too soon; the increment is a measure of new predictive information even though it is biased upward.
+    scope: Preserve the introductory claim at its current resolution.
+    reopen_if: The passage begins treating the in-sample increment as unbiased, uses it for unqualified model selection, or moves to a later section where overfitting is already available.
+    decided_at: 2026-07-31
+    evidence:
+      - sta380_2026@final-summer-2026:review_history/evidence/book_review_ch20_initial_20260731_thread_retry1/decisions.yml
+    tags: [scope, r-squared, too-much-too-soon]
+
