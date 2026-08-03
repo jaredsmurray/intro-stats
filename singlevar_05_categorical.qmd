@@ -34,7 +34,7 @@ A **categorical variable** records which of several groups an observation belong
 
 A **nominal** variable has categories with no natural order. In the `lending` data, `purpose` takes fourteen values, including `debt_consolidation`, `credit_card`, `small_business`, and `car`. Nothing about the data says one should come before another. Any ordering we impose is for our own convenience, not a property of the variable.
 
-An **ordinal** variable has categories that fall in a natural order, but the spacing between them is not meaningful. LendingClub's loan `grade` runs from `A` (least risky) down to `G` (most risky). We know `A` beats `B` beats `C`, but the gap from `A` to `B` need not equal the gap from `F` to `G`. The gaps are not measurable. The household survey gives another example. When respondents rate national economic conditions as "poor," "only fair," "good," or "excellent," the four answers are ordered, but the distance between them is anyone's guess.
+An **ordinal** variable has categories that fall in a natural order, but the spacing between them is not meaningful. LendingClub's loan `grade` runs from `A` (least risky) down to `G` (most risky). We know `A` beats `B` beats `C`, but the gap from `A` to `B` need not equal the gap from `F` to `G`. The gaps are not measurable. A national household survey we'll meet later in the chapter gives another example. When respondents rate national economic conditions as "poor," "only fair," "good," or "excellent," the four answers are ordered, but the distance between them is anyone's guess.
 
 A **binary** variable has exactly two categories. A loan being charged off, an employee leaving the company, and a survey respondent owning their home are all yes-or-no facts. Because binary describes the number of categories, a binary variable can be nominal or ordinal.
 
@@ -218,7 +218,7 @@ Both charts summarize `purpose` on its own. The more pointed question --- which 
 
 ### An ordinal example: rating the economy
 
-Sorting by size was the right call for `purpose`, whose categories have no inherent order. Ordinal variables call for the opposite. Each fall the Federal Reserve's Survey of Household Economics and Decisionmaking asks a national sample to rate economic conditions in this country today, and the answer falls into four ordered categories --- "poor," "only fair," "good," or "excellent." @fig-shed-outlook plots the 2025 responses in that natural order.
+Sorting by size was the right call for `purpose`, whose categories have no inherent order. Ordinal variables call for the opposite. Each fall the Federal Reserve's Survey of Household Economics and Decisionmaking asks a national sample of U.S. adults to rate economic conditions in this country today; the 2025 wave surveyed 12,934 people drawn from a panel built to represent the adult population. The answer falls into four ordered categories --- "poor," "only fair," "good," or "excellent." @fig-shed-outlook plots the 2025 responses in that natural order.
 
 ```{r}
 #| label: fig-shed-outlook
@@ -236,7 +236,7 @@ shed |>
   labs(x = NULL, y = "Proportion of respondents")
 ```
 
-The tallest bar is "only fair," but we leave it second from the left where it belongs. The categories are ordered, so their sequence is part of the message: reading left to right traces the ratings from grim to glowing. Sorting by height would throw that away --- and it would do real damage here. Fewer than 2% of households answered "excellent." Sorted by size, that sliver would sit beside "good" as just another short bar; in its natural position at the end of the scale, it says something on its own: almost nobody thinks conditions are excellent.
+The tallest bar is "only fair," but we leave it second from the left where it belongs. The categories are ordered, so their sequence is part of the message: reading left to right traces the ratings from grim to glowing. Sorting by height would throw that away. It would also cost information the layout carries: fewer than 2% of households answered "excellent," and at the end of the scale that sliver says something on its own --- almost nobody puts conditions at the top. Sorted by size, the same bar reads as merely the rarest answer, with nothing to show it is the scale's endpoint.
 
 ### Good practice and pitfalls
 

@@ -144,11 +144,11 @@ A natural question is whether default rates differ by loan purpose.
 
 Let's think through an example. Across all the loans in our three-purpose table, the default rate is `r percent(mean(lending_subs$default), accuracy = 0.1)`. That's a marginal proportion. We just computed the default rate for small-business loans, which was `r percent(mean(lending_subs$default[lending_subs$purpose == "small_business"]), accuracy = 0.1)`. By the same calculation, the default rate for home-improvement loans is `r percent(mean(lending_subs$default[lending_subs$purpose == "home_improvement"]), accuracy = 0.1)`. Those are both conditional proportions, and each sits well away from the marginal rate of `r percent(mean(lending_subs$default), accuracy = 0.1)` --- one above, one below. In these historical data, loan purpose and default are **dependent**: the conditional default rates differ by purpose. If purpose and default were **independent**, we would expect the conditional default rate for every purpose to be the same as that overall rate. Instead, we see that the conditional distributions differ quite a bit by purpose.
 
-The household survey provides a nice example of two variables that are closer to independent. The national-conditions rating we met last chapter is one side of the pair. The other is employment status: the survey records whether each respondent is working full-time, working part-time, or not working. Whether you have a job is about as concrete as economic news gets, so you might expect it to color how people rate the national economy too. @tbl-outlook-by-employ shows the conditional distributions --- one row per employment group.
+The Federal Reserve household survey provides a nice example of two variables that are closer to independent. The economic-conditions rating we met last chapter is one side of the pair. The other is employment status: the survey records whether each respondent is working full-time, working part-time, or not working. Whether you have a job is about as concrete as economic news gets, so you might expect it to color how people rate the national economy. @tbl-outlook-by-employ shows the conditional distributions --- one row per employment group.
 
 ```{r}
 #| label: tbl-outlook-by-employ
-#| tbl-cap: "Conditional distribution of the national economic-conditions rating, given employment status (Survey of Household Economics and Decisionmaking, 2025). Each row sums to 100%."
+#| tbl-cap: "Conditional distribution of the national economic-conditions rating, given employment status (Survey of Household Economics and Decisionmaking, 2025). Each row sums to 100%; the final column counts the respondents in each group."
 #| echo: false
 shed_ind <- shed |>
   mutate(outlook = factor(econ_conditions_country,
@@ -160,15 +160,16 @@ shed_ind <- shed |>
 shed_ind |>
   count(employ, outlook) |>
   group_by(employ) |>
-  mutate(prop = percent(n / sum(n), accuracy = 0.1)) |>
+  mutate(prop = percent(n / sum(n), accuracy = 0.1), total = sum(n)) |>
   ungroup() |>
   select(-n) |>
   pivot_wider(names_from = outlook, values_from = prop) |>
+  mutate(n = comma(total), .keep = "unused") |>
   rename(`Employment status` = employ) |>
-  knitr::kable(align = c("l", "r", "r", "r", "r"))
+  knitr::kable(align = c("l", "r", "r", "r", "r", "r"))
 ```
 
-Read down any column and the numbers barely move. Whether a respondent works full-time, part-time, or not at all, about three in ten rate conditions poor, a bit under half say only fair, and roughly a quarter say good or better. Learning someone's employment status tells you almost nothing about how they rate the national economy. When knowing the value of one variable does not change the distribution of the other, we say the two variables are **independent**. @fig-outlook-by-employ makes the sameness visible: the three clusters of bars are nearly interchangeable.
+Read down any column and the numbers barely move; read across any row and the same picture repeats. Whether a respondent works full-time, part-time, or not at all, about three in ten rate conditions poor, a bit under half say only fair, and roughly a quarter say good or better. Learning someone's employment status tells you almost nothing about how they rate the national economy. When knowing the value of one variable does not change the distribution of the other, we say the two variables are **independent**. @fig-outlook-by-employ makes the sameness visible: the three clusters of bars are nearly interchangeable.
 
 ```{r}
 #| label: fig-outlook-by-employ
@@ -189,7 +190,7 @@ shed_ind |>
   labs(x = "Employment status", y = "Proportion", fill = "Rating")
 ```
 
-Two caveats. First, conditional distributions in observed data are rarely exactly identical. In the table, respondents who are not working are a touch more likely to rate conditions "poor" (`r percent(with(filter(shed_ind, employ == "Not working"), mean(outlook == "Poor")), accuracy = 0.1)` against `r percent(with(filter(shed_ind, employ == "Working full-time"), mean(outlook == "Poor")), accuracy = 0.1)` for full-time workers), and no gap in the table is much larger than that. Judging whether small gaps like these reflect a real pattern or just noise requires the inference tools we haven't built yet. Second, "independent" here is an empirical description of one dataset. The formal definition of independence belongs to probability theory, and when we get there you'll recognize it immediately: it is exactly the identical-conditional-distributions property in this table, restated in the language of random variables.
+Two caveats. First, conditional distributions in observed data are rarely exactly identical. In the table, respondents working part-time are a touch more likely to rate conditions "poor" (`r percent(with(filter(shed_ind, employ == "Working part-time"), mean(outlook == "Poor")), accuracy = 0.1)` against `r percent(with(filter(shed_ind, employ == "Not working"), mean(outlook == "Poor")), accuracy = 0.1)` for those not working), and no gap in the table is much larger than that. Judging whether small gaps like these reflect a real pattern or just noise requires the inference tools we haven't built yet. Second, "independent" here is an empirical description of one dataset. The formal definition of independence belongs to probability theory, and when we get there you'll recognize it immediately: it is exactly the identical-conditional-distributions property in this table, restated in the language of random variables.
 
 ## Visualizing two categorical variables {#sec-viz-two-cat}
 
