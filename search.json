@@ -1510,7 +1510,7 @@
     "href": "data.html",
     "title": "Appendix B — Data downloads",
     "section": "",
-    "text": "B.1 Austin houses\nEvery dataset used in these notes is available to download below. For background on each one — where it came from and what the variables mean — see the Datasets appendix.\nThe files live in the teaching-data repository, pinned to release v2026.08. Smaller datasets download as plain CSVs, one file per link. The four largest come as a single zip archive apiece; unzipping one produces a data/ folder holding the files listed beside it. One file inside the Survey of Consumers archive is gzipped (.csv.gz) because of its size; readr::read_csv() and pandas.read_csv() both read gzipped CSVs directly, with no need to unzip first.",
+    "text": "B.1 Austin houses\nEvery dataset used in these notes is available to download below. For background on each one — where it came from and what the variables mean — see the Datasets appendix.\nThe files live in the teaching-data repository, pinned to release v2026.08.1. Smaller datasets download as plain CSVs, one file per link. The four largest come as a single zip archive apiece; unzipping one produces a data/ folder holding the files listed beside it. One file inside the Survey of Consumers archive is gzipped (.csv.gz) because of its size; readr::read_csv() and pandas.read_csv() both read gzipped CSVs directly, with no need to unzip first.",
     "crumbs": [
       "Appendices",
       "<span class='chapter-number'>B</span>  <span class='chapter-title'>Data downloads</span>"
