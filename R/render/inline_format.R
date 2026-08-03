@@ -1,5 +1,13 @@
 # Helpers for values inserted into prose and display equations.
 
+# Locale guard: R in a C locale (cron, launchd, non-login shells) prints
+# non-ASCII as literal <U+XXXX> into rendered text and figure labels, with a
+# clean exit. Every chapter sources this file, so pin UTF-8 here in case the
+# machine-level fix (~/.Renviron LANG, see course-kit BOOTSTRAP.md) is absent.
+if (!grepl("UTF-8", Sys.getlocale("LC_CTYPE"), fixed = TRUE)) {
+  suppressWarnings(invisible(Sys.setlocale("LC_ALL", "en_US.UTF-8")))
+}
+
 #' Format a signed value without hard-coding its sign
 #'
 #' `formatter` receives the magnitude of `x`, so it can be any scales-style

@@ -1,8 +1,8 @@
 toolkit: qmd-checks
-ref: v0.1.1
-describe: v0.1.1
-sha: 3b07fe6695126fec6e5cc8bc496251ed246307cf
-installed: 2026-08-02T04:19:48Z
+ref: v0.3.0
+describe: v0.3.0
+sha: 430504d221ce20dccf530daa6379f68419ff2620
+installed: 2026-08-03T14:51:41Z
 source: qmd-checks
 
 # Vendored copy. It does not update itself; re-run the toolkit's

@@ -275,6 +275,21 @@ else
     fi
   fi
 
+  # --- Stage: C-locale unicode escapes ---------------------------------------
+  # A render from a non-UTF-8 R session prints non-ASCII as literal <U+XXXX>
+  # with a clean exit. Prevention lives in ~/.Renviron and inline_format.R;
+  # this is the detector for anything that slips through.
+  if [ -z "$changed_html" ]; then
+    note "unicode" "skipped" "no HTML changed in this deploy"
+  elif [ ${#arith_files[@]} -eq 0 ]; then
+    note "unicode" "skipped" "changed HTML not present in site clone"
+  elif ./tools/checks/check_unicode_escapes.sh "${arith_files[@]}" >/dev/null 2>&1; then
+    note "unicode" "done" "no C-locale escapes on changed pages"
+  else
+    ./tools/checks/check_unicode_escapes.sh "${arith_files[@]}" 2>&1 | head -5
+    note "unicode" "FAILED" "literal <U+XXXX> on a deployed page -- re-render under UTF-8 and re-ship"
+  fi
+
   # --- Stage: cross-repo link sweep ------------------------------------------
   # The book links to the webapps site (and other external pages); a page move
   # there 404s with zero signal here. curl HEAD every distinct absolute link
