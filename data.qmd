@@ -6,55 +6,52 @@ Every dataset used in these notes is available to download below. For background
 each one — where it came from and what the variables mean — see the [Datasets](appendix_data.qmd)
 appendix.
 
-The files live in the `teaching-data` repository, pinned to release `v2026.08.1`. Smaller
-datasets download as plain CSVs, one file per link. The four largest come as a single zip
+The files live in the `teaching-data` repository, pinned to release `v2026.09`. Smaller
+datasets download as plain CSVs, one file per link. The three largest come as a single zip
 archive apiece; unzipping one produces a `data/` folder holding the files listed beside it.
-One file inside the Survey of Consumers archive is gzipped (`.csv.gz`) because of its size;
-`readr::read_csv()` and `pandas.read_csv()` both read gzipped CSVs directly, with no need
-to unzip first.
 
 ## Austin houses
 
-- [`austin_houses.zip`](https://github.com/jaredsmurray/teaching-data/releases/download/v2026.08.1/austin_houses.zip) — contains `austin_houses.csv` and `austin_houses_subset.csv` (plus cleaned versions of each)
+- [`austin_houses.zip`](https://github.com/jaredsmurray/teaching-data/releases/download/v2026.09/austin_houses.zip) — contains `austin_houses.csv` and `austin_houses_subset.csv` (plus cleaned versions of each)
 
 ## Earnings (CPS)
 
-- [`cps_asec_2023.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/mincer/cps_asec_2023.csv)
+- [`cps_asec_2023.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/mincer/cps_asec_2023.csv)
 
 ## Returns
 
-- [`returns.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/returns/returns.csv)
-- [`returns_prices.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/returns/returns_prices.csv)
+- [`returns.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/returns/returns.csv)
+- [`returns_prices.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/returns/returns_prices.csv)
 
 ## Portfolios
 
-- [`portfolios.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/portfolios/portfolios.csv)
+- [`portfolios.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/portfolios/portfolios.csv)
 
 ## ERCOT load & weather
 
-- [`ercot.zip`](https://github.com/jaredsmurray/teaching-data/releases/download/v2026.08.1/ercot.zip) — contains `load_1.csv`, `load_2.csv`, `load_3.csv`, `weather_ncent.csv`, and `ercot_daily_2018.csv`
+- [`ercot.zip`](https://github.com/jaredsmurray/teaching-data/releases/download/v2026.09/ercot.zip) — contains `load_1.csv`, `load_2.csv`, `load_3.csv`, `weather_ncent.csv`, and `ercot_daily_2018.csv`
 
 ## LendingClub
 
-- [`lending_club.zip`](https://github.com/jaredsmurray/teaching-data/releases/download/v2026.08.1/lending_club.zip) — contains `df_all.csv` and `df_subs.csv`
+- [`lending_club.zip`](https://github.com/jaredsmurray/teaching-data/releases/download/v2026.09/lending_club.zip) — contains `df_all.csv` and `df_subs.csv`
 
 ## SAP customer ROE
 
-- [`sap_roe.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/sap_roe/sap_roe.csv)
+- [`sap_roe.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/sap_roe/sap_roe.csv)
 
 ## Kroger cheese
 
-- [`kroger.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/kroger_cheese/kroger.csv)
+- [`kroger.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/kroger_cheese/kroger.csv)
 
 ## Work from home (Bloom)
 
-- [`codelines.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/bloom_wfh/codelines.csv)
-- [`attrition.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/bloom_wfh/attrition.csv)
+- [`codelines.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/bloom_wfh/codelines.csv)
+- [`attrition.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/bloom_wfh/attrition.csv)
 
-## Survey of Consumers
+## Household economics (SHED)
 
-- [`soc.zip`](https://github.com/jaredsmurray/teaching-data/releases/download/v2026.08.1/soc.zip) — contains `soc_clean.csv.gz` *(gzipped)*
+- [`shed_2025.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/shed/shed_2025.csv)
 
 ## Course evaluations
 
-- [`hamermesh_evals.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/hamermesh_evals/hamermesh_evals.csv)
+- [`hamermesh_evals.csv`](https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/hamermesh_evals/hamermesh_evals.csv)

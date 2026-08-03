@@ -24,9 +24,7 @@ lending_subs <- read_csv("data/lending_club/data/df_subs.csv",
                          show_col_types = FALSE) |>
   mutate(default = as.integer(loan_status == "Charged Off"))
 
-income_half_levels <- c("Bottom 50%", "Top 50%")
-soc <- read_csv("data/soc/soc_clean.csv", show_col_types = FALSE) |>
-  filter(survey_year >= 2015, survey_year <= 2025)
+shed <- read_csv("data/shed/shed_2025.csv", show_col_types = FALSE)
 ```
 
 The last chapter ended with a question the frequency table could not answer: which loan purposes default most often? This is a question about the distribution of two categorical variables at once: the loan's original purpose and its ultimate outcome.
@@ -146,60 +144,56 @@ A natural question is whether default rates differ by loan purpose.
 
 Let's think through an example. Across all the loans in our three-purpose table, the default rate is `r percent(mean(lending_subs$default), accuracy = 0.1)`. That's a marginal proportion. We just computed the default rate for small-business loans, which was `r percent(mean(lending_subs$default[lending_subs$purpose == "small_business"]), accuracy = 0.1)`. By the same calculation, the default rate for home-improvement loans is `r percent(mean(lending_subs$default[lending_subs$purpose == "home_improvement"]), accuracy = 0.1)`. Those are both conditional proportions, and each sits well away from the marginal rate of `r percent(mean(lending_subs$default), accuracy = 0.1)` --- one above, one below. In these historical data, loan purpose and default are **dependent**: the conditional default rates differ by purpose. If purpose and default were **independent**, we would expect the conditional default rate for every purpose to be the same as that overall rate. Instead, we see that the conditional distributions differ quite a bit by purpose.
 
-The consumer survey provides a nice example of two variables which are closer to independent. Alongside the personal-finance question we saw last chapter, the Michigan survey asks respondents how they expect *business conditions in the country* to fare a year from now --- better, about the same, or worse. In the `soc` data this is `econ_expect_next_year`. The survey also records each household's income, which we'll split at the median into the bottom and top halves of the income distribution. Income says a lot about a household's own finances, so you might expect it to color the national outlook too. @tbl-econ-expect-by-income shows the conditional distributions --- one row for the poorer half of households, one for the richer.
+The household survey provides a nice example of two variables that are closer to independent. The national-conditions rating we met last chapter is one side of the pair. The other is employment status: the survey records whether each respondent is working full-time, working part-time, or not working. Whether you have a job is about as concrete as economic news gets, so you might expect it to color how people rate the national economy too. @tbl-outlook-by-employ shows the conditional distributions --- one row per employment group.
 
 ```{r}
-#| label: tbl-econ-expect-by-income
-#| tbl-cap: "Conditional distribution of expected national business conditions, given whether a household falls in the bottom or top half of the income distribution (Surveys of Consumers, 2015--2025). Each row sums to 100%; \"don't know\" responses are excluded."
+#| label: tbl-outlook-by-employ
+#| tbl-cap: "Conditional distribution of the national economic-conditions rating, given employment status (Survey of Household Economics and Decisionmaking, 2025). Each row sums to 100%."
 #| echo: false
-soc_ind <- soc |>
-  filter(!is.na(income_ptile_bottom50_label),
-         !is.na(econ_expect_next_year_label),
-         econ_expect_next_year_label != "Don't know") |>
-  mutate(income_half = factor(income_ptile_bottom50_label,
-                              levels = income_half_levels),
-         econ_expect_next_year_label = factor(econ_expect_next_year_label,
-                                              levels = c("Better", "Same", "Worse")))
+shed_ind <- shed |>
+  mutate(outlook = factor(econ_conditions_country,
+                          levels = c("Poor", "Only fair", "Good", "Excellent")),
+         employ = factor(employment_status,
+                         levels = c("Not working", "Working part-time",
+                                    "Working full-time")))
 
-soc_ind |>
-  count(income_half, econ_expect_next_year_label) |>
-  group_by(income_half) |>
+shed_ind |>
+  count(employ, outlook) |>
+  group_by(employ) |>
   mutate(prop = percent(n / sum(n), accuracy = 0.1)) |>
   ungroup() |>
   select(-n) |>
-  pivot_wider(names_from = econ_expect_next_year_label, values_from = prop) |>
-  rename(`Income group` = income_half) |>
-  knitr::kable(align = c("l", "r", "r", "r"))
+  pivot_wider(names_from = outlook, values_from = prop) |>
+  rename(`Employment status` = employ) |>
+  knitr::kable(align = c("l", "r", "r", "r", "r"))
 ```
 
-Read across the two rows and the numbers barely move. Whether a household sits in the poorer or the richer half of the country, about a third expects better times, a bit more than a third expects the same, and about 32% expects worse. Learning which half of the income distribution a household falls in tells you almost nothing about how it expects the national economy to perform. When knowing the value of one variable does not change the distribution of the other, we say the two variables are **independent**. @fig-econ-expect-by-income makes the sameness visible: the two clusters of bars are nearly interchangeable.
+Read down any column and the numbers barely move. Whether a respondent works full-time, part-time, or not at all, about three in ten rate conditions poor, a bit under half say only fair, and roughly a quarter say good or better. Learning someone's employment status tells you almost nothing about how they rate the national economy. When knowing the value of one variable does not change the distribution of the other, we say the two variables are **independent**. @fig-outlook-by-employ makes the sameness visible: the three clusters of bars are nearly interchangeable.
 
 ```{r}
-#| label: fig-econ-expect-by-income
-#| fig-cap: "Expected national business conditions by income group, 2015--2025. Each cluster shows the conditional distribution for one half of the income distribution."
+#| label: fig-outlook-by-employ
+#| fig-cap: "National economic-conditions rating by employment status, 2025. Each cluster shows the conditional distribution for one employment group."
 #| fig-width: 6.5
 #| fig-height: 4.5
-soc_ind |>
-  count(income_half, econ_expect_next_year_label) |>
-  group_by(income_half) |>
+shed_ind |>
+  count(employ, outlook) |>
+  group_by(employ) |>
   mutate(prop = n / sum(n)) |>
   ungroup() |>
-  ggplot(aes(x = income_half, y = prop,
-             fill = econ_expect_next_year_label)) +
+  ggplot(aes(x = employ, y = prop, fill = outlook)) +
   geom_col(position = "dodge", width = 0.7) +
   scale_y_continuous(labels = percent_format(accuracy = 1),
                      expand = expansion(mult = c(0, 0.05))) +
-  scale_fill_manual(values = c("Better" = "steelblue",
-                               "Same" = "grey65",
-                               "Worse" = "darkorange")) +
-  labs(x = "Income group", y = "Proportion", fill = "Outlook")
+  scale_fill_manual(values = c("Poor" = "darkorange", "Only fair" = "grey65",
+                               "Good" = "steelblue", "Excellent" = "#1b3a5c")) +
+  labs(x = "Employment status", y = "Proportion", fill = "Rating")
 ```
 
-Two caveats. First, conditional distributions in observed data are rarely exactly identical. In the table, the poorer half is a hair more likely to answer "same" (`r percent(with(filter(soc_ind, income_half == "Bottom 50%"), mean(econ_expect_next_year_label == "Same")), accuracy = 0.1)` against `r percent(with(filter(soc_ind, income_half == "Top 50%"), mean(econ_expect_next_year_label == "Same")), accuracy = 0.1)`). It is also a hair less likely to expect better times. Judging whether small gaps like that reflect a real pattern or just noise requires the inference tools we haven't built yet. Second, "independent" here is an empirical description of one dataset. The formal definition of independence belongs to probability theory, and when we get there you'll recognize it immediately: it is exactly the identical-conditional-distributions property in this table, restated in the language of random variables.
+Two caveats. First, conditional distributions in observed data are rarely exactly identical. In the table, respondents who are not working are a touch more likely to rate conditions "poor" (`r percent(with(filter(shed_ind, employ == "Not working"), mean(outlook == "Poor")), accuracy = 0.1)` against `r percent(with(filter(shed_ind, employ == "Working full-time"), mean(outlook == "Poor")), accuracy = 0.1)` for full-time workers), and no gap in the table is much larger than that. Judging whether small gaps like these reflect a real pattern or just noise requires the inference tools we haven't built yet. Second, "independent" here is an empirical description of one dataset. The formal definition of independence belongs to probability theory, and when we get there you'll recognize it immediately: it is exactly the identical-conditional-distributions property in this table, restated in the language of random variables.
 
 ## Visualizing two categorical variables {#sec-viz-two-cat}
 
-For a binary outcome, one conditional rate per group gives us the whole comparison because the other rate is its complement. When both variables have more than two categories, we need multiple bars for each group. @fig-econ-expect-by-income shows that arrangement: each income-group cluster is one conditional distribution, so its three bars sum to 100%.
+For a binary outcome, one conditional rate per group gives us the whole comparison because the other rate is its complement. When both variables have more than two categories, we need multiple bars for each group. @fig-outlook-by-employ shows that arrangement: each employment-group cluster is one conditional distribution, so its four bars sum to 100%.
 
 @fig-default-rate-by-purpose returns to all `r comma(nrow(lending))` loans and all loan purposes from Chapter 5. It shows the conditional default rate for each purpose, sorted from highest to lowest.
 
@@ -240,4 +234,4 @@ Simpson's paradox section. Candidate examples:
 ## Data used in this section {.unnumbered}
 
 - [LendingClub Accepted Loans](appendix_data.qmd#sec-data-lendingclub-kaggle)
-- [Surveys of Consumers](appendix_data.qmd#sec-data-consumer-soc)
+- [Household economics (SHED)](appendix_data.qmd#sec-data-shed)

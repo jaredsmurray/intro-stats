@@ -22,7 +22,7 @@ This appendix documents every dataset used in these notes: what it is, where it 
 
 {{< include data/cards/data-wfh-bloom.qmd >}}
 
-{{< include data/cards/data-consumer-soc.qmd >}}
+{{< include data/cards/data-shed.qmd >}}
 
 {{< include data/cards/data-evals-hamermesh.qmd >}}
 
