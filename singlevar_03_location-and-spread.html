@@ -74,6 +74,14 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 <style>
+.TechnicalDetail {
+  --color1: #EEF1F3;
+  --color2: #5B6770;
+}
+.Definition {
+  --color1: #F4EAF0;
+  --color2: #7C3F58;
+}
 .Notation {
   --color1: #EEF1F3;
   --color2: #5B6770;
@@ -81,14 +89,6 @@ ul.task-list li input[type="checkbox"] {
 .Exercise {
   --color1: #E7F4F5;
   --color2: #147D85;
-}
-.Definition {
-  --color1: #F4EAF0;
-  --color2: #7C3F58;
-}
-.TechnicalDetail {
-  --color1: #EEF1F3;
-  --color2: #5B6770;
 }
 </style>
 
@@ -511,7 +511,7 @@ Figure&nbsp;3.2: Sale prices by ZIP code: box plots (left) with x’s indicating
 <div id="defn-standard-deviation" class="Definition">
 <div class="Definition fobx-simplebox fobx-default fobx-static"><div class="fobx-title"><i class="bi bi-book fobx-icon" aria-hidden="true"></i><strong>Definition 3.1: </strong>Standard deviation</div><div class="fobx-body">
 <p>The <strong>standard deviation</strong> measures the typical distance of an observation from the mean. We square the deviations so that positive and negative ones don’t cancel out, then take the square root to get back to the original units.</p>
-<details class="formula-details" aria-label="Details and formulas" id="formula-standard-deviation">
+<details class="formula-details" id="formula-standard-deviation" aria-label="Details and formulas">
 <summary>Details and formulas</summary>
 <p><span class="math display">\[
 s = \sqrt{\frac{1}{n-1}\sum_{i=1}^{n} (x_i - \bar{x})^2}

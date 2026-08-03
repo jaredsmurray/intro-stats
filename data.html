@@ -74,19 +74,19 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 <style>
-.Notation {
+.TechnicalDetail {
   --color1: #EEF1F3;
   --color2: #5B6770;
-}
-.Exercise {
-  --color1: #E7F4F5;
-  --color2: #147D85;
 }
 .Definition {
   --color1: #F4EAF0;
   --color2: #7C3F58;
 }
-.TechnicalDetail {
+.Exercise {
+  --color1: #E7F4F5;
+  --color2: #147D85;
+}
+.Notation {
   --color1: #EEF1F3;
   --color2: #5B6770;
 }
@@ -412,7 +412,7 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#sap-customer-roe" id="toc-sap-customer-roe" class="nav-link" data-scroll-target="#sap-customer-roe"><span class="header-section-number">B.7</span> SAP customer ROE</a></li>
   <li><a href="#kroger-cheese" id="toc-kroger-cheese" class="nav-link" data-scroll-target="#kroger-cheese"><span class="header-section-number">B.8</span> Kroger cheese</a></li>
   <li><a href="#work-from-home-bloom" id="toc-work-from-home-bloom" class="nav-link" data-scroll-target="#work-from-home-bloom"><span class="header-section-number">B.9</span> Work from home (Bloom)</a></li>
-  <li><a href="#survey-of-consumers" id="toc-survey-of-consumers" class="nav-link" data-scroll-target="#survey-of-consumers"><span class="header-section-number">B.10</span> Survey of Consumers</a></li>
+  <li><a href="#household-economics-shed" id="toc-household-economics-shed" class="nav-link" data-scroll-target="#household-economics-shed"><span class="header-section-number">B.10</span> Household economics (SHED)</a></li>
   <li><a href="#course-evaluations" id="toc-course-evaluations" class="nav-link" data-scroll-target="#course-evaluations"><span class="header-section-number">B.11</span> Course evaluations</a></li>
   </ul>
 </nav>
@@ -440,73 +440,73 @@ ul.task-list li input[type="checkbox"] {
 
 
 <p>Every dataset used in these notes is available to download below. For background on each one — where it came from and what the variables mean — see the <a href="./appendix_data.html">Datasets</a> appendix.</p>
-<p>The files live in the <code>teaching-data</code> repository, pinned to release <code>v2026.08.1</code>. Smaller datasets download as plain CSVs, one file per link. The four largest come as a single zip archive apiece; unzipping one produces a <code>data/</code> folder holding the files listed beside it. One file inside the Survey of Consumers archive is gzipped (<code>.csv.gz</code>) because of its size; <code>readr::read_csv()</code> and <code>pandas.read_csv()</code> both read gzipped CSVs directly, with no need to unzip first.</p>
+<p>The files live in the <code>teaching-data</code> repository, pinned to release <code>v2026.09</code>. Smaller datasets download as plain CSVs, one file per link. The three largest come as a single zip archive apiece; unzipping one produces a <code>data/</code> folder holding the files listed beside it.</p>
 <section id="austin-houses" class="level2" data-number="B.1">
 <h2 data-number="B.1" class="anchored" data-anchor-id="austin-houses"><span class="header-section-number">B.1</span> Austin houses</h2>
 <ul>
-<li><a href="https://github.com/jaredsmurray/teaching-data/releases/download/v2026.08.1/austin_houses.zip"><code>austin_houses.zip</code></a> — contains <code>austin_houses.csv</code> and <code>austin_houses_subset.csv</code> (plus cleaned versions of each)</li>
+<li><a href="https://github.com/jaredsmurray/teaching-data/releases/download/v2026.09/austin_houses.zip"><code>austin_houses.zip</code></a> — contains <code>austin_houses.csv</code> and <code>austin_houses_subset.csv</code> (plus cleaned versions of each)</li>
 </ul>
 </section>
 <section id="earnings-cps" class="level2" data-number="B.2">
 <h2 data-number="B.2" class="anchored" data-anchor-id="earnings-cps"><span class="header-section-number">B.2</span> Earnings (CPS)</h2>
 <ul>
-<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/mincer/cps_asec_2023.csv"><code>cps_asec_2023.csv</code></a></li>
+<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/mincer/cps_asec_2023.csv"><code>cps_asec_2023.csv</code></a></li>
 </ul>
 </section>
 <section id="returns" class="level2" data-number="B.3">
 <h2 data-number="B.3" class="anchored" data-anchor-id="returns"><span class="header-section-number">B.3</span> Returns</h2>
 <ul>
-<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/returns/returns.csv"><code>returns.csv</code></a></li>
-<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/returns/returns_prices.csv"><code>returns_prices.csv</code></a></li>
+<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/returns/returns.csv"><code>returns.csv</code></a></li>
+<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/returns/returns_prices.csv"><code>returns_prices.csv</code></a></li>
 </ul>
 </section>
 <section id="portfolios" class="level2" data-number="B.4">
 <h2 data-number="B.4" class="anchored" data-anchor-id="portfolios"><span class="header-section-number">B.4</span> Portfolios</h2>
 <ul>
-<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/portfolios/portfolios.csv"><code>portfolios.csv</code></a></li>
+<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/portfolios/portfolios.csv"><code>portfolios.csv</code></a></li>
 </ul>
 </section>
 <section id="ercot-load-weather" class="level2" data-number="B.5">
 <h2 data-number="B.5" class="anchored" data-anchor-id="ercot-load-weather"><span class="header-section-number">B.5</span> ERCOT load &amp; weather</h2>
 <ul>
-<li><a href="https://github.com/jaredsmurray/teaching-data/releases/download/v2026.08.1/ercot.zip"><code>ercot.zip</code></a> — contains <code>load_1.csv</code>, <code>load_2.csv</code>, <code>load_3.csv</code>, <code>weather_ncent.csv</code>, and <code>ercot_daily_2018.csv</code></li>
+<li><a href="https://github.com/jaredsmurray/teaching-data/releases/download/v2026.09/ercot.zip"><code>ercot.zip</code></a> — contains <code>load_1.csv</code>, <code>load_2.csv</code>, <code>load_3.csv</code>, <code>weather_ncent.csv</code>, and <code>ercot_daily_2018.csv</code></li>
 </ul>
 </section>
 <section id="lendingclub" class="level2" data-number="B.6">
 <h2 data-number="B.6" class="anchored" data-anchor-id="lendingclub"><span class="header-section-number">B.6</span> LendingClub</h2>
 <ul>
-<li><a href="https://github.com/jaredsmurray/teaching-data/releases/download/v2026.08.1/lending_club.zip"><code>lending_club.zip</code></a> — contains <code>df_all.csv</code> and <code>df_subs.csv</code></li>
+<li><a href="https://github.com/jaredsmurray/teaching-data/releases/download/v2026.09/lending_club.zip"><code>lending_club.zip</code></a> — contains <code>df_all.csv</code> and <code>df_subs.csv</code></li>
 </ul>
 </section>
 <section id="sap-customer-roe" class="level2" data-number="B.7">
 <h2 data-number="B.7" class="anchored" data-anchor-id="sap-customer-roe"><span class="header-section-number">B.7</span> SAP customer ROE</h2>
 <ul>
-<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/sap_roe/sap_roe.csv"><code>sap_roe.csv</code></a></li>
+<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/sap_roe/sap_roe.csv"><code>sap_roe.csv</code></a></li>
 </ul>
 </section>
 <section id="kroger-cheese" class="level2" data-number="B.8">
 <h2 data-number="B.8" class="anchored" data-anchor-id="kroger-cheese"><span class="header-section-number">B.8</span> Kroger cheese</h2>
 <ul>
-<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/kroger_cheese/kroger.csv"><code>kroger.csv</code></a></li>
+<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/kroger_cheese/kroger.csv"><code>kroger.csv</code></a></li>
 </ul>
 </section>
 <section id="work-from-home-bloom" class="level2" data-number="B.9">
 <h2 data-number="B.9" class="anchored" data-anchor-id="work-from-home-bloom"><span class="header-section-number">B.9</span> Work from home (Bloom)</h2>
 <ul>
-<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/bloom_wfh/codelines.csv"><code>codelines.csv</code></a></li>
-<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/bloom_wfh/attrition.csv"><code>attrition.csv</code></a></li>
+<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/bloom_wfh/codelines.csv"><code>codelines.csv</code></a></li>
+<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/bloom_wfh/attrition.csv"><code>attrition.csv</code></a></li>
 </ul>
 </section>
-<section id="survey-of-consumers" class="level2" data-number="B.10">
-<h2 data-number="B.10" class="anchored" data-anchor-id="survey-of-consumers"><span class="header-section-number">B.10</span> Survey of Consumers</h2>
+<section id="household-economics-shed" class="level2" data-number="B.10">
+<h2 data-number="B.10" class="anchored" data-anchor-id="household-economics-shed"><span class="header-section-number">B.10</span> Household economics (SHED)</h2>
 <ul>
-<li><a href="https://github.com/jaredsmurray/teaching-data/releases/download/v2026.08.1/soc.zip"><code>soc.zip</code></a> — contains <code>soc_clean.csv.gz</code> <em>(gzipped)</em></li>
+<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/shed/shed_2025.csv"><code>shed_2025.csv</code></a></li>
 </ul>
 </section>
 <section id="course-evaluations" class="level2" data-number="B.11">
 <h2 data-number="B.11" class="anchored" data-anchor-id="course-evaluations"><span class="header-section-number">B.11</span> Course evaluations</h2>
 <ul>
-<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.08.1/data/hamermesh_evals/hamermesh_evals.csv"><code>hamermesh_evals.csv</code></a></li>
+<li><a href="https://raw.githubusercontent.com/jaredsmurray/teaching-data/v2026.09/data/hamermesh_evals/hamermesh_evals.csv"><code>hamermesh_evals.csv</code></a></li>
 </ul>
 
 

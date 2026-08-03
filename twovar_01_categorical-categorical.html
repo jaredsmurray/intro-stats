@@ -74,21 +74,21 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 <style>
-.TechnicalDetail {
-  --color1: #EEF1F3;
-  --color2: #5B6770;
-}
-.Notation {
-  --color1: #EEF1F3;
-  --color2: #5B6770;
+.Exercise {
+  --color1: #E7F4F5;
+  --color2: #147D85;
 }
 .Definition {
   --color1: #F4EAF0;
   --color2: #7C3F58;
 }
-.Exercise {
-  --color1: #E7F4F5;
-  --color2: #147D85;
+.Notation {
+  --color1: #EEF1F3;
+  --color2: #5B6770;
+}
+.TechnicalDetail {
+  --color1: #EEF1F3;
+  --color2: #5B6770;
 }
 </style>
 
@@ -652,36 +652,50 @@ Table&nbsp;6.3: Default rate by loan purpose: the conditional proportion of loan
 <h2 data-number="6.3" class="anchored" data-anchor-id="sec-independence-preview"><span class="header-section-number">6.3</span> Conditional proportions, marginal proportions, and (in)dependence</h2>
 <p>A natural question is whether default rates differ by loan purpose.</p>
 <p>Let’s think through an example. Across all the loans in our three-purpose table, the default rate is 16.5%. That’s a marginal proportion. We just computed the default rate for small-business loans, which was 25.8%. By the same calculation, the default rate for home-improvement loans is 12.2%. Those are both conditional proportions, and each sits well away from the marginal rate of 16.5% — one above, one below. In these historical data, loan purpose and default are <strong>dependent</strong>: the conditional default rates differ by purpose. If purpose and default were <strong>independent</strong>, we would expect the conditional default rate for every purpose to be the same as that overall rate. Instead, we see that the conditional distributions differ quite a bit by purpose.</p>
-<p>The consumer survey provides a nice example of two variables which are closer to independent. Alongside the personal-finance question we saw last chapter, the Michigan survey asks respondents how they expect <em>business conditions in the country</em> to fare a year from now — better, about the same, or worse. In the <code>soc</code> data this is <code>econ_expect_next_year</code>. The survey also records each household’s income, which we’ll split at the median into the bottom and top halves of the income distribution. Income says a lot about a household’s own finances, so you might expect it to color the national outlook too. <a href="#tbl-econ-expect-by-income" class="quarto-xref">Table&nbsp;<span>6.4</span></a> shows the conditional distributions — one row for the poorer half of households, one for the richer.</p>
+<p>The Federal Reserve household survey provides a nice example of two variables that are closer to independent. The economic-conditions rating we met last chapter is one side of the pair. The other is employment status: the survey records whether each respondent is working full-time, working part-time, or not working. Whether you have a job is about as concrete as economic news gets, so you might expect it to color how people rate the national economy. <a href="#tbl-outlook-by-employ" class="quarto-xref">Table&nbsp;<span>6.4</span></a> shows the conditional distributions — one row per employment group.</p>
 <div class="cell">
-<div id="tbl-econ-expect-by-income" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-outlook-by-employ" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-econ-expect-by-income-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;6.4: Conditional distribution of expected national business conditions, given whether a household falls in the bottom or top half of the income distribution (Surveys of Consumers, 2015–2025). Each row sums to 100%; “don’t know” responses are excluded.
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-outlook-by-employ-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;6.4: Conditional distribution of the national economic-conditions rating, given employment status (Survey of Household Economics and Decisionmaking, 2025). Each row sums to 100%; the final column counts the respondents in each group.
 </figcaption>
-<div aria-describedby="tbl-econ-expect-by-income-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div aria-describedby="tbl-outlook-by-employ-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
 <table class="cell caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th style="text-align: left;">Income group</th>
-<th style="text-align: right;">Better</th>
-<th style="text-align: right;">Same</th>
-<th style="text-align: right;">Worse</th>
+<th style="text-align: left;">Employment status</th>
+<th style="text-align: right;">Poor</th>
+<th style="text-align: right;">Only fair</th>
+<th style="text-align: right;">Good</th>
+<th style="text-align: right;">Excellent</th>
+<th style="text-align: right;">n</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">Bottom 50%</td>
-<td style="text-align: right;">29.5%</td>
-<td style="text-align: right;">38.9%</td>
-<td style="text-align: right;">31.6%</td>
+<td style="text-align: left;">Not working</td>
+<td style="text-align: right;">28.3%</td>
+<td style="text-align: right;">43.8%</td>
+<td style="text-align: right;">25.9%</td>
+<td style="text-align: right;">2.0%</td>
+<td style="text-align: right;">4,961</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Top 50%</td>
-<td style="text-align: right;">32.4%</td>
-<td style="text-align: right;">35.9%</td>
-<td style="text-align: right;">31.7%</td>
+<td style="text-align: left;">Working part-time</td>
+<td style="text-align: right;">30.6%</td>
+<td style="text-align: right;">44.6%</td>
+<td style="text-align: right;">23.4%</td>
+<td style="text-align: right;">1.5%</td>
+<td style="text-align: right;">1,845</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Working full-time</td>
+<td style="text-align: right;">29.5%</td>
+<td style="text-align: right;">44.8%</td>
+<td style="text-align: right;">23.7%</td>
+<td style="text-align: right;">2.0%</td>
+<td style="text-align: right;">6,128</td>
 </tr>
 </tbody>
 </table>
@@ -690,26 +704,26 @@ Table&nbsp;6.4: Conditional distribution of expected national business condition
 </figure>
 </div>
 </div>
-<p>Read across the two rows and the numbers barely move. Whether a household sits in the poorer or the richer half of the country, about a third expects better times, a bit more than a third expects the same, and about 32% expects worse. Learning which half of the income distribution a household falls in tells you almost nothing about how it expects the national economy to perform. When knowing the value of one variable does not change the distribution of the other, we say the two variables are <strong>independent</strong>. <a href="#fig-econ-expect-by-income" class="quarto-xref">Figure&nbsp;<span>6.1</span></a> makes the sameness visible: the two clusters of bars are nearly interchangeable.</p>
+<p>Read down any column and the numbers barely move; read across any row and the same picture repeats. Whether a respondent works full-time, part-time, or not at all, about three in ten rate conditions poor, a bit under half say only fair, and roughly a quarter say good or better. Learning someone’s employment status tells you almost nothing about how they rate the national economy. When knowing the value of one variable does not change the distribution of the other, we say the two variables are <strong>independent</strong>. <a href="#fig-outlook-by-employ" class="quarto-xref">Figure&nbsp;<span>6.1</span></a> makes the sameness visible: the three clusters of bars are nearly interchangeable.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-econ-expect-by-income" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="fig-outlook-by-employ" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-econ-expect-by-income-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="twovar_01_categorical-categorical_files/figure-html/fig-econ-expect-by-income-1.png" class="img-fluid figure-img" width="624">
+<div aria-describedby="fig-outlook-by-employ-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="twovar_01_categorical-categorical_files/figure-html/fig-outlook-by-employ-1.png" class="img-fluid figure-img" width="624">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-econ-expect-by-income-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.1: Expected national business conditions by income group, 2015–2025. Each cluster shows the conditional distribution for one half of the income distribution.
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-outlook-by-employ-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6.1: National economic-conditions rating by employment status, 2025. Each cluster shows the conditional distribution for one employment group.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Two caveats. First, conditional distributions in observed data are rarely exactly identical. In the table, the poorer half is a hair more likely to answer “same” (38.9% against 35.9%). It is also a hair less likely to expect better times. Judging whether small gaps like that reflect a real pattern or just noise requires the inference tools we haven’t built yet. Second, “independent” here is an empirical description of one dataset. The formal definition of independence belongs to probability theory, and when we get there you’ll recognize it immediately: it is exactly the identical-conditional-distributions property in this table, restated in the language of random variables.</p>
+<p>Two caveats. First, conditional distributions in observed data are rarely exactly identical. In the table, respondents working part-time are a touch more likely to rate conditions “poor” (30.6% against 28.3% for those not working), and no gap in the table is much larger than that. Judging whether small gaps like these reflect a real pattern or just noise requires the inference tools we haven’t built yet. Second, “independent” here is an empirical description of one dataset. The formal definition of independence belongs to probability theory, and when we get there you’ll recognize it immediately: it is exactly the identical-conditional-distributions property in this table, restated in the language of random variables.</p>
 </section>
 <section id="sec-viz-two-cat" class="level2" data-number="6.4">
 <h2 data-number="6.4" class="anchored" data-anchor-id="sec-viz-two-cat"><span class="header-section-number">6.4</span> Visualizing two categorical variables</h2>
-<p>For a binary outcome, one conditional rate per group gives us the whole comparison because the other rate is its complement. When both variables have more than two categories, we need multiple bars for each group. <a href="#fig-econ-expect-by-income" class="quarto-xref">Figure&nbsp;<span>6.1</span></a> shows that arrangement: each income-group cluster is one conditional distribution, so its three bars sum to 100%.</p>
+<p>For a binary outcome, one conditional rate per group gives us the whole comparison because the other rate is its complement. When both variables have more than two categories, we need multiple bars for each group. <a href="#fig-outlook-by-employ" class="quarto-xref">Figure&nbsp;<span>6.1</span></a> shows that arrangement: each employment-group cluster is one conditional distribution, so its four bars sum to 100%.</p>
 <p><a href="#fig-default-rate-by-purpose" class="quarto-xref">Figure&nbsp;<span>6.2</span></a> returns to all 92,902 loans and all loan purposes from Chapter 5. It shows the conditional default rate for each purpose, sorted from highest to lowest.</p>
 <div class="cell">
 <div class="cell-output-display">
@@ -742,7 +756,7 @@ Simpson's paradox section. Candidate examples:
 <h2 class="unnumbered anchored" data-anchor-id="data-used-in-this-section">Data used in this section</h2>
 <ul>
 <li><a href="./appendix_data.html#sec-data-lendingclub-kaggle">LendingClub Accepted Loans</a></li>
-<li><a href="./appendix_data.html#sec-data-consumer-soc">Surveys of Consumers</a></li>
+<li><a href="./appendix_data.html#sec-data-shed">Household economics (SHED)</a></li>
 </ul>
 
 

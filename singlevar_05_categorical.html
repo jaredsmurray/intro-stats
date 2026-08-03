@@ -82,13 +82,13 @@ ul.task-list li input[type="checkbox"] {
   --color1: #EEF1F3;
   --color2: #5B6770;
 }
-.Exercise {
-  --color1: #E7F4F5;
-  --color2: #147D85;
-}
 .Notation {
   --color1: #EEF1F3;
   --color2: #5B6770;
+}
+.Exercise {
+  --color1: #E7F4F5;
+  --color2: #147D85;
 }
 </style>
 
@@ -445,7 +445,7 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#why-bar-charts-and-dot-plots-work" id="toc-why-bar-charts-and-dot-plots-work" class="nav-link" data-scroll-target="#why-bar-charts-and-dot-plots-work"><span class="header-section-number">5.6.1</span> Why bar charts and dot plots work</a></li>
   <li><a href="#the-distribution-of-loan-purpose" id="toc-the-distribution-of-loan-purpose" class="nav-link" data-scroll-target="#the-distribution-of-loan-purpose"><span class="header-section-number">5.6.2</span> The distribution of loan purpose</a></li>
-  <li><a href="#an-ordinal-example-consumer-expectations" id="toc-an-ordinal-example-consumer-expectations" class="nav-link" data-scroll-target="#an-ordinal-example-consumer-expectations"><span class="header-section-number">5.6.3</span> An ordinal example: consumer expectations</a></li>
+  <li><a href="#an-ordinal-example-rating-the-economy" id="toc-an-ordinal-example-rating-the-economy" class="nav-link" data-scroll-target="#an-ordinal-example-rating-the-economy"><span class="header-section-number">5.6.3</span> An ordinal example: rating the economy</a></li>
   <li><a href="#good-practice-and-pitfalls" id="toc-good-practice-and-pitfalls" class="nav-link" data-scroll-target="#good-practice-and-pitfalls"><span class="header-section-number">5.6.4</span> Good practice and pitfalls</a></li>
   </ul></li>
   <li><a href="#data-used-in-this-section" id="toc-data-used-in-this-section" class="nav-link" data-scroll-target="#data-used-in-this-section">Data used in this section</a></li>
@@ -479,7 +479,7 @@ window.Quarto = {
 <h2 data-number="5.1" class="anchored" data-anchor-id="kinds-of-categorical-variables"><span class="header-section-number">5.1</span> Kinds of categorical variables</h2>
 <p>A <strong>categorical variable</strong> records which of several groups an observation belongs to. Two features help us describe its categories: whether they have a meaningful order and how many there are.</p>
 <p>A <strong>nominal</strong> variable has categories with no natural order. In the <code>lending</code> data, <code>purpose</code> takes fourteen values, including <code>debt_consolidation</code>, <code>credit_card</code>, <code>small_business</code>, and <code>car</code>. Nothing about the data says one should come before another. Any ordering we impose is for our own convenience, not a property of the variable.</p>
-<p>An <strong>ordinal</strong> variable has categories that fall in a natural order, but the spacing between them is not meaningful. LendingClub’s loan <code>grade</code> runs from <code>A</code> (least risky) down to <code>G</code> (most risky). We know <code>A</code> beats <code>B</code> beats <code>C</code>, but the gap from <code>A</code> to <code>B</code> need not equal the gap from <code>F</code> to <code>G</code>. The gaps are not measurable. The consumer survey gives another example. When respondents say their finances will “be better,” “the same,” or “be worse” next year, the three answers are ordered, but the distance between them is anyone’s guess.</p>
+<p>An <strong>ordinal</strong> variable has categories that fall in a natural order, but the spacing between them is not meaningful. LendingClub’s loan <code>grade</code> runs from <code>A</code> (least risky) down to <code>G</code> (most risky). We know <code>A</code> beats <code>B</code> beats <code>C</code>, but the gap from <code>A</code> to <code>B</code> need not equal the gap from <code>F</code> to <code>G</code>. The gaps are not measurable. A national household survey we’ll meet later in the chapter gives another example. When respondents rate national economic conditions as “poor,” “only fair,” “good,” or “excellent,” the four answers are ordered, but the distance between them is anyone’s guess.</p>
 <p>A <strong>binary</strong> variable has exactly two categories. A loan being charged off, an employee leaving the company, and a survey respondent owning their home are all yes-or-no facts. Because binary describes the number of categories, a binary variable can be nominal or ordinal.</p>
 </section>
 <section id="frequency-tables-counts-and-proportions" class="level2" data-number="5.2">
@@ -755,24 +755,24 @@ Figure&nbsp;5.3: The same loan-purpose distribution as a dot plot. Each category
 </div>
 <p>Both charts summarize <code>purpose</code> on its own. The more pointed question — which purposes default most often — asks how a <em>second</em> variable, <code>default</code>, shifts across these categories. That is a two-variable summary, and it is where the next chapter begins.</p>
 </section>
-<section id="an-ordinal-example-consumer-expectations" class="level3" data-number="5.6.3">
-<h3 data-number="5.6.3" class="anchored" data-anchor-id="an-ordinal-example-consumer-expectations"><span class="header-section-number">5.6.3</span> An ordinal example: consumer expectations</h3>
-<p>Sorting by size was the right call for <code>purpose</code>, whose categories have no inherent order. Ordinal variables call for the opposite. The University of Michigan Surveys of Consumers ask a national sample how they expect their own finances to change over the coming year, and the answer falls into three ordered categories — “will be better,” “the same,” or “will be worse” — plus a fourth, “don’t know,” for those who won’t commit. Restricting to interviews from 2015 through 2025, <a href="#fig-soc-expectations" class="quarto-xref">Figure&nbsp;<span>5.4</span></a> plots the responses in that natural order.</p>
+<section id="an-ordinal-example-rating-the-economy" class="level3" data-number="5.6.3">
+<h3 data-number="5.6.3" class="anchored" data-anchor-id="an-ordinal-example-rating-the-economy"><span class="header-section-number">5.6.3</span> An ordinal example: rating the economy</h3>
+<p>Sorting by size was the right call for <code>purpose</code>, whose categories have no inherent order. Ordinal variables call for the opposite. Each fall the Federal Reserve’s Survey of Household Economics and Decisionmaking asks a national sample of U.S. adults to rate economic conditions in this country today; the 2025 wave surveyed 12,934 people drawn from a panel built to represent the adult population. The answer falls into four ordered categories — “poor,” “only fair,” “good,” or “excellent.” <a href="#fig-shed-outlook" class="quarto-xref">Figure&nbsp;<span>5.4</span></a> plots the 2025 responses in that natural order.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-soc-expectations" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="fig-shed-outlook" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-soc-expectations-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="singlevar_05_categorical_files/figure-html/fig-soc-expectations-1.png" class="img-fluid figure-img" width="576">
+<div aria-describedby="fig-shed-outlook-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="singlevar_05_categorical_files/figure-html/fig-shed-outlook-1.png" class="img-fluid figure-img" width="576">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-soc-expectations-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5.4: How U.S. consumers expected their personal finances to change over the coming year (Surveys of Consumers, 2015–2025). The three ordered categories run better to worse; “don’t know” is a recorded response shown last and in grey because it does not sit on that scale.
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-shed-outlook-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5.4: How U.S. households rated national economic conditions (Survey of Household Economics and Decisionmaking, 2025). The four ordered categories run poor to excellent.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>The tallest bar is “same,” but we leave it in the middle where it belongs. The three substantive categories are ordered, so their sequence is part of the message. Reading left to right traces sentiment from optimism to pessimism. Sorting by height would throw that away. “Don’t know” is a recorded response, but it does not have a place on the better-to-worse scale. We therefore place it at the far end and grey it out. Missing responses supply no category and were omitted from the chart.</p>
+<p>The tallest bar is “only fair,” but we leave it second from the left where it belongs. The categories are ordered, so their sequence is part of the message: reading left to right traces the ratings from grim to glowing. Sorting by height would throw that away. It would also cost information the layout carries: fewer than 2% of households answered “excellent,” and at the end of the scale that sliver says something on its own — almost nobody puts conditions at the top. Sorted by size, the same bar reads as merely the rarest answer, with nothing to show it is the scale’s endpoint.</p>
 </section>
 <section id="good-practice-and-pitfalls" class="level3" data-number="5.6.4">
 <h3 data-number="5.6.4" class="anchored" data-anchor-id="good-practice-and-pitfalls"><span class="header-section-number">5.6.4</span> Good practice and pitfalls</h3>
@@ -836,7 +836,7 @@ Figure&nbsp;5.4: How U.S. consumers expected their personal finances to change o
 <ul>
 <li><a href="./appendix_data.html#sec-data-lendingclub-kaggle">LendingClub Accepted Loans</a></li>
 <li><a href="./appendix_data.html#sec-data-wfh-bloom">Bloom, Han &amp; Liang (2024) Hybrid WFH Experiment</a></li>
-<li><a href="./appendix_data.html#sec-data-consumer-soc">Surveys of Consumers</a></li>
+<li><a href="./appendix_data.html#sec-data-shed">Household economics (SHED)</a></li>
 </ul>
 
 

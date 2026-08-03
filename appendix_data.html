@@ -128,9 +128,9 @@ div.csl-indent {
   }
 }</script>
 <style>
-.Definition {
-  --color1: #F4EAF0;
-  --color2: #7C3F58;
+.Notation {
+  --color1: #EEF1F3;
+  --color2: #5B6770;
 }
 .TechnicalDetail {
   --color1: #EEF1F3;
@@ -140,9 +140,9 @@ div.csl-indent {
   --color1: #E7F4F5;
   --color2: #147D85;
 }
-.Notation {
-  --color1: #EEF1F3;
-  --color2: #5B6770;
+.Definition {
+  --color1: #F4EAF0;
+  --color2: #7C3F58;
 }
 </style>
 
@@ -502,7 +502,7 @@ div.csl-indent {
   <li><a href="#productivity" id="toc-productivity" class="nav-link" data-scroll-target="#productivity">Productivity</a></li>
   <li><a href="#manager-perceptions" id="toc-manager-perceptions" class="nav-link" data-scroll-target="#manager-perceptions">Manager Perceptions</a></li>
   </ul></li>
-  <li><a href="#sec-data-consumer-soc" id="toc-sec-data-consumer-soc" class="nav-link" data-scroll-target="#sec-data-consumer-soc"><span class="header-section-number">A.10</span> Surveys of Consumers</a>
+  <li><a href="#sec-data-shed" id="toc-sec-data-shed" class="nav-link" data-scroll-target="#sec-data-shed"><span class="header-section-number">A.10</span> Household economics (SHED)</a>
   <ul class="collapse">
   <li><a href="#variables-7" id="toc-variables-7" class="nav-link" data-scroll-target="#variables-7">Variables</a></li>
   </ul></li>
@@ -2429,24 +2429,23 @@ Table&nbsp;A.12: Variables in <code>perceptions.csv</code>.
 <p>We use the Bloom, Han &amp; Liang (2024) hybrid WFH experimental data <span class="citation" data-cites="wfh-bloom">(<a href="appendix_data.html#ref-wfh-bloom" role="doc-biblioref">Bloom et al. 2024</a>)</span>; variable definitions and provenance are in <a href="#sec-data-wfh-bloom" class="quarto-xref"><span>Section A.9</span></a>.</p>
 </section>
 </section>
-<section id="sec-data-consumer-soc" class="level2" data-number="A.10">
-<h2 data-number="A.10" class="anchored" data-anchor-id="sec-data-consumer-soc"><span class="header-section-number">A.10</span> Surveys of Consumers</h2>
-<p>The Surveys of Consumers (SCA) is a recurring household survey conducted by the University of Michigan tracking consumer sentiment, financial expectations, and economic attitudes. The survey is designed to measure how households perceive their current financial situation relative to the recent past, their expectations about the near-term economic outlook, and their subjective assessments of price and income dynamics. Individual responses are aggregated into the widely cited Index of Consumer Sentiment (ICS) and its two component sub-indices. The dataset covers 342,345 interviews conducted between January 1978 and early 2026, spanning 578 distinct survey months.</p>
+<section id="sec-data-shed" class="level2" data-number="A.10">
+<h2 data-number="A.10" class="anchored" data-anchor-id="sec-data-shed"><span class="header-section-number">A.10</span> Household economics (SHED)</h2>
+<p>The Survey of Household Economics and Decisionmaking (SHED) is an annual survey of U.S. adults conducted since 2013 by the Board of Governors of the Federal Reserve System. It measures how households assess their own finances and the broader economy, alongside employment, income, housing, and demographic characteristics. The course extract <code>shed_2025.csv</code> covers the 2025 wave: 12,934 respondents, drawn from a probability-based online panel designed to be representative of the U.S. adult population.</p>
 <p><strong>Resources:</strong></p>
 <ul>
-<li><a href="https://data.sca.isr.umich.edu">Surveys of Consumers — University of Michigan</a></li>
+<li><a href="https://www.federalreserve.gov/consumerscommunities/shed.htm">SHED — Board of Governors of the Federal Reserve System</a></li>
+<li><a href="https://www.federalreserve.gov/consumerscommunities/shed_data.htm">Public-use data and codebooks</a></li>
 </ul>
-<p><strong>Provenance.</strong> The Surveys of Consumers is conducted monthly by the Survey Research Center at the University of Michigan. Respondents are a nationally representative sample of U.S. households, reached by telephone (random-digit dial, landline and cell) and, from the mid-2010s onward, by addressed-based web panel. The panel includes a reinterview component: a share of respondents are re-contacted after approximately six months, enabling a limited longitudinal dimension. The working file <code>soc_clean.csv</code> is a processed extract from the raw microdata; variable names have been standardized to snake_case, numeric missing-value codes have been replaced with <code>NA</code>, and every categorical variable has been given a companion <code>_label</code> text column. See <span class="citation" data-cites="consumer-soc">University of Michigan, Survey Research Center (<a href="appendix_data.html#ref-consumer-soc" role="doc-biblioref">n.d.</a>)</span> for the primary citation.</p>
+<p><strong>Provenance.</strong> The public-use 2025 microdata file was downloaded from the Board’s SHED data page. As a work of the federal government, the file is in the public domain and may be copied and distributed without permission; the Board requests citation. The course extract keeps nine columns from the original 380, renames them to snake_case, and changes no values. Survey weights are not carried in the extract; course examples report unweighted proportions, which on the extract’s variables differ from weighted ones by less than a percentage point. Respondents rate every retained item on a forced-choice basis, so the extract has no missing values and no “don’t know” category.</p>
 <section id="variables-7" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="variables-7">Variables</h3>
-<p><em>Note on label columns.</em> Every categorical variable documented below has a companion <code>{variable}_label</code> column in <code>soc_clean.csv</code> containing the text label corresponding to the integer code (e.g., <code>sample_type_label = "Landline RDD Interview"</code> alongside <code>sample_type = 1</code>). The label columns are not listed separately in the table below.</p>
-<p><em>Note on DK codes.</em> For categorical variables, “Don’t know” responses are retained as a labeled category rather than set to <code>NA</code>. For numeric probability variables (<code>prob_income_incr_5yr</code>, <code>prob_income_incr_1yr</code>, <code>prob_job_loss_5yr</code>, <code>prob_soc_sec_adequate</code>), the DK code 998 is left as an out-of-range numeric value; analysts should filter to values ≤ 100 before computing statistics.</p>
-<div id="tbl-vars-consumer-soc" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-vars-shed" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-vars-consumer-soc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;A.13: Variables from the Surveys of Consumers data.
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-vars-shed-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;A.13: Variables in the SHED 2025 extract.
 </figcaption>
-<div aria-describedby="tbl-vars-consumer-soc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div aria-describedby="tbl-vars-shed-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
 <col style="width: 25%">
@@ -2466,338 +2465,56 @@ Table&nbsp;A.13: Variables from the Surveys of Consumers data.
 <tr class="odd">
 <td><code>case_id</code></td>
 <td>Discrete</td>
-<td>1–342,346</td>
-<td>Sequential case identification number.</td>
-</tr>
-<tr class="even">
-<td><code>interview_id</code></td>
-<td>Discrete</td>
 <td>—</td>
-<td>Unique interview identifier assigned by the survey.</td>
-</tr>
-<tr class="odd">
-<td><code>survey_date</code></td>
-<td>Date</td>
-<td>1978-01 to 2026-02</td>
-<td>Date of interview, set to the first of the survey month. Parsed from the original YYYYMM integer. Quarter is derivable via <code>lubridate::quarter(survey_date)</code>.</td>
+<td>Respondent identifier assigned by the survey (<code>shedid</code> in the source file).</td>
 </tr>
 <tr class="even">
-<td><code>survey_year</code></td>
-<td>Discrete</td>
-<td>1978–2026</td>
-<td>Four-digit survey year.</td>
+<td><code>econ_conditions_country</code></td>
+<td>Categorical (ordinal)</td>
+<td>Poor / Only fair / Good / Excellent</td>
+<td>“In this country — how would you rate economic conditions today?” (source item <code>B7_b</code>).</td>
 </tr>
 <tr class="odd">
-<td><code>interview_id_prev</code></td>
-<td>Discrete</td>
-<td>—</td>
-<td>Interview identifier from the prior wave; <code>NA</code> for first-time respondents. Used to link reinterview records.</td>
-</tr>
-<tr class="even">
-<td><code>date_prev</code></td>
-<td>Date</td>
-<td>—</td>
-<td>Date of prior interview; <code>NA</code> for first-time respondents.</td>
-</tr>
-<tr class="odd">
-<td><code>interview_id_prev2</code></td>
-<td>Discrete</td>
-<td>—</td>
-<td>Interview identifier from the first wave for respondents on their third interview; otherwise <code>NA</code>.</td>
-</tr>
-<tr class="even">
-<td><code>date_prev2</code></td>
-<td>Date</td>
-<td>—</td>
-<td>Date of first interview for third-wave respondents; otherwise <code>NA</code>.</td>
-</tr>
-<tr class="odd">
-<td><code>sample_type</code></td>
+<td><code>employment_status</code></td>
 <td>Categorical</td>
-<td>1–8</td>
-<td>Sampling frame and interview iteration: landline RDD (interview/reinterview), cell RDD (interview/reinterview/second reinterview), or addressed-based web (interview/first reinterview/second reinterview).</td>
+<td>Not working / Working part-time / Working full-time</td>
+<td>Panel-recorded employment status (<code>ppemploy</code>).</td>
 </tr>
 <tr class="even">
-<td><code>interview_method</code></td>
+<td><code>household_income</code></td>
+<td>Categorical (ordinal)</td>
+<td>7 bins, Less than $10,000 to $150,000 or more</td>
+<td>Total household income bin (<code>ppinc7</code>).</td>
+</tr>
+<tr class="odd">
+<td><code>age_category</code></td>
+<td>Categorical (ordinal)</td>
+<td>7 bins, 18–24 to 75+</td>
+<td>Respondent age bin (<code>ppagecat</code>).</td>
+</tr>
+<tr class="even">
+<td><code>education</code></td>
+<td>Categorical (ordinal)</td>
+<td>4 levels</td>
+<td>Highest educational attainment (<code>ppeducat</code>).</td>
+</tr>
+<tr class="odd">
+<td><code>gender</code></td>
 <td>Categorical</td>
-<td>1–4</td>
-<td>Mode of data collection: telephone CATI (1), web (2), telephone paper-and-pencil (3), or in-person (4). Value 4 appears in the codebook but is absent from this extract.</td>
-</tr>
-<tr class="odd">
-<td><code>weight</code></td>
-<td>Continuous</td>
-<td>≥ 0, mean = 1</td>
-<td>Recommended survey weight for estimation. Equals <code>weight_hh</code> for telephone interviews and <code>weight_quintmed</code> for web interviews.</td>
-</tr>
-<tr class="even">
-<td><code>weight_hh</code></td>
-<td>Continuous</td>
-<td>≥ 0, mean = 1</td>
-<td>Household head weight bracketed on phone data; <code>NA</code> for web-only records.</td>
-</tr>
-<tr class="odd">
-<td><code>weight_quintmed</code></td>
-<td>Continuous</td>
-<td>≥ 0, mean = 1</td>
-<td>Household head weight bracketed on quintile medians; populated for web-only records.</td>
-</tr>
-<tr class="even">
-<td><code>idx_consumer_sentiment</code></td>
-<td>Continuous</td>
-<td>2–151</td>
-<td>Index of Consumer Sentiment (ICS): a composite index summarizing overall consumer economic confidence.</td>
-</tr>
-<tr class="odd">
-<td><code>idx_current_conditions</code></td>
-<td>Continuous</td>
-<td>2–154</td>
-<td>Index of Current Economic Conditions (ICC): component of ICS measuring perceptions of present financial and buying conditions.</td>
-</tr>
-<tr class="even">
-<td><code>idx_consumer_expectations</code></td>
-<td>Continuous</td>
-<td>2–149</td>
-<td>Index of Consumer Expectations (ICE): component of ICS measuring expectations about future economic conditions.</td>
-</tr>
-<tr class="odd">
-<td><code>fin_vs_year_ago</code></td>
-<td>Categorical</td>
-<td>1, 3, 5, 8</td>
-<td>Self-reported change in personal financial situation relative to a year ago: Better (1), Same (3), Worse (5), Don’t know (8). <code>NA</code> where not applicable.</td>
-</tr>
-<tr class="even">
-<td><code>fin_reason1</code></td>
-<td>Categorical</td>
-<td>40+ codes</td>
-<td>Primary reason given for financial change (favorable codes 10–39; unfavorable codes 50–78; 0 = no change / no reason; 98 = Don’t know; 333 = no change, no reason, web only). <code>NA</code> where not applicable.</td>
-</tr>
-<tr class="odd">
-<td><code>fin_reason2</code></td>
-<td>Categorical</td>
-<td>40+ codes</td>
-<td>Secondary reason for financial change; same coding as <code>fin_reason1</code>. Code 0 indicates no second reason was given.</td>
-</tr>
-<tr class="even">
-<td><code>fin_expect_next_year</code></td>
-<td>Categorical</td>
-<td>1, 3, 5, 8</td>
-<td>Expected change in personal financial situation over the next year: Will be better (1), Same (3), Will be worse (5), Don’t know (8).</td>
-</tr>
-<tr class="odd">
-<td><code>econ_vs_year_ago</code></td>
-<td>Categorical</td>
-<td>1, 3, 5, 8</td>
-<td>Assessment of business conditions relative to a year ago: Better (1), About the same (3), Worse (5), Don’t know (8).</td>
-</tr>
-<tr class="even">
-<td><code>econ_expect_next_year</code></td>
-<td>Categorical</td>
-<td>1, 3, 5, 8</td>
-<td>Expected business conditions a year from now: Better (1), About the same (3), Worse (5), Don’t know (8).</td>
-</tr>
-<tr class="odd">
-<td><code>bus_conditions_12mo</code></td>
-<td>Categorical</td>
-<td>1–5, 8</td>
-<td>Assessment of whether the next 12 months will bring good or bad times financially, on a 5-point scale from Good times (1) to Bad times (5); 8 = Don’t know.</td>
-</tr>
-<tr class="even">
-<td><code>bus_conditions_5yr</code></td>
-<td>Categorical</td>
-<td>1–5, 98</td>
-<td>5-year economic outlook on the same Good–Bad scale; 98 = Don’t know.</td>
-</tr>
-<tr class="odd">
-<td><code>price_dir_1yr</code></td>
-<td>Categorical</td>
-<td>1, 2, 3, 5, 8</td>
-<td>Expected direction of general price change over the next 12 months: Go up (1), Go up at same rate (2), Same (3), Go down (5), Don’t know (8).</td>
-</tr>
-<tr class="even">
-<td><code>price_pct_1yr</code></td>
-<td>Continuous</td>
-<td>1–95, 98</td>
-<td>Expected percent price change over the next year; 98 = Don’t know (out-of-range, not <code>NA</code>).</td>
-</tr>
-<tr class="odd">
-<td><code>price_expect_1yr</code></td>
-<td>Continuous</td>
-<td>−95 to 95</td>
-<td>Recoded composite of <code>price_dir_1yr</code> and <code>price_pct_1yr</code>: positive values indicate expected inflation, negative values expected deflation. Out-of-range sentinels: −97 = DK how much down, 96 = DK how much up, 98 = DK direction.</td>
-</tr>
-<tr class="even">
-<td><code>price_dir_5yr</code></td>
-<td>Categorical</td>
-<td>1, 2, 3, 5, 8</td>
-<td>Expected direction of price change over the next 5–10 years; same coding as <code>price_dir_1yr</code>.</td>
-</tr>
-<tr class="odd">
-<td><code>price_pct_5yr</code></td>
-<td>Continuous</td>
-<td>1–95, 98</td>
-<td>Expected percent price change per year over 5–10 years; 98 = Don’t know.</td>
-</tr>
-<tr class="even">
-<td><code>price_expect_5yr</code></td>
-<td>Continuous</td>
-<td>−95 to 95</td>
-<td>Recoded 5-year price expectation; same sign convention as <code>price_expect_1yr</code>.</td>
-</tr>
-<tr class="odd">
-<td><code>income</code></td>
-<td>Continuous</td>
-<td>0–999,999 USD</td>
-<td>Total household income from all sources in the prior calendar year, in current dollars. Bracket midpoints used where the open-format question was answered in bracket form.</td>
-</tr>
-<tr class="even">
-<td><code>income_format</code></td>
-<td>Categorical</td>
-<td>1–3</td>
-<td>Whether <code>income</code> was collected as an open-format dollar amount (1), a bracket question answered in open format and coded to midpoint (2), or a bracket question answered in bracket form and coded to midpoint (3). <code>NA</code> in recent survey waves.</td>
-</tr>
-<tr class="odd">
-<td><code>income_ptile_bottom10</code></td>
-<td>Binary</td>
-<td>1 / 5</td>
-<td>Indicator of whether the household falls in the bottom 10% (1) or top 90% (5) of the income distribution.</td>
-</tr>
-<tr class="even">
-<td><code>income_ptile_top10</code></td>
-<td>Binary</td>
-<td>1 / 5</td>
-<td>Indicator of whether the household falls in the top 10% (1) or bottom 90% (5) of the income distribution.</td>
-</tr>
-<tr class="odd">
-<td><code>income_ptile_bottom50</code></td>
-<td>Binary</td>
-<td>1 / 5</td>
-<td>Indicator of whether the household falls in the bottom 50% (1) or top 50% (5) of the income distribution.</td>
-</tr>
-<tr class="even">
-<td><code>income_quintile</code></td>
-<td>Ordinal</td>
-<td>1–5</td>
-<td>Income quintile: Bottom 20% (1) through Top 20% (5).</td>
-</tr>
-<tr class="odd">
-<td><code>homeown</code></td>
-<td>Categorical</td>
-<td>1, 2</td>
-<td>Home ownership status: Owns or buying (1), Rents (2).</td>
-</tr>
-<tr class="even">
-<td><code>invest_stocks</code></td>
-<td>Categorical</td>
-<td>1, 5</td>
-<td>Whether the household holds any stock market investments — direct holdings, mutual funds, or retirement accounts such as 401(k)s, IRAs, or Keogh accounts: Yes (1), No (5). The No category includes DK and NA responses per the original coding.</td>
-</tr>
-<tr class="odd">
-<td><code>age</code></td>
-<td>Discrete</td>
-<td>18–97</td>
-<td>Age of respondent in years. Top-coded at 97 (i.e., 97 = “97 or older”).</td>
+<td>Male / Female</td>
+<td>Panel-recorded gender (<code>ppgender</code>).</td>
 </tr>
 <tr class="even">
 <td><code>region</code></td>
 <td>Categorical</td>
-<td>1–4</td>
-<td>U.S. Census region of residence: West (1), North Central (2), Northeast (3), South (4).</td>
+<td>Northeast / Midwest / South / West</td>
+<td>Census region of residence (<code>ppreg4</code>).</td>
 </tr>
 <tr class="odd">
-<td><code>sex</code></td>
+<td><code>housing_status</code></td>
 <td>Categorical</td>
-<td>1, 2</td>
-<td>Sex of respondent: Male (1), Female (2).</td>
-</tr>
-<tr class="even">
-<td><code>marital_status</code></td>
-<td>Categorical</td>
-<td>1, 3, 4, 5</td>
-<td>Marital status: Married or partnered (1), Divorced or separated (3), Widowed (4), Never married (5).</td>
-</tr>
-<tr class="odd">
-<td><code>num_children</code></td>
-<td>Discrete</td>
-<td>0–5</td>
-<td>Number of household members aged 17 or younger.</td>
-</tr>
-<tr class="even">
-<td><code>num_adults</code></td>
-<td>Discrete</td>
-<td>1–9</td>
-<td>Number of household members aged 18 or older, including the respondent.</td>
-</tr>
-<tr class="odd">
-<td><code>education</code></td>
-<td>Ordinal</td>
-<td>1–6</td>
-<td>Highest level of education completed: Grade 0–8 without HS diploma (1), Grade 9–12 without HS diploma (2), HS diploma (3), Some college without degree (4), College degree (5), Graduate degree (6).</td>
-</tr>
-<tr class="even">
-<td><code>educ_college_grad</code></td>
-<td>Categorical</td>
-<td>1, 5, 8</td>
-<td>Holds a college degree: Yes (1), No (5), Don’t know (8).</td>
-</tr>
-<tr class="odd">
-<td><code>educ_hs_grad</code></td>
-<td>Categorical</td>
-<td>1, 5, 8</td>
-<td>Holds a high school diploma or equivalency: Yes (1), No (5), Don’t know (8).</td>
-</tr>
-<tr class="even">
-<td><code>party_affil</code></td>
-<td>Categorical</td>
-<td>1, 2, 3, 8</td>
-<td>Political party identification: Republican (1), Democrat (2), Independent or no preference (3), Don’t know (8). <code>NA</code> for roughly 245,000 records from survey waves in which this question was not asked.</td>
-</tr>
-<tr class="odd">
-<td><code>party_rep_strength</code></td>
-<td>Categorical</td>
-<td>1, 5, 8</td>
-<td>Strength of Republican identification (asked only of self-identified Republicans): Strong (1), Not so strong (5), Don’t know (8).</td>
-</tr>
-<tr class="even">
-<td><code>party_dem_strength</code></td>
-<td>Categorical</td>
-<td>1, 5, 8</td>
-<td>Strength of Democratic identification (asked only of self-identified Democrats): Strong (1), Not so strong (5), Don’t know (8).</td>
-</tr>
-<tr class="odd">
-<td><code>party_closer</code></td>
-<td>Categorical</td>
-<td>1, 5, 6, 8</td>
-<td>For Independents: which party do you feel closer to? Republican (1), Democratic (5), Neither (6), Don’t know (8).</td>
-</tr>
-<tr class="even">
-<td><code>prob_income_incr_5yr</code></td>
-<td>Continuous</td>
-<td>0–100, 998</td>
-<td>Subjective percent probability that own income will increase by more than inflation over the next five years. 998 = Don’t know (retained as out-of-range; filter to ≤ 100 for analysis).</td>
-</tr>
-<tr class="odd">
-<td><code>prob_income_incr_1yr</code></td>
-<td>Continuous</td>
-<td>0–100, 998</td>
-<td>Subjective percent probability that own income will be higher next year than in the past 12 months. 998 = Don’t know. <code>NA</code> where not applicable or where respondent reported no personal income (see <code>no_personal_income</code>).</td>
-</tr>
-<tr class="even">
-<td><code>no_personal_income</code></td>
-<td>Binary</td>
-<td>TRUE / FALSE</td>
-<td>TRUE for the 363 respondents who volunteered having no personal income when asked <code>prob_income_incr_1yr</code>. These records have <code>NA</code> in the probability column.</td>
-</tr>
-<tr class="odd">
-<td><code>prob_job_loss_5yr</code></td>
-<td>Continuous</td>
-<td>0–100, 998</td>
-<td>Subjective percent probability of losing a job the respondent (or spouse/partner) wanted to keep during the next five years. 998 = Don’t know.</td>
-</tr>
-<tr class="even">
-<td><code>prob_soc_sec_adequate</code></td>
-<td>Continuous</td>
-<td>0–100, 998</td>
-<td>Subjective percent probability that Social Security and pension income will be adequate to maintain living standards in retirement. 998 = Don’t know.</td>
+<td>Own with mortgage / Own free and clear / Pay rent / Neither own nor rent</td>
+<td>Home tenure (source item <code>GH1</code>).</td>
 </tr>
 </tbody>
 </table>
@@ -3001,10 +2718,6 @@ Journal of Business</em> 39 (1): 119–38.
 <em>Three-Asset Weekly Return and Price Series, October 2023–September
 2025</em>. 2025. Assembled from Yahoo Finance via the
 <code>tidyquant</code> R package (<a href="https://cran.r-project.org/package=tidyquant" class="uri">https://cran.r-project.org/package=tidyquant</a>).
-</div>
-<div id="ref-consumer-soc" class="csl-entry" role="listitem">
-University of Michigan, Survey Research Center. n.d. <em>Surveys of
-Consumers</em>. Ann Arbor, MI. <a href="https://data.sca.isr.umich.edu">https://data.sca.isr.umich.edu</a>.
 </div>
 <div id="ref-earnings-cps" class="csl-entry" role="listitem">
 U.S. Census Bureau and Bureau of Labor Statistics. 2023. <em>Current
