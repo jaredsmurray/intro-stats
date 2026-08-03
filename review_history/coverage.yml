@@ -65,22 +65,22 @@ coverage:
   - source: singlevar_05_categorical.qmd
     chapter: 5
     status: reviewed
-    review: book_review_ch05_initial_20260730
+    review: shed_migration_delta_20260802
     review_type: deep
-    completed_at: 2026-07-30
-    source_hash: 8dfe4fec796b35e9bc3cfab386b8ff3317738cd0
-    scope: full
-    data_pin: null
+    completed_at: 2026-08-02
+    source_hash: 0c152713999576d11afb4768067df6edab81c3e2
+    scope: delta
+    data_pin: v2026.09
 
   - source: twovar_01_categorical-categorical.qmd
     chapter: 6
     status: reviewed
-    review: book_review_ch06_initial_20260730
+    review: shed_migration_delta_20260802
     review_type: deep
-    completed_at: 2026-07-30
-    source_hash: e501c4354e609a9bf2e30253c266e8eacf99c428
-    scope: full
-    data_pin: null
+    completed_at: 2026-08-02
+    source_hash: a03ea992558e944317d3202ce2466da640689666
+    scope: delta
+    data_pin: v2026.09
 
   - source: twovar_02_quantitative-quantitative.qmd
     chapter: 7
